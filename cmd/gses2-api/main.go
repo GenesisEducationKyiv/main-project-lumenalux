@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"gses2-app/controllers"
-	"gses2-app/services"
+	"gses2-app/internal/controllers"
+	"gses2-app/internal/services"
 )
 
 func main() {
