@@ -2,9 +2,12 @@ package subscription
 
 import (
 	"errors"
-
-	"gses2-app/pkg/storage"
 )
+
+type Storage interface {
+	Append(record []string) error
+	Read() ([][]string, error)
+}
 
 type Service interface {
 	Subscribe(email string) error
@@ -13,12 +16,14 @@ type Service interface {
 }
 
 type ServiceImpl struct {
-	Storage *storage.CSVStorage
+	Storage Storage
 }
 
-func NewService(storage *storage.CSVStorage) *ServiceImpl {
+func NewService(storage Storage) *ServiceImpl {
 	return &ServiceImpl{Storage: storage}
 }
+
+var ErrAlreadySubscribed = errors.New("email is already subscribed")
 
 func (s *ServiceImpl) Subscribe(email string) error {
 
@@ -27,7 +32,7 @@ func (s *ServiceImpl) Subscribe(email string) error {
 		return err
 	}
 	if subscribed {
-		return errors.New("email is already subscribed")
+		return ErrAlreadySubscribed
 	}
 
 	return s.Storage.Append([]string{email})
