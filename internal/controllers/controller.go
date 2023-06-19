@@ -34,7 +34,10 @@ func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(exchangeRate)
+	err = json.NewEncoder(w).Encode(exchangeRate)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
