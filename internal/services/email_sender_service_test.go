@@ -7,7 +7,7 @@ import (
 
 func TestConfigLoadFromYamlFile(t *testing.T) {
 	var config Config
-	err := config.loadFromYamlFile("../config.yaml")
+	err := config.loadFromYamlFile("../../config.yaml")
 	if err != nil {
 		t.Errorf("Error reading the config file: %v", err)
 	}
