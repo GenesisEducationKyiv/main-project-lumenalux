@@ -1,8 +1,11 @@
 package config
 
 type Config struct {
-	SMTP  SMTPConfig  `yaml:"smtp"`
-	Email EmailConfig `yaml:"email"`
+	SMTP    SMTPConfig    `yaml:"smtp"`
+	Email   EmailConfig   `yaml:"email"`
+	Storage StorageConfig `yaml:"storage"`
+	HTTP    HTTPConfig    `yaml:"http"`
+	KunaAPI KunaAPIConfig `yaml:"kuna_api"`
 }
 
 type EmailConfig struct {
@@ -16,4 +19,16 @@ type SMTPConfig struct {
 	Port     int    `yaml:"port"`
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
+}
+
+type StorageConfig struct {
+	Path string `yaml:"path"`
+}
+
+type HTTPConfig struct {
+	Port string `yaml:"port"`
+}
+
+type KunaAPIConfig struct {
+	Url string `yaml:"url"`
 }

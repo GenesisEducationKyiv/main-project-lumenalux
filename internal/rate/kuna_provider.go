@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"gses2-app/pkg/config"
 )
 
 type HTTPClient interface {
@@ -31,7 +33,8 @@ func (p *KunaProvider) ExchangeRate() (float32, error) {
 }
 
 func (p *KunaProvider) requestAPI() (*http.Response, error) {
-	resp, err := p.httpClient.Get("https://api.kuna.io/v3/tickers?symbols=btcuah")
+
+	resp, err := p.httpClient.Get(config.Current().KunaAPI.Url)
 	if err != nil {
 		return nil, err
 	}

@@ -71,6 +71,12 @@ email:
   from: no.reply@currency.info.api
   subject: BTC to UAH exchange rate
   body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
+storage:
+  path: ./storage.csv
+http:
+  port: 8080
+kuna_api:
+  url: https://api.kuna.io/v3/tickers?symbols=btcuah
 ```
 
 У секції `email`:
