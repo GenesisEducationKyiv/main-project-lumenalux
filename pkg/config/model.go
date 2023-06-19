@@ -30,5 +30,5 @@ type HTTPConfig struct {
 }
 
 type KunaAPIConfig struct {
-	Url string `yaml:"url"`
+	URL string `yaml:"url"`
 }

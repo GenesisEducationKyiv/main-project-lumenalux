@@ -34,7 +34,7 @@ func (p *KunaProvider) ExchangeRate() (float32, error) {
 
 func (p *KunaProvider) requestAPI() (*http.Response, error) {
 
-	resp, err := p.httpClient.Get(config.Current().KunaAPI.Url)
+	resp, err := p.httpClient.Get(config.Current().KunaAPI.URL)
 	if err != nil {
 		return nil, err
 	}

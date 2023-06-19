@@ -28,7 +28,7 @@ func TestLoad(t *testing.T) {
 			Port: "8080",
 		},
 		KunaAPI: KunaAPIConfig{
-			Url: "https://kuna.io/api/v2",
+			URL: "https://kuna.io/api/v2",
 		},
 	}
 
