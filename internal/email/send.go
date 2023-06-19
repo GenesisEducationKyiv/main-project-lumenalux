@@ -1,14 +1,21 @@
 package email
 
 import (
-	"net/smtp"
+	"io"
 )
 
-func setMail(client *smtp.Client, from string) error {
+type MailClient interface {
+	Mail(string) error
+	Rcpt(string) error
+	Data() (io.WriteCloser, error)
+	Quit() error
+}
+
+func setMail(client MailClient, from string) error {
 	return client.Mail(from)
 }
 
-func setRecipients(client *smtp.Client, to []string) error {
+func setRecipients(client MailClient, to []string) error {
 	for _, recipient := range to {
 		if err := client.Rcpt(recipient); err != nil {
 			return err
@@ -17,7 +24,7 @@ func setRecipients(client *smtp.Client, to []string) error {
 	return nil
 }
 
-func writeAndClose(client *smtp.Client, message []byte) error {
+func writeAndClose(client MailClient, message []byte) error {
 	writer, err := client.Data()
 	if err != nil {
 		return err
@@ -32,7 +39,7 @@ func writeAndClose(client *smtp.Client, message []byte) error {
 	return err
 }
 
-func SendEmail(client *smtp.Client, email *EmailMessage) error {
+func SendEmail(client MailClient, email *EmailMessage) error {
 	err := setMail(client, email.from)
 	if err != nil {
 		return err

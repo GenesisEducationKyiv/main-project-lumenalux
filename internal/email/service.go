@@ -12,10 +12,16 @@ type SenderService interface {
 	SendExchangeRate(float32, []string) int
 }
 
-type SenderServiceImpl struct{}
+type SenderServiceImpl struct {
+	dialer        Dialer
+	clientFactory SMTPClientFactory
+}
 
-func NewSenderService() *SenderServiceImpl {
-	return &SenderServiceImpl{}
+func NewSenderService(dialer Dialer, factory SMTPClientFactory) *SenderServiceImpl {
+	return &SenderServiceImpl{
+		dialer:        dialer,
+		clientFactory: factory,
+	}
 }
 
 type TemplateData struct {
@@ -28,7 +34,7 @@ func (es *SenderServiceImpl) SendExchangeRate(
 ) int {
 	config := config.Current()
 
-	client := NewSMTPClient(config.SMTP)
+	client := NewSMTPClient(config.SMTP, es.dialer, es.clientFactory)
 	clientConnection, err := client.Connect()
 	if err != nil {
 		log.Fatal(err)

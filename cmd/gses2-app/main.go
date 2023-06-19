@@ -20,14 +20,21 @@ func main() {
 		log.Fatal(err)
 	}
 
+	config := config.Current()
+
 	httpClient := &http.Client{Timeout: time.Second * 10}
-	provider := rate.NewKunaProvider(httpClient)
-	exchangeRateService := rate.NewService(provider)
+	exchangeRateService := rate.NewService(
+		rate.NewKunaProvider(httpClient),
+	)
 
-	storage := storage.NewCSVStorage("./storage.csv")
-	emailSubscriptionService := subscription.NewService(storage)
+	emailSubscriptionService := subscription.NewService(
+		storage.NewCSVStorage(config.Storage.Path),
+	)
 
-	emailSenderService := email.NewSenderService()
+	emailSenderService := email.NewSenderService(
+		&email.DialerImpl{},
+		&email.SMTPClientFactoryImpl{},
+	)
 
 	controller := controllers.NewAppController(
 		exchangeRateService,
@@ -39,6 +46,7 @@ func main() {
 	http.HandleFunc("/api/subscribe", controller.SubscribeEmail)
 	http.HandleFunc("/api/sendEmails", controller.SendEmails)
 
-	fmt.Println("Starting server on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	message := fmt.Sprintf("Starting server on port %s", config.HTTP.Port)
+	fmt.Println(message)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", config.HTTP.Port), nil))
 }
