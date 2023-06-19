@@ -53,7 +53,7 @@ func (ac *AppController) SendEmails(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	subscribers, err := ac.EmailSubscriptionService.GetSubscriptions()
+	subscribers, err := ac.EmailSubscriptionService.Subscriptions()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

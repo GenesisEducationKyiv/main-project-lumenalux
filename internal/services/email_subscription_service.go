@@ -9,7 +9,7 @@ import (
 type EmailSubscriptionService interface {
 	Subscribe(email string) error
 	IsSubscribed(email string) (bool, error)
-	GetSubscriptions() ([]string, error)
+	Subscriptions() ([]string, error)
 }
 
 type EmailSubscriptionServiceImpl struct {
@@ -34,7 +34,7 @@ func (s *EmailSubscriptionServiceImpl) Subscribe(email string) error {
 }
 
 func (s *EmailSubscriptionServiceImpl) IsSubscribed(email string) (bool, error) {
-	emails, err := s.getAllEmails()
+	emails, err := s.allEmails()
 	if err != nil {
 		return false, err
 	}
@@ -48,11 +48,11 @@ func (s *EmailSubscriptionServiceImpl) IsSubscribed(email string) (bool, error) 
 	return false, nil
 }
 
-func (s *EmailSubscriptionServiceImpl) GetSubscriptions() ([]string, error) {
-	return s.getAllEmails()
+func (s *EmailSubscriptionServiceImpl) Subscriptions() ([]string, error) {
+	return s.allEmails()
 }
 
-func (s *EmailSubscriptionServiceImpl) getAllEmails() ([]string, error) {
+func (s *EmailSubscriptionServiceImpl) allEmails() ([]string, error) {
 	records, err := s.readCSVFile()
 	if err != nil {
 		return nil, err

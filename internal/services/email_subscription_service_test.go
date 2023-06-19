@@ -55,13 +55,13 @@ func TestGetSubscriptions(t *testing.T) {
 
 	service := NewEmailSubscriptionService(testFilePath)
 
-	emails, err := service.GetSubscriptions()
+	emails, err := service.Subscriptions()
 	if err != nil || len(emails) != 0 {
 		t.Errorf("GetSubscriptions didn't return empty list for empty file")
 	}
 
 	service.Subscribe("test@test.com")
-	emails, err = service.GetSubscriptions()
+	emails, err = service.Subscriptions()
 	if err != nil || len(emails) != 1 || emails[0] != "test@test.com" {
 		t.Errorf("GetSubscriptions didn't return correct emails")
 	}

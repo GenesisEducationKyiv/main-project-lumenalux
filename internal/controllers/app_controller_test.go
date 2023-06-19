@@ -23,7 +23,7 @@ func (m *MockEmailSubscriptionService) IsSubscribed(email string) (bool, error) 
 	return true, nil
 }
 
-func (m *MockEmailSubscriptionService) GetSubscriptions() ([]string, error) {
+func (m *MockEmailSubscriptionService) Subscriptions() ([]string, error) {
 	return []string{"subscriber1@example.com", "subscriber2@example.com"}, nil
 }
 
