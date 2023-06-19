@@ -4,19 +4,20 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"gses2-app/internal/email"
 	"gses2-app/internal/services"
 )
 
 type AppController struct {
 	ExchangeRateService      services.ExchangeRateService
 	EmailSubscriptionService services.EmailSubscriptionService
-	EmailSenderService       services.EmailSenderService
+	EmailSenderService       email.SenderService
 }
 
 func NewAppController(
 	exchangeRateService services.ExchangeRateService,
 	emailSubscriptionService services.EmailSubscriptionService,
-	emailSenderService services.EmailSenderService,
+	emailSenderService email.SenderService,
 ) *AppController {
 	return &AppController{
 		ExchangeRateService:      exchangeRateService,
