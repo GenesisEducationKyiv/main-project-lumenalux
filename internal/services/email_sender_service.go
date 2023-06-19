@@ -7,56 +7,25 @@ import (
 	"log"
 	"net/http"
 	"net/smtp"
-	"os"
 	"strconv"
 	"strings"
 	"text/template"
 
-	yaml "gopkg.in/yaml.v2"
+	"gses2-app/pkg/config"
 )
 
 type EmailSenderService interface {
 	SendExchangeRate(float32, []string) int
 }
 
-type EmailSenderServiceImpl struct {
-	ConfigFilePath string
-}
+type EmailSenderServiceImpl struct{}
 
-func NewEmailSenderService(configFilePath string) *EmailSenderServiceImpl {
-	return &EmailSenderServiceImpl{ConfigFilePath: configFilePath}
+func NewEmailSenderService() *EmailSenderServiceImpl {
+	return &EmailSenderServiceImpl{}
 }
 
 type TemplateData struct {
 	Rate string
-}
-
-type Config struct {
-	SMTP  SMTPConfig  `yaml:"smtp"`
-	Email EmailConfig `yaml:"email"`
-}
-
-type EmailConfig struct {
-	From    string `yaml:"from"`
-	Subject string `yaml:"subject"`
-	Body    string `yaml:"body"`
-}
-
-type SMTPConfig struct {
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-}
-
-func (c *Config) loadFromYamlFile(filename string) error {
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-
-	err = yaml.Unmarshal(data, c)
-	return err
 }
 
 type SMTPClient struct {
@@ -66,7 +35,7 @@ type SMTPClient struct {
 	password string
 }
 
-func NewSMTPClient(config SMTPConfig) *SMTPClient {
+func NewSMTPClient(config config.SMTPConfig) *SMTPClient {
 	return &SMTPClient{
 		host:     config.Host,
 		port:     config.Port,
@@ -124,7 +93,11 @@ type EmailMessage struct {
 	body    string
 }
 
-func NewEmailMessage(config EmailConfig, to []string, data TemplateData) (*EmailMessage, error) {
+func NewEmailMessage(
+	config config.EmailConfig,
+	to []string,
+	data TemplateData,
+) (*EmailMessage, error) {
 	tmpl, err := template.New("email").Parse(config.Body)
 	if err != nil {
 		return nil, err
@@ -206,11 +179,7 @@ func (es *EmailSenderServiceImpl) SendExchangeRate(
 	exchangeRate float32,
 	emailAddresses []string,
 ) int {
-	var config Config
-	err := config.loadFromYamlFile(es.ConfigFilePath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	config := config.Current()
 
 	client := NewSMTPClient(config.SMTP)
 	clientConnection, err := client.Connect()

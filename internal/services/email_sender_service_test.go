@@ -3,18 +3,12 @@ package services
 import (
 	"strings"
 	"testing"
+
+	"gses2-app/pkg/config"
 )
 
-func TestConfigLoadFromYamlFile(t *testing.T) {
-	var config Config
-	err := config.loadFromYamlFile("../../config.yaml")
-	if err != nil {
-		t.Errorf("Error reading the config file: %v", err)
-	}
-}
-
 func TestNewSMTPClient(t *testing.T) {
-	config := SMTPConfig{
+	config := config.SMTPConfig{
 		Host:     "smtp.example.com",
 		Port:     465,
 		User:     "test@example.com",
@@ -31,7 +25,7 @@ func TestNewSMTPClient(t *testing.T) {
 }
 
 func TestNewEmailMessage(t *testing.T) {
-	config := EmailConfig{
+	config := config.EmailConfig{
 		From:    "test@example.com",
 		Subject: "Test",
 		Body:    "The current exchange rate is {{.Rate}}",
