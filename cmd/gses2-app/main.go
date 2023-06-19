@@ -8,8 +8,10 @@ import (
 
 	"gses2-app/internal/controllers"
 	"gses2-app/internal/email"
-	"gses2-app/internal/services"
+	"gses2-app/internal/rate"
+	"gses2-app/internal/subscription"
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/storage"
 )
 
 func main() {
@@ -19,13 +21,17 @@ func main() {
 	}
 
 	httpClient := &http.Client{Timeout: time.Second * 10}
-	exchangeRateService := services.NewExchangeRateService(httpClient)
-	emailSubscriptionService := services.NewEmailSubscriptionService("./storage.csv")
+	provider := rate.NewKunaProvider(httpClient)
+	exchangeRateService := rate.NewService(provider)
+
+	storage := storage.NewCSVStorage("./storage.csv")
+	emailSubscriptionService := subscription.NewService(storage)
+
 	emailSenderService := email.NewSenderService()
 
 	controller := controllers.NewAppController(
 		exchangeRateService,
-		&emailSubscriptionService,
+		emailSubscriptionService,
 		emailSenderService,
 	)
 

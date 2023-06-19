@@ -9,7 +9,7 @@ import (
 
 type MockExchangeRateService struct{}
 
-func (m *MockExchangeRateService) GetExchangeRate() (float32, error) {
+func (m *MockExchangeRateService) ExchangeRate() (float32, error) {
 	return 1.5, nil
 }
 

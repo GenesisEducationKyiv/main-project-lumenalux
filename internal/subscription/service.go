@@ -1,5 +1,3 @@
-// internal/subscription/service.go
-
 package subscription
 
 import (

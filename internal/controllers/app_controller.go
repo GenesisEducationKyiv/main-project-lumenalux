@@ -5,18 +5,18 @@ import (
 	"net/http"
 
 	"gses2-app/internal/email"
-	"gses2-app/internal/services"
+	"gses2-app/internal/rate"
 	"gses2-app/internal/subscription"
 )
 
 type AppController struct {
-	ExchangeRateService      services.ExchangeRateService
+	ExchangeRateService      rate.Service
 	EmailSubscriptionService subscription.Service
 	EmailSenderService       email.SenderService
 }
 
 func NewAppController(
-	exchangeRateService services.ExchangeRateService,
+	exchangeRateService rate.Service,
 	emailSubscriptionService subscription.Service,
 	emailSenderService email.SenderService,
 ) *AppController {
@@ -28,7 +28,7 @@ func NewAppController(
 }
 
 func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
-	exchangeRate, err := ac.ExchangeRateService.GetExchangeRate()
+	exchangeRate, err := ac.ExchangeRateService.ExchangeRate()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -49,7 +49,7 @@ func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) 
 }
 
 func (ac *AppController) SendEmails(w http.ResponseWriter, r *http.Request) {
-	exchangeRate, err := ac.ExchangeRateService.GetExchangeRate()
+	exchangeRate, err := ac.ExchangeRateService.ExchangeRate()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
