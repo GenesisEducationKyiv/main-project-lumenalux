@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"gses2-app/services"
+	"gses2-app/internal/services"
 )
 
 type AppController struct {
