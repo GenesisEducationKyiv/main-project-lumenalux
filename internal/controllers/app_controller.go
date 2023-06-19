@@ -6,17 +6,18 @@ import (
 
 	"gses2-app/internal/email"
 	"gses2-app/internal/services"
+	"gses2-app/internal/subscription"
 )
 
 type AppController struct {
 	ExchangeRateService      services.ExchangeRateService
-	EmailSubscriptionService services.EmailSubscriptionService
+	EmailSubscriptionService subscription.Service
 	EmailSenderService       email.SenderService
 }
 
 func NewAppController(
 	exchangeRateService services.ExchangeRateService,
-	emailSubscriptionService services.EmailSubscriptionService,
+	emailSubscriptionService subscription.Service,
 	emailSenderService email.SenderService,
 ) *AppController {
 	return &AppController{
