@@ -1,0 +1,8 @@
+*.md
+LICENSE
+images/
+*_test.go
+storage.csv
+.idea/
+.vscode/
+.gitignore

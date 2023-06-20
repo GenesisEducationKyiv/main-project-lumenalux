@@ -1,0 +1,9 @@
+smtp:
+  host: smpt-server.example.com
+  port: 465
+  user: <user>
+  password: <password>
+email:
+  from: no.reply@currency.info.api
+  subject: BTC to UAH exchange rate
+  body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC

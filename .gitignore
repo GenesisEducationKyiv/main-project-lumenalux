@@ -1,0 +1,16 @@
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+/app/
+
+*.log
+
+/.idea
+*.swp
+.vscode/
+
+storage.csv
