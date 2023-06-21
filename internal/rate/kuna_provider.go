@@ -9,6 +9,12 @@ import (
 	"gses2-app/pkg/config"
 )
 
+const (
+	firstItemIndex   = 0
+	minResponseItems = 9
+	rateIndex        = 7
+)
+
 type HTTPClient interface {
 	Get(url string) (*http.Response, error)
 }
@@ -53,22 +59,22 @@ func (p *KunaProvider) extractRateFromResponse(resp *http.Response) (float32, er
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return 0, err
+		return p.config.DefaltRate, err
 	}
 
 	var data [][]interface{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return 0, err
+		return p.config.DefaltRate, err
 	}
 
-	if len(data) == 0 || len(data[0]) < 9 {
-		return 0, fmt.Errorf("unexpected response format")
+	if len(data) == 0 || len(data[firstItemIndex]) < minResponseItems {
+		return p.config.DefaltRate, fmt.Errorf("unexpected response format")
 	}
 
-	exchangeRate, ok := data[0][7].(float64)
+	exchangeRate, ok := data[firstItemIndex][rateIndex].(float64)
 	if !ok {
-		return 0, fmt.Errorf("unexpected exchange rate format")
+		return p.config.DefaltRate, fmt.Errorf("unexpected exchange rate format")
 	}
 
 	return float32(exchangeRate), nil
