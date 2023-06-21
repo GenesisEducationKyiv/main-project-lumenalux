@@ -76,6 +76,7 @@ storage:
   path: ./storage.csv
 http:
   port: 8080
+  timeout_in_seconds: 10
 kuna_api:
   url: https://api.kuna.io/v3/tickers?symbols=btcuah
 ```
