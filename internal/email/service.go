@@ -2,14 +2,13 @@ package email
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"gses2-app/pkg/config"
 )
 
 type SenderService interface {
-	SendExchangeRate(float32, []string) int
+	SendExchangeRate(float32, []string) (int, error)
 }
 
 type SenderServiceImpl struct {
@@ -31,25 +30,25 @@ type TemplateData struct {
 func (es *SenderServiceImpl) SendExchangeRate(
 	exchangeRate float32,
 	emailAddresses []string,
-) int {
+) (int, error) {
 	config := config.Current()
 
 	client := NewSMTPClient(config.SMTP, es.dialer, es.clientFactory)
 	clientConnection, err := client.Connect()
 	if err != nil {
-		log.Fatal(err)
+		return http.StatusInternalServerError, err
 	}
 
 	templateData := TemplateData{Rate: fmt.Sprintf("%.2f", exchangeRate)}
 	email, err := NewEmailMessage(config.Email, emailAddresses, templateData)
 	if err != nil {
-		log.Fatal(err)
+		return http.StatusInternalServerError, err
 	}
 
 	err = SendEmail(clientConnection, email)
 	if err != nil {
-		log.Fatal(err)
+		return http.StatusInternalServerError, err
 	}
 
-	return http.StatusOK
+	return http.StatusOK, nil
 }

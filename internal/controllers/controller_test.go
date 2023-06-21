@@ -29,8 +29,11 @@ func (m *MockEmailSubscriptionService) Subscriptions() ([]string, error) {
 
 type MockEmailSenderService struct{}
 
-func (m *MockEmailSenderService) SendExchangeRate(rate float32, subscribers []string) int {
-	return http.StatusOK
+func (m *MockEmailSenderService) SendExchangeRate(
+	rate float32,
+	subscribers []string,
+) (int, error) {
+	return http.StatusOK, nil
 }
 
 func TestAppController_GetRate(t *testing.T) {
