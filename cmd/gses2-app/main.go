@@ -34,12 +34,12 @@ func main() {
 	startServer(config.HTTP.Port, mux)
 }
 
-func createServices(cfg *config.Config) (rate.Service, subscription.Service, email.SenderService) {
-	httpClient := &http.Client{Timeout: cfg.HTTP.Timeout * time.Second}
+func createServices(config *config.Config) (rate.Service, subscription.Service, email.SenderService) {
+	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
 
-	rateService := rate.NewService(rate.NewKunaProvider(cfg.KunaAPI, httpClient))
+	rateService := rate.NewService(rate.NewKunaProvider(config.KunaAPI, httpClient))
 
-	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(cfg.Storage.Path))
+	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
 
 	emailSenderService := email.NewSenderService(
 		&email.TLSConnectionDialerImpl{},
