@@ -25,7 +25,7 @@ func main() {
 
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
 	exchangeRateService := rate.NewService(
-		rate.NewKunaProvider(httpClient),
+		rate.NewKunaProvider(config.KunaAPI, httpClient),
 	)
 
 	emailSubscriptionService := subscription.NewService(

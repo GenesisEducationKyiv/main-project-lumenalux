@@ -14,11 +14,13 @@ type HTTPClient interface {
 }
 
 type KunaProvider struct {
+	config     config.KunaAPIConfig
 	httpClient HTTPClient
 }
 
-func NewKunaProvider(httpClient HTTPClient) *KunaProvider {
+func NewKunaProvider(config config.KunaAPIConfig, httpClient HTTPClient) *KunaProvider {
 	return &KunaProvider{
+		config:     config,
 		httpClient: httpClient,
 	}
 }
@@ -34,7 +36,7 @@ func (p *KunaProvider) ExchangeRate() (float32, error) {
 
 func (p *KunaProvider) requestAPI() (*http.Response, error) {
 
-	resp, err := p.httpClient.Get(config.Current().KunaAPI.URL)
+	resp, err := p.httpClient.Get(p.config.URL)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"gses2-app/pkg/config"
 )
 
 func TestKunaProviderExchangeRate(t *testing.T) {
@@ -64,7 +66,8 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			provider := NewKunaProvider(tt.mockHTTPClient)
+			config := config.KunaAPIConfig{}
+			provider := NewKunaProvider(config, tt.mockHTTPClient)
 			rate, err := provider.ExchangeRate()
 
 			if err != nil && tt.expectedError == "" {
