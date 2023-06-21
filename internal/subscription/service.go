@@ -26,7 +26,6 @@ func NewService(storage Storage) *ServiceImpl {
 var ErrAlreadySubscribed = errors.New("email is already subscribed")
 
 func (s *ServiceImpl) Subscribe(email string) error {
-
 	subscribed, err := s.IsSubscribed(email)
 	if err != nil {
 		return err
