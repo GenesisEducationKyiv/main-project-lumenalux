@@ -34,8 +34,7 @@ func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(exchangeRate)
-	if err != nil {
+	if json.NewEncoder(w).Encode(exchangeRate) != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
