@@ -35,6 +35,6 @@ type HTTPConfig struct {
 }
 
 type KunaAPIConfig struct {
-	URL        string  `yaml:"url"`
-	DefaltRate float32 `yaml:"default_rate"`
+	URL         string  `yaml:"url"`
+	DefaultRate float32 `yaml:"default_rate"`
 }
