@@ -32,13 +32,17 @@ type MockEmailSenderService struct{}
 func (m *MockEmailSenderService) SendExchangeRate(
 	rate float32,
 	subscribers []string,
-) (int, error) {
-	return http.StatusOK, nil
+) error {
+	return nil
 }
 
 func TestAppController_GetRate(t *testing.T) {
 
-	controller := NewAppController(&MockExchangeRateService{}, &MockEmailSubscriptionService{}, &MockEmailSenderService{})
+	controller := NewAppController(
+		&MockExchangeRateService{},
+		&MockEmailSubscriptionService{},
+		&MockEmailSenderService{},
+	)
 
 	req, err := http.NewRequest("GET", "/rate", nil)
 	if err != nil {
@@ -63,7 +67,11 @@ func TestAppController_GetRate(t *testing.T) {
 
 func TestAppController_SubscribeEmail(t *testing.T) {
 
-	controller := NewAppController(&MockExchangeRateService{}, &MockEmailSubscriptionService{}, &MockEmailSenderService{})
+	controller := NewAppController(
+		&MockExchangeRateService{},
+		&MockEmailSubscriptionService{},
+		&MockEmailSenderService{},
+	)
 
 	req, err := http.NewRequest("POST", "/subscribe", strings.NewReader("email=test@example.com"))
 	if err != nil {

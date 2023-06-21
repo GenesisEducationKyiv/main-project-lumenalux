@@ -18,13 +18,9 @@ func TestSendExchangeRate(t *testing.T) {
 		expectedStatusCode := http.StatusOK
 		exchangeRate := float32(10.5)
 
-		statusCode, err := service.SendExchangeRate(exchangeRate, emailAddresses)
+		err := service.SendExchangeRate(exchangeRate, emailAddresses)
 		if err != nil {
 			t.Errorf("Expected status code %d, but got error %s", expectedStatusCode, err)
-		}
-
-		if statusCode != expectedStatusCode {
-			t.Errorf("Expected status code %d, but got %d", expectedStatusCode, statusCode)
 		}
 	})
 }

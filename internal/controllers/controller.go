@@ -62,9 +62,8 @@ func (ac *AppController) SendEmails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	statusCode, err := ac.EmailSenderService.SendExchangeRate(exchangeRate, subscribers)
-	if statusCode != 200 {
-		http.Error(w, err.Error(), statusCode)
+	if err := ac.EmailSenderService.SendExchangeRate(exchangeRate, subscribers); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
