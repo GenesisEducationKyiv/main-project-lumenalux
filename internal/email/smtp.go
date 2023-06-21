@@ -11,13 +11,13 @@ import (
 	"gses2-app/pkg/config"
 )
 
-type Dialer interface {
+type TLSConnectionDialer interface {
 	Dial(network, addr string, config *tls.Config) (*tls.Conn, error)
 }
 
-type DialerImpl struct{}
+type TLSConnectionDialerImpl struct{}
 
-func (d DialerImpl) Dial(network, addr string, config *tls.Config) (conn *tls.Conn, err error) {
+func (d TLSConnectionDialerImpl) Dial(network, addr string, config *tls.Config) (conn *tls.Conn, err error) {
 	return tls.Dial(network, addr, config)
 }
 
@@ -47,13 +47,13 @@ type SMTPClient struct {
 	port              int
 	user              string
 	password          string
-	dialer            Dialer
+	dialer            TLSConnectionDialer
 	smtpClientFactory SMTPClientFactory
 }
 
 func NewSMTPClient(
 	config config.SMTPConfig,
-	dialer Dialer,
+	dialer TLSConnectionDialer,
 	factory SMTPClientFactory,
 ) *SMTPClient {
 	return &SMTPClient{

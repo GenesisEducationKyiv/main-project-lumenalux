@@ -13,11 +13,11 @@ type SenderService interface {
 }
 
 type SenderServiceImpl struct {
-	dialer        Dialer
+	dialer        TLSConnectionDialer
 	clientFactory SMTPClientFactory
 }
 
-func NewSenderService(dialer Dialer, factory SMTPClientFactory) *SenderServiceImpl {
+func NewSenderService(dialer TLSConnectionDialer, factory SMTPClientFactory) *SenderServiceImpl {
 	return &SenderServiceImpl{
 		dialer:        dialer,
 		clientFactory: factory,

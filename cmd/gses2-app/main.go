@@ -32,7 +32,7 @@ func main() {
 	)
 
 	emailSenderService := email.NewSenderService(
-		&email.DialerImpl{},
+		&email.TLSConnectionDialerImpl{},
 		&email.SMTPClientFactoryImpl{},
 	)
 
