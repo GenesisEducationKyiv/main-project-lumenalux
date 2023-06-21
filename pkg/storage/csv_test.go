@@ -22,7 +22,7 @@ func TestCSVStorage(t *testing.T) {
 		t.Fatalf("failed to append data: %v", err)
 	}
 
-	readData, err := storage.Read()
+	readData, err := storage.AllRecords()
 	if err != nil {
 		t.Fatalf("failed to read data: %v", err)
 	}

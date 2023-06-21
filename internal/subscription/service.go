@@ -6,7 +6,7 @@ import (
 
 type Storage interface {
 	Append(record []string) error
-	Read() ([][]string, error)
+	AllRecords() (records [][]string, err error)
 }
 
 type Service interface {
@@ -57,7 +57,7 @@ func (s *ServiceImpl) Subscriptions() ([]string, error) {
 }
 
 func (s *ServiceImpl) allEmails() ([]string, error) {
-	records, err := s.Storage.Read()
+	records, err := s.Storage.AllRecords()
 	if err != nil {
 		return nil, err
 	}

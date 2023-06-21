@@ -15,7 +15,7 @@ func (m *MockStorage) Append(record []string) error {
 	return m.Error
 }
 
-func (m *MockStorage) Read() ([][]string, error) {
+func (m *MockStorage) AllRecords() ([][]string, error) {
 	return m.Records, m.Error
 }
 

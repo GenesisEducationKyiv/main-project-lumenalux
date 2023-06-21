@@ -13,7 +13,7 @@ func NewCSVStorage(filePath string) *CSVStorage {
 	return &CSVStorage{FilePath: filePath}
 }
 
-func (s *CSVStorage) Read() ([][]string, error) {
+func (s *CSVStorage) AllRecords() ([][]string, error) {
 	f, err := os.Open(s.FilePath)
 	if err != nil {
 		return nil, err
