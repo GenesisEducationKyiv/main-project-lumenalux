@@ -16,12 +16,10 @@ import (
 )
 
 func main() {
-	err := config.Load("./config.yaml")
+	config, err := config.Load("./config.yaml")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	config := config.Current()
 
 	rateService, emailSubscriptionService, emailSenderService := createServices(&config)
 	controller := controllers.NewAppController(
@@ -42,6 +40,7 @@ func createServices(config *config.Config) (rate.Service, subscription.Service, 
 	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
 
 	emailSenderService := email.NewSenderService(
+		config,
 		&email.TLSConnectionDialerImpl{},
 		&email.SMTPClientFactoryImpl{},
 	)

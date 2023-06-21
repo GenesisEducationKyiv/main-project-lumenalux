@@ -12,12 +12,18 @@ type SenderService interface {
 }
 
 type SenderServiceImpl struct {
+	config        *config.Config
 	dialer        TLSConnectionDialer
 	clientFactory SMTPClientFactory
 }
 
-func NewSenderService(dialer TLSConnectionDialer, factory SMTPClientFactory) *SenderServiceImpl {
+func NewSenderService(
+	config *config.Config,
+	dialer TLSConnectionDialer,
+	factory SMTPClientFactory,
+) *SenderServiceImpl {
 	return &SenderServiceImpl{
+		config:        config,
 		dialer:        dialer,
 		clientFactory: factory,
 	}
@@ -31,16 +37,15 @@ func (es *SenderServiceImpl) SendExchangeRate(
 	exchangeRate float32,
 	emailAddresses []string,
 ) (int, error) {
-	config := config.Current()
 
-	client := NewSMTPClient(config.SMTP, es.dialer, es.clientFactory)
+	client := NewSMTPClient(es.config.SMTP, es.dialer, es.clientFactory)
 	clientConnection, err := client.Connect()
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	templateData := TemplateData{Rate: fmt.Sprintf("%.2f", exchangeRate)}
-	email, err := NewEmailMessage(config.Email, emailAddresses, templateData)
+	email, err := NewEmailMessage(es.config.Email, emailAddresses, templateData)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

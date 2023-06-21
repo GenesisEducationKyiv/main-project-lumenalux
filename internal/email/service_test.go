@@ -1,15 +1,17 @@
 package email
 
 import (
+	"gses2-app/pkg/config"
 	"net/http"
 	"testing"
 )
 
 func TestSendExchangeRate(t *testing.T) {
+	config := &config.Config{}
 	dialer := &MockDialer{}
 	factory := &MockSMTPClientFactory{Client: &MockSMTPClient{}}
 
-	service := NewSenderService(dialer, factory)
+	service := NewSenderService(config, dialer, factory)
 
 	t.Run("Successful SendExchangeRate", func(t *testing.T) {
 		emailAddresses := []string{"test@example.com"}
