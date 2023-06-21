@@ -1,5 +1,9 @@
 package config
 
+import (
+	"time"
+)
+
 type Config struct {
 	SMTP    SMTPConfig    `yaml:"smtp"`
 	Email   EmailConfig   `yaml:"email"`
@@ -26,7 +30,8 @@ type StorageConfig struct {
 }
 
 type HTTPConfig struct {
-	Port string `yaml:"port"`
+	Port    string        `yaml:"port"`
+	Timeout time.Duration `yaml:"timeout_in_seconds"`
 }
 
 type KunaAPIConfig struct {

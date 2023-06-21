@@ -22,7 +22,7 @@ func main() {
 
 	config := config.Current()
 
-	httpClient := &http.Client{Timeout: time.Second * 10}
+	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
 	exchangeRateService := rate.NewService(
 		rate.NewKunaProvider(httpClient),
 	)
