@@ -50,5 +50,7 @@ func main() {
 
 	message := fmt.Sprintf("Starting server on port %s", config.HTTP.Port)
 	fmt.Println(message)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", config.HTTP.Port), mux))
+
+	port := fmt.Sprintf(":%s", config.HTTP.Port)
+	log.Fatal(http.ListenAndServe(port, mux))
 }
