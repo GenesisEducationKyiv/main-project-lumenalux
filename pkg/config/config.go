@@ -14,8 +14,7 @@ func Load(filename string) error {
 		return err
 	}
 
-	err = yaml.Unmarshal(data, &configuration)
-	return err
+	return yaml.Unmarshal(data, &configuration)
 }
 
 func Current() Config {
