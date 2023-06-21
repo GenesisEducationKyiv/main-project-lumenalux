@@ -23,34 +23,46 @@ func main() {
 
 	config := config.Current()
 
-	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
-	exchangeRateService := rate.NewService(
-		rate.NewKunaProvider(config.KunaAPI, httpClient),
+	rateService, emailSubscriptionService, emailSenderService := createServices(&config)
+	controller := controllers.NewAppController(
+		rateService,
+		emailSubscriptionService,
+		emailSenderService,
 	)
 
-	emailSubscriptionService := subscription.NewService(
-		storage.NewCSVStorage(config.Storage.Path),
-	)
+	mux := registerRoutes(controller)
+	startServer(config.HTTP.Port, mux)
+}
+
+func createServices(cfg *config.Config) (rate.Service, subscription.Service, email.SenderService) {
+	httpClient := &http.Client{Timeout: cfg.HTTP.Timeout * time.Second}
+
+	rateService := rate.NewService(rate.NewKunaProvider(cfg.KunaAPI, httpClient))
+
+	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(cfg.Storage.Path))
 
 	emailSenderService := email.NewSenderService(
 		&email.TLSConnectionDialerImpl{},
 		&email.SMTPClientFactoryImpl{},
 	)
 
-	controller := controllers.NewAppController(
-		exchangeRateService,
-		emailSubscriptionService,
-		emailSenderService,
-	)
+	return rateService, emailSubscriptionService, emailSenderService
+}
 
+func registerRoutes(controller *controllers.AppController) *http.ServeMux {
 	router := transport.NewHTTPRouter(controller)
 
 	mux := http.NewServeMux()
 	router.RegisterRoutes(mux)
 
-	message := fmt.Sprintf("Starting server on port %s", config.HTTP.Port)
-	fmt.Println(message)
+	return mux
+}
 
-	port := fmt.Sprintf(":%s", config.HTTP.Port)
-	log.Fatal(http.ListenAndServe(port, mux))
+func startServer(port string, handler http.Handler) {
+	fmt.Printf("Starting server on port %s\n", port)
+
+	err := http.ListenAndServe(fmt.Sprintf(":%s", port), handler)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
