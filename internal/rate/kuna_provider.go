@@ -59,22 +59,22 @@ func (p *KunaProvider) extractRateFromResponse(resp *http.Response) (float32, er
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return p.config.DefaltRate, err
+		return p.config.DefaultRate, err
 	}
 
 	var data [][]interface{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return p.config.DefaltRate, err
+		return p.config.DefaultRate, err
 	}
 
 	if len(data) == 0 || len(data[firstItemIndex]) < minResponseItems {
-		return p.config.DefaltRate, fmt.Errorf("unexpected response format")
+		return p.config.DefaultRate, fmt.Errorf("unexpected response format")
 	}
 
 	exchangeRate, ok := data[firstItemIndex][rateIndex].(float64)
 	if !ok {
-		return p.config.DefaltRate, fmt.Errorf("unexpected exchange rate format")
+		return p.config.DefaultRate, fmt.Errorf("unexpected exchange rate format")
 	}
 
 	return float32(exchangeRate), nil
