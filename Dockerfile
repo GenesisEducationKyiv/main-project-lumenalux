@@ -10,6 +10,7 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /bin/gses2-app .
 COPY --from=builder /app/config.yaml .
-RUN touch storage.csv
+COPY --from=builder /app/entrypoint.sh .
 EXPOSE 8080 465
-ENTRYPOINT ["./gses2-app"]
+RUN chmod +x entrypoint.sh
+ENTRYPOINT ["./entrypoint.sh"]

@@ -8,7 +8,7 @@ email:
   subject: BTC to UAH exchange rate
   body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
 storage:
-  path: ./storage.csv
+  path: ./storage/storage.csv
 http:
   port: 8080
   timeout_in_seconds: 10

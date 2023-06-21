@@ -13,18 +13,12 @@
    cd gses2-api
    ```
 
-2. Побудуйте Docker-образ:
-
-   ```bash
-   docker build --tag gses2-app .
-   ```
-
 ## Використання
 
-1.  Запустіть Docker-контейнер:
+1.  Підніміть docker compose:
 
     ```bash
-    docker run -p 8080:8080 gses2-app
+    docker-compose up --build
     ```
 
 2.  Використання API:

@@ -14,18 +14,12 @@ This is an API that provides the current exchange rate between Bitcoin and the U
    cd gses2-api
    ```
 
-2. Build the Docker image:
-
-   ```bash
-   docker build --tag gses2-app .
-   ```
-
 ## Usage
 
-1. Run the Docker container:
+1. Up the docker compose:
 
    ```bash
-   docker run -p 8080:8080 gses2-app
+   docker-compose up --build
    ```
 
 2. Use the API:
