@@ -1,3 +1,7 @@
+// Controller integration contains integration tests for the controller,
+// covering the interactions between the email, rate, subscription, and
+// transport layers.
+
 package integration
 
 import (

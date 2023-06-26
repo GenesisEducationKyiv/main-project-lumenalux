@@ -1,3 +1,7 @@
+// Subscription integration contains integration tests for the subscription layer,
+// specifically testing the integration between the subscription service and
+// the storage
+
 package integration
 
 import (
