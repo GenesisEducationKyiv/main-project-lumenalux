@@ -56,4 +56,15 @@ func TestSubscription(t *testing.T) {
 			t.Errorf("expected error due to duplicate subscription, got: %v", err)
 		}
 	})
+
+	t.Run("Subscribed with non-existent email", func(t *testing.T) {
+		mockStorage := &StubStorage{Records: [][]string{}}
+		service := NewService(mockStorage)
+		email := "test@example.com"
+
+		subscribed, err := service.IsSubscribed(email)
+		if err != nil || subscribed {
+			t.Errorf("expected email not to be subscribed, got: %v", err)
+		}
+	})
 }
