@@ -1,10 +1,11 @@
-package subscription
+package integration
 
 import (
 	"errors"
 	"os"
 	"testing"
 
+	"gses2-app/internal/subscription"
 	"gses2-app/pkg/storage"
 )
 
@@ -18,7 +19,7 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 
 	csvStorage := storage.NewCSVStorage(tmpFile.Name())
 
-	service := NewService(csvStorage)
+	service := subscription.NewService(csvStorage)
 
 	t.Run("Subscribe a new email", func(t *testing.T) {
 		email := "test@example.com"
@@ -42,7 +43,7 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 	t.Run("Subscribe an already subscribed email", func(t *testing.T) {
 		email := "test@example.com"
 		err := service.Subscribe(email)
-		if !errors.Is(err, ErrAlreadySubscribed) {
+		if !errors.Is(err, subscription.ErrAlreadySubscribed) {
 			t.Fatalf("Expected ErrAlreadySubscribed, got: %v", err)
 		}
 	})

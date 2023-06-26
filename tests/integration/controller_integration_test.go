@@ -1,4 +1,4 @@
-package controllers
+package integration
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gses2-app/internal/controllers"
 	"gses2-app/internal/email"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/subscription"
@@ -95,7 +96,11 @@ func TestAppController_Integration(t *testing.T) {
 				&StubStorage{records: tt.storageRecords},
 			)
 
-			controller := NewAppController(rateService, emailSubscriptionService, emailSenderService)
+			controller := controllers.NewAppController(
+				rateService,
+				emailSubscriptionService,
+				emailSenderService,
+			)
 
 			if tt.requestMethod == "POST" {
 				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
