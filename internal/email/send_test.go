@@ -7,7 +7,7 @@ import (
 )
 
 func TestSendEmail(t *testing.T) {
-	client := &MockSenderSMTPClient{}
+	client := &StubSenderSMTPClient{}
 	email := &EmailMessage{
 		from:    "test_from@example.com",
 		to:      []string{"test_to@example.com"},
@@ -44,7 +44,7 @@ func TestSendEmail(t *testing.T) {
 }
 
 func TestSendEmailWriteError(t *testing.T) {
-	client := &MockSenderSMTPClient{writeShouldReturn: errors.New("write error")}
+	client := &StubSenderSMTPClient{writeShouldReturn: errors.New("write error")}
 	email := &EmailMessage{
 		from:    "test_from@example.com",
 		to:      []string{"test_to@example.com"},

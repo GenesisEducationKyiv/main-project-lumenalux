@@ -7,23 +7,23 @@ import (
 	"testing"
 )
 
-type mockController struct{}
+type stubController struct{}
 
-func (m *mockController) GetRate(w http.ResponseWriter, r *http.Request) {
+func (m *stubController) GetRate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("getRate"))
 }
 
-func (m *mockController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
+func (m *stubController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("subscribeEmail"))
 }
 
-func (m *mockController) SendEmails(w http.ResponseWriter, r *http.Request) {
+func (m *stubController) SendEmails(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("sendEmails"))
 }
 
 func TestHttpRouter(t *testing.T) {
 	mux := http.NewServeMux()
-	controller := &mockController{}
+	controller := &stubController{}
 	router := NewHTTPRouter(controller)
 	router.RegisterRoutes(mux)
 

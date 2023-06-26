@@ -14,13 +14,13 @@ import (
 func TestKunaProviderExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
-		mockHTTPClient *MockHTTPClient
+		mockHTTPClient *StubHTTPClient
 		expectedRate   float32
 		expectedError  string
 	}{
 		{
 			name: "Success",
-			mockHTTPClient: &MockHTTPClient{
+			mockHTTPClient: &StubHTTPClient{
 				Response: &http.Response{
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
@@ -35,7 +35,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		},
 		{
 			name: "HTTP request failure",
-			mockHTTPClient: &MockHTTPClient{
+			mockHTTPClient: &StubHTTPClient{
 				Response: nil,
 				Error:    errors.New("http request failure"),
 			},
@@ -43,7 +43,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		},
 		{
 			name: "Unexpected status code",
-			mockHTTPClient: &MockHTTPClient{
+			mockHTTPClient: &StubHTTPClient{
 				Response: &http.Response{
 					StatusCode: http.StatusForbidden,
 				},
@@ -53,7 +53,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		},
 		{
 			name: "Bad response body format",
-			mockHTTPClient: &MockHTTPClient{
+			mockHTTPClient: &StubHTTPClient{
 				Response: &http.Response{
 					StatusCode: http.StatusOK,
 					Body:       io.NopCloser(bytes.NewBufferString(`[[]]`)),

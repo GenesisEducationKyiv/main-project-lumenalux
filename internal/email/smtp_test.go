@@ -14,8 +14,8 @@ func TestConnect(t *testing.T) {
 		Password: "password",
 	}
 
-	factory := MockSMTPClientFactory{Client: &MockSMTPClient{}}
-	client := NewSMTPClient(config, &MockDialer{}, factory)
+	factory := StubSMTPClientFactory{Client: &StubSMTPClient{}}
+	client := NewSMTPClient(config, &StubDialer{}, factory)
 
 	smtpClient, err := client.Connect()
 

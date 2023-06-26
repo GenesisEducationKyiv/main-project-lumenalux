@@ -8,8 +8,8 @@ import (
 
 func TestSendExchangeRate(t *testing.T) {
 	config := &config.Config{}
-	dialer := &MockDialer{}
-	factory := &MockSMTPClientFactory{Client: &MockSMTPClient{}}
+	dialer := &StubDialer{}
+	factory := &StubSMTPClientFactory{Client: &StubSMTPClient{}}
 
 	service, err := NewSenderService(config, dialer, factory)
 

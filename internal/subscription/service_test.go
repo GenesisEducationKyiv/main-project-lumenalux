@@ -5,23 +5,23 @@ import (
 	"testing"
 )
 
-type MockStorage struct {
+type StubStorage struct {
 	Records [][]string
 	Error   error
 }
 
-func (m *MockStorage) Append(record []string) error {
+func (m *StubStorage) Append(record []string) error {
 	m.Records = append(m.Records, record)
 	return m.Error
 }
 
-func (m *MockStorage) AllRecords() ([][]string, error) {
+func (m *StubStorage) AllRecords() ([][]string, error) {
 	return m.Records, m.Error
 }
 
 func TestSubscription(t *testing.T) {
 	t.Run("Subscribe and check subscriptions", func(t *testing.T) {
-		mockStorage := &MockStorage{Records: [][]string{}}
+		mockStorage := &StubStorage{Records: [][]string{}}
 		service := NewService(mockStorage)
 		email := "test@example.com"
 
@@ -42,7 +42,7 @@ func TestSubscription(t *testing.T) {
 	})
 
 	t.Run("Subscribe twice", func(t *testing.T) {
-		mockStorage := &MockStorage{Records: [][]string{}}
+		mockStorage := &StubStorage{Records: [][]string{}}
 		service := NewService(mockStorage)
 		email := "test@example.com"
 
