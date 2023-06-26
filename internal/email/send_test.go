@@ -14,6 +14,12 @@ type testCase struct {
 	expectQuitCalled bool
 }
 
+var (
+	errWrite         = errors.New("write error")
+	errSetMail       = errors.New("set mail error")
+	errSetRecipients = errors.New("set recipients error")
+)
+
 func TestSendEmail(t *testing.T) {
 	tests := []testCase{
 		{
@@ -34,7 +40,7 @@ func TestSendEmail(t *testing.T) {
 		{
 			name: "Error on write",
 			client: &StubSenderSMTPClient{
-				writeShouldReturn: errors.New("write error"),
+				writeShouldReturn: errWrite,
 			},
 			email: &EmailMessage{
 				from:    "test_from@example.com",
@@ -42,14 +48,14 @@ func TestSendEmail(t *testing.T) {
 				subject: "Test Subject",
 				body:    "Test Body",
 			},
-			expectedErr:      errors.New("write error"),
+			expectedErr:      errWrite,
 			expectDataCalled: true,
 			expectQuitCalled: false,
 		},
 		{
 			name: "Error on setMail",
 			client: &StubSenderSMTPClient{
-				mailShouldReturn: errors.New("set mail error"),
+				mailShouldReturn: errSetMail,
 			},
 			email: &EmailMessage{
 				from:    "test_from@example.com",
@@ -57,14 +63,14 @@ func TestSendEmail(t *testing.T) {
 				subject: "Test Subject",
 				body:    "Test Body",
 			},
-			expectedErr:      errors.New("set mail error"),
+			expectedErr:      errSetMail,
 			expectDataCalled: false,
 			expectQuitCalled: false,
 		},
 		{
 			name: "Error on setRecipients",
 			client: &StubSenderSMTPClient{
-				rcptShouldReturn: errors.New("set recipients error"),
+				rcptShouldReturn: errSetRecipients,
 			},
 			email: &EmailMessage{
 				from:    "test_from@example.com",
@@ -72,7 +78,7 @@ func TestSendEmail(t *testing.T) {
 				subject: "Test Subject",
 				body:    "Test Body",
 			},
-			expectedErr:      errors.New("set recipients error"),
+			expectedErr:      errSetRecipients,
 			expectDataCalled: false,
 			expectQuitCalled: false,
 		},
@@ -89,7 +95,7 @@ func TestSendEmail(t *testing.T) {
 				t.Error("Expected error, got nil")
 			}
 
-			if err != nil && tt.expectedErr != nil && err.Error() != tt.expectedErr.Error() {
+			if err != nil && tt.expectedErr != nil && !errors.Is(err, tt.expectedErr) {
 				t.Errorf("Error: got %v, want %v", err, tt.expectedErr)
 			}
 
