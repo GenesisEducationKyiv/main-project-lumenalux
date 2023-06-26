@@ -39,7 +39,7 @@ func TestNewEmailMessage(t *testing.T) {
 			emailConfig: config.EmailConfig{
 				From:    "test_from@example.com",
 				Subject: "Test Subject",
-				Body:    "The current exchange rate is {{.Rate", // Bad template
+				Body:    "The current exchange rate is {{.Rate",
 			},
 			to: []string{"test_to@example.com"},
 			templateData: TemplateData{
