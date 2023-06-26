@@ -3,22 +3,32 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-
-	"gses2-app/internal/email"
-	"gses2-app/internal/rate"
-	"gses2-app/internal/subscription"
 )
 
+type SenderService interface {
+	SendExchangeRate(float32, []string) error
+}
+
+type RateService interface {
+	ExchangeRate() (float32, error)
+}
+
+type SubscriptionService interface {
+	Subscribe(email string) error
+	IsSubscribed(email string) (bool, error)
+	Subscriptions() ([]string, error)
+}
+
 type AppController struct {
-	ExchangeRateService      rate.Service
-	EmailSubscriptionService subscription.Service
-	EmailSenderService       email.SenderService
+	ExchangeRateService      RateService
+	EmailSubscriptionService SubscriptionService
+	EmailSenderService       SenderService
 }
 
 func NewAppController(
-	exchangeRateService rate.Service,
-	emailSubscriptionService subscription.Service,
-	emailSenderService email.SenderService,
+	exchangeRateService RateService,
+	emailSubscriptionService SubscriptionService,
+	emailSenderService SenderService,
 ) *AppController {
 	return &AppController{
 		ExchangeRateService:      exchangeRateService,

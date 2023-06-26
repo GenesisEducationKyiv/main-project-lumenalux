@@ -6,11 +6,7 @@ import (
 	"gses2-app/pkg/config"
 )
 
-type SenderService interface {
-	SendExchangeRate(float32, []string) error
-}
-
-type SenderServiceImpl struct {
+type SenderService struct {
 	config        *config.Config
 	dialer        TLSConnectionDialer
 	clientFactory SMTPClientFactory
@@ -20,8 +16,8 @@ func NewSenderService(
 	config *config.Config,
 	dialer TLSConnectionDialer,
 	factory SMTPClientFactory,
-) *SenderServiceImpl {
-	return &SenderServiceImpl{
+) *SenderService {
+	return &SenderService{
 		config:        config,
 		dialer:        dialer,
 		clientFactory: factory,
@@ -32,7 +28,7 @@ type TemplateData struct {
 	Rate string
 }
 
-func (es *SenderServiceImpl) SendExchangeRate(
+func (es *SenderService) SendExchangeRate(
 	exchangeRate float32,
 	emailAddresses []string,
 ) error {

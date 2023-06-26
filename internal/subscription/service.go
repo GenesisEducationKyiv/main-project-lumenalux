@@ -9,23 +9,17 @@ type Storage interface {
 	AllRecords() (records [][]string, err error)
 }
 
-type Service interface {
-	Subscribe(email string) error
-	IsSubscribed(email string) (bool, error)
-	Subscriptions() ([]string, error)
-}
-
-type ServiceImpl struct {
+type Service struct {
 	Storage Storage
 }
 
-func NewService(storage Storage) *ServiceImpl {
-	return &ServiceImpl{Storage: storage}
+func NewService(storage Storage) *Service {
+	return &Service{Storage: storage}
 }
 
 var ErrAlreadySubscribed = errors.New("email is already subscribed")
 
-func (s *ServiceImpl) Subscribe(email string) error {
+func (s *Service) Subscribe(email string) error {
 	subscribed, err := s.IsSubscribed(email)
 	if err != nil {
 		return err
@@ -37,7 +31,7 @@ func (s *ServiceImpl) Subscribe(email string) error {
 	return s.Storage.Append([]string{email})
 }
 
-func (s *ServiceImpl) IsSubscribed(email string) (bool, error) {
+func (s *Service) IsSubscribed(email string) (bool, error) {
 	emails, err := s.allEmails()
 	if err != nil {
 		return false, err
@@ -52,11 +46,11 @@ func (s *ServiceImpl) IsSubscribed(email string) (bool, error) {
 	return false, nil
 }
 
-func (s *ServiceImpl) Subscriptions() ([]string, error) {
+func (s *Service) Subscriptions() ([]string, error) {
 	return s.allEmails()
 }
 
-func (s *ServiceImpl) allEmails() ([]string, error) {
+func (s *Service) allEmails() ([]string, error) {
 	records, err := s.Storage.AllRecords()
 	if err != nil {
 		return nil, err
@@ -65,7 +59,7 @@ func (s *ServiceImpl) allEmails() ([]string, error) {
 	return s.convertRecordsToEmails(records), nil
 }
 
-func (s *ServiceImpl) convertRecordsToEmails(records [][]string) []string {
+func (s *Service) convertRecordsToEmails(records [][]string) []string {
 	emails := make([]string, len(records))
 	for i, record := range records {
 		emails[i] = record[0]
