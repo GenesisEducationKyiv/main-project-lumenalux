@@ -18,15 +18,19 @@ import (
 func main() {
 	config, err := config.Load("./config.yaml")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error, config wasn't loaded: %s", err)
 	}
 
-	rateService, emailSubscriptionService, emailSenderService := createServices(&config)
+	rateService, emailSubscriptionService, emailSenderService, err := createServices(&config)
 	controller := controllers.NewAppController(
 		rateService,
 		emailSubscriptionService,
 		emailSenderService,
 	)
+
+	if err != nil {
+		log.Fatalf("Connection error: %s", err)
+	}
 
 	mux := registerRoutes(controller)
 	startServer(config.HTTP.Port, mux)
@@ -36,6 +40,7 @@ func createServices(config *config.Config) (
 	*rate.Service,
 	*subscription.Service,
 	*email.SenderService,
+	error,
 ) {
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
 
@@ -43,13 +48,17 @@ func createServices(config *config.Config) (
 
 	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
 
-	emailSenderService := email.NewSenderService(
+	emailSenderService, err := email.NewSenderService(
 		config,
 		&email.TLSConnectionDialerImpl{},
 		&email.SMTPClientFactoryImpl{},
 	)
 
-	return rateService, emailSubscriptionService, emailSenderService
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return rateService, emailSubscriptionService, emailSenderService, err
 }
 
 func registerRoutes(controller *controllers.AppController) *http.ServeMux {

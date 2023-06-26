@@ -11,7 +11,11 @@ func TestSendExchangeRate(t *testing.T) {
 	dialer := &MockDialer{}
 	factory := &MockSMTPClientFactory{Client: &MockSMTPClient{}}
 
-	service := NewSenderService(config, dialer, factory)
+	service, err := NewSenderService(config, dialer, factory)
+
+	if err != nil {
+		t.Errorf("Expected service, but got error %s", err)
+	}
 
 	t.Run("Successful SendExchangeRate", func(t *testing.T) {
 		emailAddresses := []string{"test@example.com"}

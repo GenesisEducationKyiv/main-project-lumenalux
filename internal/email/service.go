@@ -7,21 +7,27 @@ import (
 )
 
 type SenderService struct {
-	config        *config.Config
-	dialer        TLSConnectionDialer
-	clientFactory SMTPClientFactory
+	config     *config.Config
+	connection SMTPConnectionClient
 }
 
 func NewSenderService(
 	config *config.Config,
 	dialer TLSConnectionDialer,
 	factory SMTPClientFactory,
-) *SenderService {
-	return &SenderService{
-		config:        config,
-		dialer:        dialer,
-		clientFactory: factory,
+) (*SenderService, error) {
+	client := NewSMTPClient(config.SMTP, dialer, factory)
+	clientConnection, err := client.Connect()
+	if err != nil {
+		return nil, err
 	}
+
+	SMTPClient := &SenderService{
+		config:     config,
+		connection: clientConnection,
+	}
+
+	return SMTPClient, nil
 }
 
 type TemplateData struct {
@@ -33,19 +39,13 @@ func (es *SenderService) SendExchangeRate(
 	emailAddresses []string,
 ) error {
 
-	client := NewSMTPClient(es.config.SMTP, es.dialer, es.clientFactory)
-	clientConnection, err := client.Connect()
-	if err != nil {
-		return err
-	}
-
 	templateData := TemplateData{Rate: fmt.Sprintf("%.2f", exchangeRate)}
 	email, err := NewEmailMessage(es.config.Email, emailAddresses, templateData)
 	if err != nil {
 		return err
 	}
 
-	err = SendEmail(clientConnection, email)
+	err = SendEmail(es.connection, email)
 	if err != nil {
 		return err
 	}
