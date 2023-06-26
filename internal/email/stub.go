@@ -10,30 +10,35 @@ import (
 type StubSenderSMTPClient struct {
 	fromCalledWith    string
 	rcptCalledWith    []string
+	rcptShouldReturn  error
 	dataCalled        bool
 	quitCalled        bool
 	writeCalledWith   []byte
 	writeShouldReturn error
+	mailShouldReturn  error
 }
 
 func (m *StubSenderSMTPClient) Mail(from string) error {
 	m.fromCalledWith = from
-	return nil
+	return m.mailShouldReturn
 }
 
 func (m *StubSenderSMTPClient) Rcpt(to string) error {
 	m.rcptCalledWith = append(m.rcptCalledWith, to)
-	return nil
+	return m.rcptShouldReturn
 }
 
 func (m *StubSenderSMTPClient) Data() (wc io.WriteCloser, err error) {
 	m.dataCalled = true
-	return m, m.writeShouldReturn
+	if m.writeShouldReturn != nil {
+		return nil, m.writeShouldReturn
+	}
+	return m, nil
 }
 
 func (m *StubSenderSMTPClient) Write(p []byte) (n int, err error) {
 	m.writeCalledWith = p
-	return len(p), m.writeShouldReturn
+	return len(p), nil
 }
 
 func (m *StubSenderSMTPClient) Close() error {
