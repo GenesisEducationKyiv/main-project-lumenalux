@@ -1,5 +1,9 @@
 package rate
 
+type Provider interface {
+	ExchangeRate() (float32, error)
+}
+
 type Service struct {
 	provider Provider
 }
