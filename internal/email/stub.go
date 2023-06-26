@@ -105,19 +105,22 @@ func (m *StubSMTPClient) Rcpt(to string) error {
 	return m.rcptErr
 }
 
-type StubDialer struct{}
+type StubDialer struct {
+	Err error
+}
 
 func (d *StubDialer) Dial(network string, addr string, config *tls.Config) (*tls.Conn, error) {
-	return nil, nil
+	return nil, d.Err
 }
 
 type StubSMTPClientFactory struct {
 	Client *StubSMTPClient
+	Err    error
 }
 
 func (f StubSMTPClientFactory) NewClient(
 	conn net.Conn,
 	host string,
 ) (SMTPConnectionClient, error) {
-	return f.Client, nil
+	return f.Client, f.Err
 }
