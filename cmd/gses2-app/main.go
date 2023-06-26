@@ -32,7 +32,11 @@ func main() {
 	startServer(config.HTTP.Port, mux)
 }
 
-func createServices(config *config.Config) (rate.Service, subscription.Service, email.SenderService) {
+func createServices(config *config.Config) (
+	*rate.Service,
+	*subscription.Service,
+	*email.SenderService,
+) {
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
 
 	rateService := rate.NewService(rate.NewKunaProvider(config.KunaAPI, httpClient))
