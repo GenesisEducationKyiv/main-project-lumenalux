@@ -1,4 +1,4 @@
-name: Mutation Testing
+name: Mutation Tests
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
       - name: Install go-mutesting
         run: go install github.com/zimmski/go-mutesting/cmd/go-mutesting@latest
 
-      - name: Run Mutation Testing
+      - name: Run Mutation Tests
         run: |
           output=$(go-mutesting ./...);
           mutation_score=$(echo "$output" | awk '/The mutation score is/{print $5}');
