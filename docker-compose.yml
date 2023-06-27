@@ -10,5 +10,7 @@ services:
     ports:
       - "8080:8080"
       - "465:465"
+    restart: on-failure
+
 volumes:
   storage_volume:
