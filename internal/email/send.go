@@ -1,7 +1,12 @@
 package email
 
 import (
+	"errors"
 	"io"
+)
+
+var (
+	errNoRecepients = errors.New("no recepiets")
 )
 
 type MailClient interface {
@@ -16,11 +21,16 @@ func setMail(client MailClient, from string) error {
 }
 
 func setRecipients(client MailClient, to []string) error {
+	if len(to) == 0 {
+		return errNoRecepients
+	}
+
 	for _, recipient := range to {
 		if err := client.Rcpt(recipient); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -46,15 +56,13 @@ func SendEmail(client MailClient, email *EmailMessage) error {
 	}
 
 	err = setRecipients(client, email.to)
+	if errors.Is(err, errNoRecepients) {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
 
-	err = writeAndClose(client, email.Prepare())
-	if err != nil {
-		return err
-	}
-
-	err = client.Quit()
-	return err
+	return writeAndClose(client, email.Prepare())
 }

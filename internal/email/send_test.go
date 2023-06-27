@@ -11,7 +11,6 @@ type testCase struct {
 	email            *EmailMessage
 	expectedErr      error
 	expectDataCalled bool
-	expectQuitCalled bool
 }
 
 var (
@@ -35,7 +34,6 @@ func TestSendEmail(t *testing.T) {
 			},
 			expectedErr:      nil,
 			expectDataCalled: true,
-			expectQuitCalled: true,
 		},
 		{
 			name: "Error on write",
@@ -50,7 +48,6 @@ func TestSendEmail(t *testing.T) {
 			},
 			expectedErr:      errWrite,
 			expectDataCalled: true,
-			expectQuitCalled: false,
 		},
 		{
 			name: "Error on setMail",
@@ -65,7 +62,6 @@ func TestSendEmail(t *testing.T) {
 			},
 			expectedErr:      errSetMail,
 			expectDataCalled: false,
-			expectQuitCalled: false,
 		},
 		{
 			name: "Error on setRecipients",
@@ -80,7 +76,6 @@ func TestSendEmail(t *testing.T) {
 			},
 			expectedErr:      errSetRecipients,
 			expectDataCalled: false,
-			expectQuitCalled: false,
 		},
 	}
 
@@ -101,10 +96,6 @@ func TestSendEmail(t *testing.T) {
 
 			if tt.client.dataCalled != tt.expectDataCalled {
 				t.Errorf("Data called: got %v, want %v", tt.client.dataCalled, tt.expectDataCalled)
-			}
-
-			if tt.client.quitCalled != tt.expectQuitCalled {
-				t.Errorf("Quit called: got %v, want %v", tt.client.quitCalled, tt.expectQuitCalled)
 			}
 		})
 	}
