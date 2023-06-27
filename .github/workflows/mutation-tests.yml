@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  mutation_testing:
+  test:
     runs-on: ubuntu-latest
 
     steps:
