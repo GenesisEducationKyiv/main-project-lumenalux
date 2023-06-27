@@ -29,7 +29,7 @@ jobs:
 
     - name: Run E2E Tests
       run: |
-        sleep 120
+        sleep 30
         newman run ./test/E2E/postman/tests.e2e.json
 
     - name: Docker Compose Down
