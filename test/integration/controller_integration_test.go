@@ -33,7 +33,7 @@ func (s *StubStorage) AllRecords() (records [][]string, err error) {
 }
 
 func TestAppController_Integration(t *testing.T) {
-	config, err := config.Load("../../config.yaml")
+	config, err := config.Load("../../configs/config.yaml")
 	if err != nil {
 		t.Fatalf("error loading config: %v", err)
 	}
