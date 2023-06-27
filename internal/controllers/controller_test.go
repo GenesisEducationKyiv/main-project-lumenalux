@@ -290,7 +290,7 @@ func TestSendEmailsError(t *testing.T) {
 			exchangeRateService: &StubExchangeRateService{},
 			subscriptionService: &StubEmailSubscriptionServiceError{},
 			emailSenderService:  &StubEmailSenderService{},
-			expectedStatus:      http.StatusBadRequest,
+			expectedStatus:      http.StatusInternalServerError,
 		},
 		{
 			name:                "Email sender service error",
