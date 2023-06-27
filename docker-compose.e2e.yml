@@ -1,0 +1,36 @@
+version: "3"
+services:
+  gses2-app:
+    build:
+      context: .
+      dockerfile: DockerfileE2E
+    volumes:
+      - storage_volume:/app/storage/
+      - ./test/E2E/config:/app/configs
+    ports:
+      - "8080:8080"
+    depends_on:
+      - smtp
+      - kuna_api
+    networks:
+      - test_net
+
+  smtp:
+    build:
+      context: ./test/E2E/fake/smtp
+      dockerfile: Dockerfile
+    networks:
+      - test_net
+
+  kuna_api:
+    build:
+      context: ./test/E2E/fake/kunaapi
+      dockerfile: Dockerfile
+    networks:
+      - test_net
+
+volumes:
+  storage_volume:
+
+networks:
+  test_net:
