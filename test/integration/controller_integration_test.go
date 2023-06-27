@@ -48,7 +48,7 @@ func TestAppController_Integration(t *testing.T) {
 		t.Fatalf("error creating email sender service: %v", err)
 	}
 
-	rateService := rate.NewService(rate.NewKunaProvider(config.KunaAPI, &http.Client{}))
+	rateService := rate.NewService(&rate.StubProvider{Rate: 42})
 
 	tests := []struct {
 		name           string
