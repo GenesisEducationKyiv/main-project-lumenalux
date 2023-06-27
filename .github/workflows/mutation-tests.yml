@@ -1,0 +1,34 @@
+name: Mutation Testing
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mutation_testing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Install go-mutesting
+        run: go install github.com/zimmski/go-mutesting/cmd/go-mutesting@latest
+
+      - name: Run Mutation Testing
+        run: |
+          output=$(go-mutesting ./...);
+          mutation_score=$(echo "$output" | awk '/The mutation score is/{print $5}');
+          threshold=0.3;
+          if (( $(echo "$mutation_score > $threshold" | bc -l) )); then
+            echo "Test is complete. Mutation score ($mutation_score) is higher than $threshold.";
+          else
+            echo "Test is incomplete. Mutation score ($mutation_score) is not higher than $threshold.";
+            exit 1; # Fail the job if the score is not higher than the threshold
+          fi
