@@ -27,7 +27,7 @@ func TestCSVStorage(t *testing.T) {
 		t.Fatalf("failed to read data: %v", err)
 	}
 
-	if !reflect.DeepEqual(readData[0], data) {
-		t.Errorf("read data does not match written data: got %v, want %v", readData[0], data)
+	if !reflect.DeepEqual(readData[0][0], data) {
+		t.Errorf("read data does not match written data: got %v, want %v", readData[0][0], data)
 	}
 }
