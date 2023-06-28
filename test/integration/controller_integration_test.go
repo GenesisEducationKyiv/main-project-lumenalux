@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"gses2-app/internal/controllers"
@@ -40,14 +41,12 @@ var (
 )
 
 func TestAppController_Integration(t *testing.T) {
-	config, err := config.Load("../../configs/config.yaml")
-	if err != nil {
-		t.Fatalf("error loading config: %v", err)
-	}
+	config, teardown := initConfig(t)
+	defer teardown()
 
 	defaultEmailSenderService := initSenderService(
 		t,
-		&config,
+		config,
 		&email.StubDialer{},
 		&email.StubSMTPClientFactory{Client: &email.StubSMTPClient{}},
 	)
@@ -142,7 +141,7 @@ func TestAppController_Integration(t *testing.T) {
 			subscriptionService: defaultSubscriptionService,
 			senderService: initSenderService(
 				t,
-				&config,
+				config,
 				&email.StubDialer{},
 				&email.StubSMTPClientFactory{
 					Client: &email.StubSMTPClient{MailErr: errSendMessage},
@@ -181,6 +180,47 @@ func TestAppController_Integration(t *testing.T) {
 				t.Errorf("handler returned wrong status code: got %v want %v", status, tt.expectedStatus)
 			}
 		})
+	}
+}
+
+func initConfig(t *testing.T) (*config.Config, func()) {
+	yaml := `
+smtp:
+  host: smpt-server.example.com
+  port: 465
+  user: <user>
+  password: <password>
+email:
+  from: no.reply@currency.info.api
+  subject: BTC to UAH exchange rate
+  body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
+storage:
+  path: ./storage/storage.csv
+http:
+  port: 8080
+  timeout_in_seconds: 10
+kuna_api:
+  url: https://www.example.com
+  default_rate: 0
+`
+
+	tempFile, err := os.CreateTemp("", "template_config_file.yaml")
+	if err != nil {
+		t.Fatalf("failed to create temporary file: %v", err)
+	}
+
+	_, err = io.WriteString(tempFile, yaml)
+	if err != nil {
+		t.Fatalf("Failed to write test data to the temporary file: %v", err)
+	}
+
+	config, err := config.Load(tempFile.Name())
+	if err != nil {
+		t.Fatalf("error loading config: %v", err)
+	}
+
+	return &config, func() {
+		os.Remove(tempFile.Name())
 	}
 }
 
