@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
-	"fmt"
 	"log"
 	"net"
 	"net/mail"
@@ -63,7 +62,7 @@ func main() {
 		TLSConfig:    getTLSConfig(),
 	}
 
-	fmt.Printf("Starting server on %s\n", Port)
+	log.Printf("Starting server on %s\n", Port)
 
 	listener, err := net.Listen("tcp", server.Addr)
 	if err != nil {

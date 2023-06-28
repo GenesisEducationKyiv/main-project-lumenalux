@@ -71,7 +71,7 @@ func registerRoutes(controller *controllers.AppController) *http.ServeMux {
 }
 
 func startServer(port string, handler http.Handler) {
-	fmt.Printf("Starting server on port %s\n", port)
+	log.Printf("Starting server on port %s\n", port)
 
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), handler)
 	if err != nil {
