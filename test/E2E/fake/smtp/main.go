@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/mail"
+	"os"
 
 	"github.com/mhale/smtpd"
 )
@@ -40,7 +41,8 @@ func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
 func getTLSConfig() *tls.Config {
 	cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem")
 	if err != nil {
-		log.Fatalf("Failed to load key pair: %v", err)
+		log.Printf("Failed to load key pair: %v", err)
+		os.Exit(0)
 	}
 
 	return &tls.Config{
@@ -66,7 +68,8 @@ func main() {
 
 	listener, err := net.Listen("tcp", server.Addr)
 	if err != nil {
-		log.Fatalf("Failed to create listener: %v", err)
+		log.Printf("Failed to create listener: %v", err)
+		os.Exit(0)
 	}
 
 	tlsListener := tls.NewListener(listener, server.TLSConfig)

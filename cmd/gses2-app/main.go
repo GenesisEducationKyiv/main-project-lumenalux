@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"gses2-app/internal/controllers"
@@ -18,7 +19,8 @@ import (
 func main() {
 	config, err := config.Load("./configs/config.yaml")
 	if err != nil {
-		log.Fatalf("Error, config wasn't loaded: %s", err)
+		log.Printf("Error, config wasn't loaded: %s", err)
+		os.Exit(0)
 	}
 
 	rateService, emailSubscriptionService, emailSenderService, err := createServices(&config)
@@ -29,7 +31,8 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatalf("Connection error: %s", err)
+		log.Printf("Connection error: %s", err)
+		os.Exit(0)
 	}
 
 	mux := registerRoutes(controller)
