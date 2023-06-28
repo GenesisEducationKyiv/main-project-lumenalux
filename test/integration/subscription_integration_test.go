@@ -9,57 +9,140 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"gses2-app/internal/subscription"
 	"gses2-app/pkg/storage"
 )
+
+type SubscribtionTest struct {
+	Name           string
+	Emails         []string
+	Action         func(service *subscription.Service, emails []string) error
+	ExpectedError  error
+	ExpectedResult []string
+}
 
 func TestSubscriptionServiceIntegration(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "example")
 	if err != nil {
 		t.Fatalf("failed to create temporary file: %v", err)
 	}
-
 	defer os.Remove(tmpFile.Name())
 
 	csvStorage := storage.NewCSVStorage(tmpFile.Name())
-
 	service := subscription.NewService(csvStorage)
 
-	t.Run("Subscribe a new email", func(t *testing.T) {
-		email := "test@example.com"
-		err := service.Subscribe(email)
-		if err != nil {
-			t.Fatalf("Failed to subscribe a new email: %v", err)
-		}
-	})
+	tests := []SubscribtionTest{
+		{
+			Name:   "Subscribe a new email",
+			Emails: []string{"test1@example.com"},
+			Action: func(service *subscription.Service, emails []string) error {
+				return service.Subscribe(emails[0])
+			},
+		},
+		{
+			Name:   "Check if an email is subscribed",
+			Emails: []string{"test1@example.com"},
+			Action: func(service *subscription.Service, emails []string) error {
+				_, err := service.IsSubscribed(emails[0])
+				return err
+			},
+			ExpectedResult: []string{"test1@example.com"},
+		},
+		{
+			Name:   "Subscribe an already subscribed email",
+			Emails: []string{"test1@example.com"},
+			Action: func(service *subscription.Service, emails []string) error {
+				return service.Subscribe(emails[0])
+			},
+			ExpectedError: subscription.ErrAlreadySubscribed,
+		},
+		{
+			Name:   "Get all subscriptions",
+			Emails: []string{},
+			Action: func(service *subscription.Service, emails []string) error {
+				_, err := service.Subscriptions()
+				return err
+			},
+			ExpectedResult: []string{"test1@example.com"},
+		},
+		{
+			Name:   "Subscribe multiple emails",
+			Emails: []string{"test2@example.com", "test3@example.com"},
+			Action: func(service *subscription.Service, emails []string) error {
+				for _, email := range emails {
+					if err := service.Subscribe(email); err != nil {
+						return err
+					}
+				}
+				return nil
+			},
+			ExpectedResult: []string{"test1@example.com", "test2@example.com", "test3@example.com"},
+		},
+		{
+			Name:   "Subscribe new and already subscribed emails",
+			Emails: []string{"test4@example.com", "test1@example.com"},
+			Action: func(service *subscription.Service, emails []string) error {
+				for _, email := range emails {
+					err := service.Subscribe(email)
+					if err != nil && !errors.Is(err, subscription.ErrAlreadySubscribed) {
+						return err
+					}
+				}
+				return nil
+			},
+			ExpectedResult: []string{"test1@example.com", "test2@example.com", "test3@example.com", "test4@example.com"},
+		},
+		{
+			Name:   "Check if all emails are subscribed",
+			Emails: []string{"test1@example.com", "test2@example.com", "test3@example.com", "test4@example.com"},
+			Action: func(service *subscription.Service, emails []string) error {
+				for _, email := range emails {
+					subscribed, err := service.IsSubscribed(email)
+					if err != nil || !subscribed {
+						if err != nil {
+							return err
+						}
+						return errors.New("Email not subscribed")
+					}
+				}
+				return nil
+			},
+			ExpectedResult: []string{"test1@example.com", "test2@example.com", "test3@example.com", "test4@example.com"},
+		},
+	}
 
-	t.Run("Check if an email is subscribed", func(t *testing.T) {
-		email := "test@example.com"
-		subscribed, err := service.IsSubscribed(email)
-		if err != nil {
-			t.Fatalf("Failed to check if an email is subscribed: %v", err)
-		}
-		if !subscribed {
-			t.Fatal("Expected the email to be subscribed")
-		}
-	})
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			runTest(t, tt, service)
+		})
+	}
+}
 
-	t.Run("Subscribe an already subscribed email", func(t *testing.T) {
-		email := "test@example.com"
-		err := service.Subscribe(email)
-		if !errors.Is(err, subscription.ErrAlreadySubscribed) {
-			t.Fatalf("Expected ErrAlreadySubscribed, got: %v", err)
-		}
-	})
+func runTest(t *testing.T, test SubscribtionTest, service *subscription.Service) {
+	err := test.Action(service, test.Emails)
+	checkError(t, err, test.ExpectedError)
+	checkExpectedResult(t, service, test.ExpectedResult)
+}
 
-	t.Run("Get all subscriptions", func(t *testing.T) {
-		email := "test@example.com"
-		subscriptions, err := service.Subscriptions()
-		if err != nil {
-			t.Fatalf("Failed to get all subscriptions: %v", err)
-		}
-		if len(subscriptions) != 1 || subscriptions[0] != email {
-			t.Fatalf("Unexpected subscriptions. Got: %v, Expected: [%v]", subscriptions, email)
-		}
-	})
+func checkError(t *testing.T, err error, expectedError error) {
+	if !errors.Is(err, expectedError) {
+		t.Fatalf("Expected error %v, got: %v", expectedError, err)
+	}
+}
+
+func checkExpectedResult(t *testing.T, service *subscription.Service, expectedResult []string) {
+	if expectedResult == nil {
+		return
+	}
+
+	subscriptions, err := service.Subscriptions()
+	if err != nil {
+		t.Fatalf("Failed to get all subscriptions: %v", err)
+	}
+
+	if !cmp.Equal(subscriptions, expectedResult) {
+		t.Errorf("Unexpected subscriptions. Got: %v, Expected: %v", subscriptions, expectedResult)
+	}
 }
