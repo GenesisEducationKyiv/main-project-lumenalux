@@ -16,7 +16,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		name           string
 		mockHTTPClient *StubHTTPClient
 		expectedRate   float32
-		expectedError  string
+		expectedError  error
 	}{
 		{
 			name: "Success",
@@ -29,7 +29,6 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 						),
 					),
 				},
-				Error: nil,
 			},
 			expectedRate: 1.24,
 		},
@@ -39,7 +38,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 				Response: nil,
 				Error:    errors.New("http request failure"),
 			},
-			expectedError: "http request failure",
+			expectedError: ErrHTTPRequestFailure,
 		},
 		{
 			name: "Unexpected status code",
@@ -47,9 +46,8 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 				Response: &http.Response{
 					StatusCode: http.StatusForbidden,
 				},
-				Error: nil,
 			},
-			expectedError: "unexpected status code",
+			expectedError: ErrUnexpectedStatusSode,
 		},
 		{
 			name: "Bad response body format",
@@ -58,9 +56,22 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusOK,
 					Body:       io.NopCloser(bytes.NewBufferString(`[[]]`)),
 				},
-				Error: nil,
 			},
-			expectedError: "unexpected response format",
+			expectedError: ErrUnexpectedResponseFormat,
+		},
+		{
+			name: "Bad response body format rate isn't a float64",
+			mockHTTPClient: &StubHTTPClient{
+				Response: &http.Response{
+					StatusCode: http.StatusOK,
+					Body: io.NopCloser(
+						bytes.NewBufferString(
+							`[[123456789,"BTCUSDT","1.23","1.24","1.25","1.26",1.23,true,1.25]]`,
+						),
+					),
+				},
+			},
+			expectedError: ErrUnexpectedExchangeRateFormat,
 		},
 	}
 
@@ -70,16 +81,16 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 			provider := NewKunaProvider(config, tt.mockHTTPClient)
 			rate, err := provider.ExchangeRate()
 
-			if err != nil && tt.expectedError == "" {
+			if err != nil && tt.expectedError == nil {
 				t.Errorf("didn't expect an error but got: %v", err)
 			}
 
-			if err != nil && !strings.Contains(err.Error(), tt.expectedError) {
-				t.Errorf("expected error message to contain %q, got %q", tt.expectedError, err.Error())
+			if err != nil && !strings.Contains(err.Error(), tt.expectedError.Error()) {
+				t.Errorf("expected error message to contain %v, got %v", tt.expectedError, err)
 			}
 
-			if err == nil && tt.expectedError != "" {
-				t.Errorf("expected an error %q but got nil", tt.expectedError)
+			if err == nil && tt.expectedError != nil {
+				t.Errorf("expected an error %v but got nil", tt.expectedError)
 			}
 
 			if rate != tt.expectedRate {
