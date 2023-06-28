@@ -18,7 +18,7 @@
 1.  Підніміть docker compose:
 
     ```bash
-    docker-compose up --build
+    docker-compose up --build --detach
     ```
 
 2.  Використання API:

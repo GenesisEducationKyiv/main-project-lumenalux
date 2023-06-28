@@ -19,7 +19,7 @@ This is an API that provides the current exchange rate between Bitcoin and the U
 1. Up the docker compose:
 
    ```bash
-   docker-compose up --build
+   docker-compose up --build --detach
    ```
 
 2. Use the API:
