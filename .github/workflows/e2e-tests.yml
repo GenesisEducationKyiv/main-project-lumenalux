@@ -27,10 +27,22 @@ jobs:
     - name: Install Newman
       run: sudo npm install -g newman
 
-    - name: Run E2E Tests
+    - name: Wait for service
       run: |
-        sleep 30
-        newman run ./test/E2E/postman/tests.e2e.json
+        timeout=60
+        while ! nc -z localhost 8080; do
+          sleep 1
+          timeout=$(($timeout - 1))
+          if [ $timeout -eq 0 ]; then
+            echo "Service is still unavailable - timeout!"
+            exit 1
+          fi
+        done
+        echo "Service is up - executing command"
+
+    - name: Run E2E Tests
+      run: newman run ./test/E2E/postman/tests.e2e.json
+
 
     - name: Docker Compose Down
       if: always()
