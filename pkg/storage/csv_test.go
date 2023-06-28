@@ -16,7 +16,7 @@ func TestCSVStorage(t *testing.T) {
 
 	storage := NewCSVStorage(tmpfile.Name())
 
-	data := []string{"example@test.com"}
+	data := "example@test.com"
 
 	if err := storage.Append(data); err != nil {
 		t.Fatalf("failed to append data: %v", err)

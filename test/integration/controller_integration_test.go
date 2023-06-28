@@ -24,7 +24,7 @@ type StubStorage struct {
 	records [][]string
 }
 
-func (s *StubStorage) Append(record []string) error {
+func (s *StubStorage) Append(record ...string) error {
 	return s.err
 }
 

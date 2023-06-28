@@ -10,7 +10,7 @@ type StubStorage struct {
 	Error   error
 }
 
-func (m *StubStorage) Append(record []string) error {
+func (m *StubStorage) Append(record ...string) error {
 	m.Records = append(m.Records, record)
 	return m.Error
 }
@@ -21,8 +21,8 @@ func (m *StubStorage) AllRecords() ([][]string, error) {
 
 func TestSubscription(t *testing.T) {
 	t.Run("Subscribe and check subscriptions", func(t *testing.T) {
-		mockStorage := &StubStorage{Records: [][]string{}}
-		service := NewService(mockStorage)
+		stubStorage := &StubStorage{Records: [][]string{}}
+		service := NewService(stubStorage)
 		email := "test@example.com"
 
 		err := service.Subscribe(email)
@@ -42,8 +42,8 @@ func TestSubscription(t *testing.T) {
 	})
 
 	t.Run("Subscribe twice", func(t *testing.T) {
-		mockStorage := &StubStorage{Records: [][]string{}}
-		service := NewService(mockStorage)
+		stubStorage := &StubStorage{Records: [][]string{}}
+		service := NewService(stubStorage)
 		email := "test@example.com"
 
 		err := service.Subscribe(email)
