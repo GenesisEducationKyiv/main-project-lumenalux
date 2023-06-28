@@ -60,7 +60,7 @@ type StubSMTPClient struct {
 	authErr error
 	quitErr error
 	dataErr error
-	mailErr error
+	MailErr error
 	rcptErr error
 
 	writer io.WriteCloser
@@ -97,7 +97,7 @@ func (m *StubSMTPClient) Data() (io.WriteCloser, error) {
 
 func (m *StubSMTPClient) Mail(from string) error {
 	m.mailCalled = true
-	return m.mailErr
+	return m.MailErr
 }
 
 func (m *StubSMTPClient) Rcpt(to string) error {

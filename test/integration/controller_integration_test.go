@@ -6,6 +6,7 @@ package integration
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -32,60 +33,122 @@ func (s *StubStorage) AllRecords() (records [][]string, err error) {
 	return s.records, s.err
 }
 
+var (
+	errRateProviderAnavailable = errors.New("rate provider unavailable")
+	errSendMessage             = errors.New("failed to send a message")
+	errGetSubscribtions        = errors.New("cannot get subscribtions")
+)
+
 func TestAppController_Integration(t *testing.T) {
 	config, err := config.Load("../../configs/config.yaml")
 	if err != nil {
 		t.Fatalf("error loading config: %v", err)
 	}
 
-	emailSenderService, err := email.NewSenderService(
+	defaultEmailSenderService := initSenderService(
+		t,
 		&config,
-		&email.StubDialer{Err: nil},
-		&email.StubSMTPClientFactory{Client: &email.StubSMTPClient{}, Err: nil},
+		&email.StubDialer{},
+		&email.StubSMTPClientFactory{Client: &email.StubSMTPClient{}},
 	)
 
-	if err != nil {
-		t.Fatalf("error creating email sender service: %v", err)
-	}
-
-	rateService := rate.NewService(&rate.StubProvider{Rate: 42})
+	defaultRateService := rate.NewService(&rate.StubProvider{Rate: 42})
+	defaultSubscriptionService := subscription.NewService(&StubStorage{})
 
 	tests := []struct {
-		name           string
-		requestMethod  string
-		requestURL     string
-		requestBody    io.Reader
-		expectedStatus int
-		storageRecords [][]string
+		name                string
+		requestMethod       string
+		requestURL          string
+		requestBody         io.Reader
+		expectedStatus      int
+		senderService       *email.SenderService
+		subscriptionService *subscription.Service
+		rateService         *rate.Service
 	}{
 		{
-			name:           "GetRate_OK",
-			requestMethod:  "GET",
-			requestURL:     "/api/rate",
-			requestBody:    nil,
-			expectedStatus: http.StatusOK,
+			name:                "GetRate OK",
+			requestMethod:       http.MethodGet,
+			requestURL:          "/api/rate",
+			requestBody:         nil,
+			expectedStatus:      http.StatusOK,
+			subscriptionService: defaultSubscriptionService,
+			senderService:       defaultEmailSenderService,
+			rateService:         defaultRateService,
 		},
 		{
-			name:           "SubscribeEmail_OK",
-			requestMethod:  "POST",
-			requestURL:     "/api/subscribe",
-			requestBody:    bytes.NewBufferString("email=test@test.com"),
-			expectedStatus: http.StatusOK,
+			name:                "SubscribeEmail OK",
+			requestMethod:       http.MethodPost,
+			requestURL:          "/api/subscribe",
+			requestBody:         bytes.NewBufferString("email=test@test.com"),
+			expectedStatus:      http.StatusOK,
+			senderService:       defaultEmailSenderService,
+			subscriptionService: defaultSubscriptionService,
+			rateService:         defaultRateService,
 		},
 		{
-			name:           "SubscribeEmail_StatusConflict",
-			requestMethod:  "POST",
+			name:           "SubscribeEmail StatusConflict",
+			requestMethod:  http.MethodPost,
 			requestURL:     "/api/subscribe",
 			requestBody:    bytes.NewBufferString("email=test@test.com"),
 			expectedStatus: http.StatusConflict,
-			storageRecords: [][]string{{"test@test.com"}},
+			subscriptionService: subscription.NewService(
+				&StubStorage{records: [][]string{{"test@test.com"}}},
+			),
+			senderService: defaultEmailSenderService,
+			rateService:   defaultRateService,
 		},
 		{
-			name:           "SendEmails_OK",
-			requestMethod:  "POST",
+			name:                "SendEmails OK",
+			requestMethod:       http.MethodPost,
+			requestURL:          "/api/sendEmails",
+			requestBody:         nil,
+			expectedStatus:      http.StatusOK,
+			subscriptionService: defaultSubscriptionService,
+			senderService:       defaultEmailSenderService,
+			rateService:         defaultRateService,
+		},
+		{
+			name:                "SendEmails BadRequest Rate Provider Unavailable",
+			requestMethod:       http.MethodPost,
+			requestURL:          "/api/sendEmails",
+			requestBody:         nil,
+			expectedStatus:      http.StatusBadRequest,
+			subscriptionService: defaultSubscriptionService,
+			senderService:       defaultEmailSenderService,
+			rateService: rate.NewService(
+				&rate.StubProvider{
+					Error: errRateProviderAnavailable,
+				},
+			),
+		},
+		{
+			name:           "SendEmails InternalServerError Subscribtions Error",
+			requestMethod:  http.MethodPost,
 			requestURL:     "/api/sendEmails",
 			requestBody:    nil,
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusInternalServerError,
+			subscriptionService: subscription.NewService(
+				&StubStorage{err: errGetSubscribtions},
+			),
+			senderService: defaultEmailSenderService,
+			rateService:   defaultRateService,
+		},
+		{
+			name:                "SendEmails InternalServerError Send Error",
+			requestMethod:       http.MethodPost,
+			requestURL:          "/api/sendEmails",
+			requestBody:         nil,
+			expectedStatus:      http.StatusInternalServerError,
+			subscriptionService: defaultSubscriptionService,
+			senderService: initSenderService(
+				t,
+				&config,
+				&email.StubDialer{},
+				&email.StubSMTPClientFactory{
+					Client: &email.StubSMTPClient{MailErr: errSendMessage},
+				},
+			),
+			rateService: defaultRateService,
 		},
 	}
 
@@ -96,17 +159,13 @@ func TestAppController_Integration(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			emailSubscriptionService := subscription.NewService(
-				&StubStorage{records: tt.storageRecords},
-			)
-
 			controller := controllers.NewAppController(
-				rateService,
-				emailSubscriptionService,
-				emailSenderService,
+				tt.rateService,
+				tt.subscriptionService,
+				tt.senderService,
 			)
 
-			if tt.requestMethod == "POST" {
+			if tt.requestMethod == http.MethodPost {
 				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			}
 
@@ -123,4 +182,19 @@ func TestAppController_Integration(t *testing.T) {
 			}
 		})
 	}
+}
+
+func initSenderService(
+	t *testing.T,
+	config *config.Config,
+	dialer email.TLSConnectionDialer,
+	factory email.SMTPClientFactory,
+) *email.SenderService {
+	service, err := email.NewSenderService(config, dialer, factory)
+
+	if err != nil {
+		t.Fatalf("error creating email sender service: %v", err)
+	}
+
+	return service
 }
