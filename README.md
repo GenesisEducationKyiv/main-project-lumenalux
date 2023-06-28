@@ -14,18 +14,12 @@ This is an API that provides the current exchange rate between Bitcoin and the U
    cd gses2-api
    ```
 
-2. Build the Docker image:
-
-   ```bash
-   docker build --tag gses2-app .
-   ```
-
 ## Usage
 
-1. Run the Docker container:
+1. Up the docker compose:
 
    ```bash
-   docker run -p 8080:8080 gses2-app
+   docker-compose up --build
    ```
 
 2. Use the API:
@@ -50,7 +44,7 @@ This is an API that provides the current exchange rate between Bitcoin and the U
 
 ## Detailed API Usage
 
-For detailed examples of how the API works including screenshots, please see [API_USAGE.md](./API_USAGE.md).
+For detailed examples of how the API works including screenshots, please see [API_USAGE.md](./docs/API_USAGE.md).
 
 ## App settings
 
@@ -72,6 +66,13 @@ email:
   from: no.reply@currency.info.api
   subject: BTC to UAH exchange rate
   body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
+storage:
+  path: ./storage.csv
+http:
+  port: 8080
+  timeout_in_seconds: 10
+kuna_api:
+  url: https://api.kuna.io/v3/tickers?symbols=btcuah
 ```
 
 In the `email` section:
@@ -102,7 +103,7 @@ The `main.go` file is the entry point for the Go application. It creates instanc
 
 ## Architecture Diagram
 
-![Architecture diagram](./images/architecture-diagram.png)
+![Architecture diagram](./docs/images/architecture-diagram.png)
 
 - **App Controller**: The controller handles HTTP requests and responses. It uses services to perform the business logic.
 - **Exchange Rate Service**: This service communicates with [Kuna.io](https://kuna.io/trade/BTC_UAH) API to fetch the BTC to UAH exchange rates.

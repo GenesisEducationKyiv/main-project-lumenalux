@@ -1,0 +1,58 @@
+linters-settings:
+  govet:
+    check-shadowing: true
+  golint:
+    min-confidence: 0
+  gocyclo:
+    min-complexity: 10
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  gocognit:
+    min-complexity: 10
+  maligned:
+    suggest-new: true
+  nakedret:
+    max-func-lines: 60
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: false
+
+linters:
+  enable:
+    - gofmt
+    - govet
+    - ineffassign
+    - misspell
+    - unused
+    - gosimple
+    - staticcheck
+    - gocyclo
+    - goconst
+    - gocognit
+    - typecheck
+    - nakedret
+    - prealloc
+    - gocritic
+
+issues:
+  exclude-rules:
+    - linters: [gofmt, goimports]
+      text: "File is not `gofmt`-ed with `-s`"
+  include:
+    - EXC0002
+
+run:
+  timeout: 1m
+  concurrency: 4
+  modules-download-mode: readonly
+  fast: false
+  skip-dirs:
+    - docs
+    - ^vendor/
+    - ^\.git/
+    - ^\.hg/
+    - ^\.svn/
+  skip-files:
+    - _test\.go$

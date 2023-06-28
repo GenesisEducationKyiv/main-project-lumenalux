@@ -13,18 +13,12 @@
    cd gses2-api
    ```
 
-2. Побудуйте Docker-образ:
-
-   ```bash
-   docker build --tag gses2-app .
-   ```
-
 ## Використання
 
-1.  Запустіть Docker-контейнер:
+1.  Підніміть docker compose:
 
     ```bash
-    docker run -p 8080:8080 gses2-app
+    docker-compose up --build
     ```
 
 2.  Використання API:
@@ -49,7 +43,7 @@
 
 ## Додатково про використання API
 
-Для докладних прикладів того, як працює API, включно зі скріншотами, будь ласка, перегляньте файл [API_USAGE.md](./API_USAGE.md).
+Для докладних прикладів того, як працює API, включно зі скріншотами, будь ласка, перегляньте файл [API_USAGE.md](./docs/API_USAGE.md).
 
 ## Налаштування додатку
 
@@ -71,6 +65,13 @@ email:
   from: no.reply@currency.info.api
   subject: BTC to UAH exchange rate
   body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
+storage:
+  path: ./storage.csv
+http:
+  port: 8080
+  timeout_in_seconds: 10
+kuna_api:
+  url: https://api.kuna.io/v3/tickers?symbols=btcuah
 ```
 
 У секції `email`:
@@ -103,7 +104,7 @@ email:
 
 ## Архітектура
 
-![Діаграма архітектури](./images/architecture-diagram.png)
+![Діаграма архітектури](./docs/images/architecture-diagram.png)
 
 - **App Controller**: Контролер обробляє HTTP-запити та відповіді. Він використовує сервіси для виконання бізнес-логіки.
 - **Exchange Rate Service**: Цей сервіс взаємодіє з API [Kuna.io](https://kuna.io/trade/BTC_UAH), щоб отримати обмінні курси BTC до UAH.

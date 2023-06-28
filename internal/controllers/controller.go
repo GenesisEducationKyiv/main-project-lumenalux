@@ -3,20 +3,32 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-
-	"gses2-app/services"
 )
 
+type SenderService interface {
+	SendExchangeRate(float32, []string) error
+}
+
+type RateService interface {
+	ExchangeRate() (float32, error)
+}
+
+type SubscriptionService interface {
+	Subscribe(email string) error
+	IsSubscribed(email string) (bool, error)
+	Subscriptions() ([]string, error)
+}
+
 type AppController struct {
-	ExchangeRateService      services.ExchangeRateService
-	EmailSubscriptionService services.EmailSubscriptionService
-	EmailSenderService       services.EmailSenderService
+	ExchangeRateService      RateService
+	EmailSubscriptionService SubscriptionService
+	EmailSenderService       SenderService
 }
 
 func NewAppController(
-	exchangeRateService services.ExchangeRateService,
-	emailSubscriptionService services.EmailSubscriptionService,
-	emailSenderService services.EmailSenderService,
+	exchangeRateService RateService,
+	emailSubscriptionService SubscriptionService,
+	emailSenderService SenderService,
 ) *AppController {
 	return &AppController{
 		ExchangeRateService:      exchangeRateService,
@@ -26,13 +38,15 @@ func NewAppController(
 }
 
 func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
-	exchangeRate, err := ac.ExchangeRateService.GetExchangeRate()
+	exchangeRate, err := ac.ExchangeRateService.ExchangeRate()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	json.NewEncoder(w).Encode(exchangeRate)
+	if json.NewEncoder(w).Encode(exchangeRate) != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
@@ -47,20 +61,19 @@ func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) 
 }
 
 func (ac *AppController) SendEmails(w http.ResponseWriter, r *http.Request) {
-	exchangeRate, err := ac.ExchangeRateService.GetExchangeRate()
+	exchangeRate, err := ac.ExchangeRateService.ExchangeRate()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	subscribers, err := ac.EmailSubscriptionService.GetSubscriptions()
+	subscribers, err := ac.EmailSubscriptionService.Subscriptions()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	statusCode := ac.EmailSenderService.SendExchangeRate(exchangeRate, subscribers)
-	if statusCode != 200 {
-		http.Error(w, err.Error(), statusCode)
+	if err := ac.EmailSenderService.SendExchangeRate(exchangeRate, subscribers); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
