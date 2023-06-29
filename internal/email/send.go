@@ -9,18 +9,18 @@ var (
 	errNoRecepients = errors.New("no recepiets")
 )
 
-type MailClient interface {
+type SenderSMTPClient interface {
 	Mail(string) error
 	Rcpt(string) error
 	Data() (io.WriteCloser, error)
 	Quit() error
 }
 
-func setMail(client MailClient, from string) error {
+func setMail(client SenderSMTPClient, from string) error {
 	return client.Mail(from)
 }
 
-func setRecipients(client MailClient, to []string) error {
+func setRecipients(client SenderSMTPClient, to []string) error {
 	if len(to) == 0 {
 		return errNoRecepients
 	}
@@ -34,7 +34,7 @@ func setRecipients(client MailClient, to []string) error {
 	return nil
 }
 
-func writeAndClose(client MailClient, message []byte) error {
+func writeAndClose(client SenderSMTPClient, message []byte) error {
 	writer, err := client.Data()
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func writeAndClose(client MailClient, message []byte) error {
 	return writer.Close()
 }
 
-func SendEmail(client MailClient, email *EmailMessage) error {
+func SendEmail(client SenderSMTPClient, email *EmailMessage) error {
 	err := setMail(client, email.from)
 	if err != nil {
 		return err
