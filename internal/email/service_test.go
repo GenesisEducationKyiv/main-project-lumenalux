@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"gses2-app/pkg/config"
+
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -55,13 +57,17 @@ func TestSendExchangeRate(t *testing.T) {
 			config := &config.Config{}
 			service, err := NewSenderService(config, tt.dialer, tt.factory)
 
-			unexpectedErr := err != nil && tt.expectedErr == nil
-			unexpectedSuccess := err == nil && tt.expectedErr != nil
-			errMismatch := err != nil && !errors.Is(err, tt.expectedErr)
-
-			if unexpectedErr || unexpectedSuccess || errMismatch {
-				t.Fatalf("NewSenderService() error = %v, expectedErr %v", err, tt.expectedErr)
-				return
+			if tt.expectedErr != nil {
+				require.ErrorIs(
+					t,
+					err,
+					tt.expectedErr,
+					"NewSenderService() error = %v, expectedErr %v",
+					err,
+					tt.expectedErr,
+				)
+			} else {
+				require.NoError(t, err, "NewSenderService() unexpected error = %v", err)
 			}
 
 			if tt.expectedErr != nil {
@@ -70,12 +76,17 @@ func TestSendExchangeRate(t *testing.T) {
 
 			err = service.SendExchangeRate(tt.exchangeRate, tt.emailAddresses)
 
-			unexpectedErr = err != nil && tt.expectedErr == nil
-			unexpectedSuccess = err == nil && tt.expectedErr != nil
-			errMismatch = err != nil && !errors.Is(err, tt.expectedErr)
-
-			if unexpectedErr || unexpectedSuccess || errMismatch {
-				t.Errorf("SendExchangeRate() error = %v, expectedErr %v", err, tt.expectedErr)
+			if tt.expectedErr != nil {
+				require.ErrorIs(
+					t,
+					err,
+					tt.expectedErr,
+					"SendExchangeRate() error = %v, expectedErr %v",
+					err,
+					tt.expectedErr,
+				)
+			} else {
+				require.NoError(t, err, "SendExchangeRate() unexpected error = %v", err)
 			}
 		})
 	}
