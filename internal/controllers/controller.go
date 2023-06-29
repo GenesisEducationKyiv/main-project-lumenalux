@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
+	"gses2-app/internal/subscription"
 	"net/http"
 )
 
@@ -52,8 +54,14 @@ func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
 func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	err := ac.EmailSubscriptionService.Subscribe(email)
-	if err != nil {
+
+	if err != nil && errors.Is(err, subscription.ErrAlreadySubscribed) {
 		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
