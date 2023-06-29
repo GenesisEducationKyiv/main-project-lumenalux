@@ -124,6 +124,7 @@ func TestPrepare(t *testing.T) {
 			expected: `From: test_from@example.com
 To: test_to@example.com
 Subject: Test Subject
+
 Test Body`,
 		},
 		{
@@ -137,6 +138,7 @@ Test Body`,
 			expected: `From: test_from@example.com
 To: test_to1@example.com,test_to2@example.com
 Subject: Test Subject
+
 Test Body`,
 		},
 		{
@@ -150,6 +152,7 @@ Test Body`,
 			expected: `From: test_from@example.com
 To: test_to@example.com
 Subject: Test Subject
+
 `,
 		},
 		{
@@ -163,6 +166,7 @@ Subject: Test Subject
 			expected: `From: test_from@example.com
 To: test_to@example.com
 Subject: 
+
 Test Body`,
 		},
 	}

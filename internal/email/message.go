@@ -12,6 +12,7 @@ import (
 const emailTemplate = `From: {{.From}}
 To: {{.To}}
 Subject: {{.Subject}}
+
 {{.Body}}`
 
 var (
