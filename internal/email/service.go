@@ -22,12 +22,7 @@ func NewSenderService(
 		return nil, err
 	}
 
-	SMTPClient := &SenderService{
-		config:     config,
-		connection: clientConnection,
-	}
-
-	return SMTPClient, nil
+	return &SenderService{config: config, connection: clientConnection}, nil
 }
 
 type TemplateData struct {
