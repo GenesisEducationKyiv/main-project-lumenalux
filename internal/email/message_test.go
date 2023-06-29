@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"gses2-app/pkg/config"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewEmailMessage(t *testing.T) {
@@ -94,20 +96,26 @@ func TestPrepare(t *testing.T) {
 				subject: "Test Subject",
 				body:    "Test Body",
 			},
-			expected: "From: test_from@example.com\r\n" +
-				"To: test_to@example.com\r\n" +
-				"Subject: Test Subject\r\n" +
-				"\r\nTest Body\r\n",
+			expected: `From: test_from@example.com
+To: test_to@example.com
+Subject: Test Subject
+Test Body`,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			prepared := tt.message.Prepare()
+			prepared, err := tt.message.Prepare()
 
-			if string(prepared) != tt.expected {
-				t.Errorf("Prepared message: got %v, want %v", string(prepared), tt.expected)
-			}
+			require.NoError(t, err, "Prepared message: want %v but got error %v", tt.expected, err)
+			require.Equal(
+				t,
+				tt.expected,
+				string(prepared),
+				"Prepared message: got \n%v, want \n%v",
+				string(prepared),
+				tt.expected,
+			)
 		})
 	}
 }

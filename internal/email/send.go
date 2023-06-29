@@ -45,8 +45,7 @@ func writeAndClose(client MailClient, message []byte) error {
 		return err
 	}
 
-	err = writer.Close()
-	return err
+	return writer.Close()
 }
 
 func SendEmail(client MailClient, email *EmailMessage) error {
@@ -64,5 +63,10 @@ func SendEmail(client MailClient, email *EmailMessage) error {
 		return err
 	}
 
-	return writeAndClose(client, email.Prepare())
+	emailMessage, err := email.Prepare()
+	if err != nil {
+		return err
+	}
+
+	return writeAndClose(client, emailMessage)
 }

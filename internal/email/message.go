@@ -2,11 +2,21 @@ package email
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"strings"
 	"text/template"
 
 	"gses2-app/pkg/config"
+)
+
+const emailTemplate = `From: {{.From}}
+To: {{.To}}
+Subject: {{.Subject}}
+{{.Body}}`
+
+var (
+	errParseTemplate  = errors.New("parse template error")
+	errExecuteTempate = errors.New("cannot execute email")
 )
 
 type EmailMessage struct {
@@ -40,12 +50,27 @@ func NewEmailMessage(
 	}, nil
 }
 
-func (e *EmailMessage) Prepare() []byte {
-	message := fmt.Sprintf("From: %s\r\n"+
-		"To: %s\r\n"+
-		"Subject: %s\r\n"+
-		"\r\n%s\r\n",
-		e.from, strings.Join(e.to, ","), e.subject, e.body)
+func (e *EmailMessage) Prepare() ([]byte, error) {
+	tmpl, err := template.New("email").Parse(emailTemplate)
+	if err != nil {
+		return nil, errParseTemplate
+	}
 
-	return []byte(message)
+	var message bytes.Buffer
+	err = tmpl.Execute(&message, struct {
+		From    string
+		To      string
+		Subject string
+		Body    string
+	}{
+		From:    e.from,
+		To:      strings.Join(e.to, ","),
+		Subject: e.subject,
+		Body:    e.body,
+	})
+	if err != nil {
+		return nil, errExecuteTempate
+	}
+
+	return message.Bytes(), nil
 }
