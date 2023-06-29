@@ -101,6 +101,8 @@ func TestGetRate(t *testing.T) {
 				tt.expectedStatus,
 				rr.Code,
 				"GetRate returned wrong status code: got %v, expected %v",
+				rr.Code,
+				tt.expectedStatus,
 			)
 
 			if tt.expectedBody != "" {
@@ -110,6 +112,8 @@ func TestGetRate(t *testing.T) {
 					tt.expectedBody,
 					actual,
 					"GetRate returned unexpected body: got %s, expected %s",
+					rr.Code,
+					tt.expectedStatus,
 				)
 			}
 		})
@@ -159,6 +163,8 @@ func TestSubscribeEmail(t *testing.T) {
 				tt.expectedStatus,
 				rr.Code,
 				"SubscribeEmail returned wrong status code: got %v, expected %v",
+				rr.Code,
+				tt.expectedStatus,
 			)
 		})
 	}
@@ -235,6 +241,8 @@ func TestSendEmails(t *testing.T) {
 				tt.expectedStatus,
 				rr.Code,
 				"SendEmails returned wrong status code: got %v, expected %v",
+				rr.Code,
+				tt.expectedStatus,
 			)
 		})
 	}
