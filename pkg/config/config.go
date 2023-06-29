@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v2"
@@ -18,12 +17,12 @@ func Load(filename string) (Config, error) {
 
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return configuration, fmt.Errorf("%w: %s", ErrReadFile, err)
+		return configuration, errors.Join(ErrReadFile, err)
 	}
 
 	err = yaml.Unmarshal(data, &configuration)
 	if err != nil {
-		return configuration, fmt.Errorf("%w: %s", ErrUnmarshalYAML, err)
+		return configuration, errors.Join(ErrUnmarshalYAML, err)
 	}
 
 	return configuration, nil
