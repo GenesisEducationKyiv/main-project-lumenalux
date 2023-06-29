@@ -12,6 +12,11 @@ services:
     depends_on:
       - smtp
       - kuna_api
+    healthcheck:
+      test: nc -z smtp 1025 && nc -z kuna_api 8082 || exit 1
+      interval: 60s
+      timeout: 3s
+      retries: 20
     networks:
       - test_net
 
