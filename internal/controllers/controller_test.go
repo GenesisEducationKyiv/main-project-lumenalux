@@ -2,10 +2,17 @@ package controllers
 
 import (
 	"errors"
+	"gses2-app/internal/subscription"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+)
+
+var (
+	errSubscriptions = errors.New("get subscriptions error")
+	errExchangeRate  = errors.New("exchange rate error")
+	errSendEmail     = errors.New("send email error")
 )
 
 type StubExchangeRateService struct {
@@ -19,7 +26,9 @@ func (m *StubExchangeRateService) ExchangeRate() (float32, error) {
 
 type StubEmailSubscriptionService struct {
 	subscribeErr     error
+	subscriptions    []string
 	subscriptionsErr error
+	isSubscribedErr  error
 }
 
 func (m *StubEmailSubscriptionService) Subscribe(email string) error {
@@ -30,7 +39,11 @@ func (m *StubEmailSubscriptionService) Subscriptions() ([]string, error) {
 	if m.subscriptionsErr != nil {
 		return nil, m.subscriptionsErr
 	}
-	return []string{"subscriber1@example.com", "subscriber2@example.com"}, nil
+	return m.subscriptions, nil
+}
+
+func (m *StubEmailSubscriptionService) IsSubscribed(email string) (bool, error) {
+	return true, m.isSubscribedErr
 }
 
 type StubEmailSenderService struct {
@@ -44,91 +57,22 @@ func (m *StubEmailSenderService) SendExchangeRate(
 	return m.sendErr
 }
 
-func (m *StubEmailSubscriptionService) IsSubscribed(email string) (bool, error) {
-	return true, nil
-}
-
-type StubExchangeRateServiceError struct{}
-
-func (m *StubExchangeRateServiceError) ExchangeRate() (float32, error) {
-	return 0, errors.New("Exchange rate error")
-}
-
-type StubEmailSubscriptionServiceError struct{}
-
-func (m *StubEmailSubscriptionServiceError) Subscribe(email string) error {
-	return errors.New("Subscription error")
-}
-
-func (m *StubEmailSubscriptionServiceError) IsSubscribed(email string) (bool, error) {
-	return false, errors.New("Check subscription error")
-}
-
-func (m *StubEmailSubscriptionServiceError) Subscriptions() ([]string, error) {
-	return nil, errors.New("Get subscriptions error")
-}
-
-type StubEmailSenderServiceError struct{}
-
-func (m *StubEmailSenderServiceError) SendExchangeRate(
-	rate float32,
-	subscribers []string,
-) error {
-	return errors.New("Send email error")
-}
-
 func TestGetRate(t *testing.T) {
 	tests := []struct {
 		name           string
-		exchangeRate   float32
-		exchangeErr    error
+		service        *StubExchangeRateService
 		expectedStatus int
 		expectedBody   string
 	}{
 		{
 			name:           "Exchange rate",
-			exchangeRate:   1.5,
-			exchangeErr:    nil,
+			service:        &StubExchangeRateService{rate: 1.5},
 			expectedStatus: http.StatusOK,
 			expectedBody:   "1.5",
 		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			controller := NewAppController(
-				&StubExchangeRateService{rate: tt.exchangeRate, err: tt.exchangeErr},
-				&StubEmailSubscriptionService{},
-				&StubEmailSenderService{},
-			)
-
-			req, _ := http.NewRequest("GET", "/rate", nil)
-
-			rr := httptest.NewRecorder()
-
-			controller.GetRate(rr, req)
-
-			if status := rr.Code; status != tt.expectedStatus {
-				t.Errorf("GetRate returned wrong status code: got %v, expected %v", status, tt.expectedStatus)
-			}
-
-			actual := strings.TrimSpace(rr.Body.String())
-			if actual != tt.expectedBody {
-				t.Errorf("GetRate returned unexpected body: got %s, expected %s", actual, tt.expectedBody)
-			}
-		})
-	}
-}
-
-func TestGetRateError(t *testing.T) {
-	tests := []struct {
-		name           string
-		service        RateService
-		expectedStatus int
-	}{
 		{
 			name:           "Exchange rate error",
-			service:        &StubExchangeRateServiceError{},
+			service:        &StubExchangeRateService{err: errExchangeRate},
 			expectedStatus: http.StatusBadRequest,
 		},
 	}
@@ -141,7 +85,7 @@ func TestGetRateError(t *testing.T) {
 				&StubEmailSenderService{},
 			)
 
-			req, err := http.NewRequest("GET", "/rate", nil)
+			req, err := http.NewRequest(http.MethodGet, "/rate", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -154,6 +98,13 @@ func TestGetRateError(t *testing.T) {
 			if status := rr.Code; status != tt.expectedStatus {
 				t.Errorf("GetRate returned wrong status code: got %v, expected %v", status, tt.expectedStatus)
 			}
+
+			if tt.expectedBody != "" {
+				actual := strings.TrimSpace(rr.Body.String())
+				if actual != tt.expectedBody {
+					t.Errorf("GetRate returned unexpected body: got %s, expected %s", actual, tt.expectedBody)
+				}
+			}
 		})
 	}
 }
@@ -161,46 +112,19 @@ func TestGetRateError(t *testing.T) {
 func TestSubscribeEmail(t *testing.T) {
 	tests := []struct {
 		name           string
-		subscribeErr   error
+		service        *StubEmailSubscriptionService
 		expectedStatus int
 	}{
 		{
-			name:           "Happy path",
-			subscribeErr:   nil,
+			name:           "Subscribe email",
+			service:        &StubEmailSubscriptionService{},
 			expectedStatus: http.StatusOK,
 		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			controller := NewAppController(
-				&StubExchangeRateService{},
-				&StubEmailSubscriptionService{subscribeErr: tt.subscribeErr},
-				&StubEmailSenderService{},
-			)
-
-			req, _ := http.NewRequest("POST", "/subscribe", strings.NewReader("email=test@example.com"))
-
-			rr := httptest.NewRecorder()
-
-			controller.SubscribeEmail(rr, req)
-
-			if status := rr.Code; status != tt.expectedStatus {
-				t.Errorf("SubscribeEmail returned wrong status code: got %v, expected %v", status, tt.expectedStatus)
-			}
-		})
-	}
-}
-
-func TestSubscribeEmailError(t *testing.T) {
-	tests := []struct {
-		name           string
-		service        SubscriptionService
-		expectedStatus int
-	}{
 		{
-			name:           "Subscription error",
-			service:        &StubEmailSubscriptionServiceError{},
+			name: "Subscription error",
+			service: &StubEmailSubscriptionService{
+				subscribeErr: subscription.ErrAlreadySubscribed,
+			},
 			expectedStatus: http.StatusConflict,
 		},
 	}
@@ -213,7 +137,7 @@ func TestSubscribeEmailError(t *testing.T) {
 				&StubEmailSenderService{},
 			)
 
-			req, err := http.NewRequest("POST", "/subscribe", strings.NewReader("email=test@example.com"))
+			req, err := http.NewRequest(http.MethodPost, "/subscribe", strings.NewReader("email=test@example.com"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -232,55 +156,28 @@ func TestSubscribeEmailError(t *testing.T) {
 
 func TestSendEmails(t *testing.T) {
 	tests := []struct {
-		name             string
-		exchangeRate     float32
-		exchangeErr      error
-		subscriptionsErr error
-		sendErr          error
-		expectedStatus   int
-	}{
-		{
-			name:             "Send emails",
-			exchangeRate:     1.5,
-			exchangeErr:      nil,
-			subscriptionsErr: nil,
-			sendErr:          nil,
-			expectedStatus:   http.StatusOK,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			controller := NewAppController(
-				&StubExchangeRateService{rate: tt.exchangeRate, err: tt.exchangeErr},
-				&StubEmailSubscriptionService{subscriptionsErr: tt.subscriptionsErr},
-				&StubEmailSenderService{sendErr: tt.sendErr},
-			)
-
-			req, _ := http.NewRequest("POST", "/send", nil)
-
-			rr := httptest.NewRecorder()
-
-			controller.SendEmails(rr, req)
-
-			if status := rr.Code; status != tt.expectedStatus {
-				t.Errorf("SendEmails returned wrong status code: got %v, expected %v", status, tt.expectedStatus)
-			}
-		})
-	}
-}
-
-func TestSendEmailsError(t *testing.T) {
-	tests := []struct {
 		name                string
-		exchangeRateService RateService
-		subscriptionService SubscriptionService
-		emailSenderService  SenderService
+		exchangeRateService *StubExchangeRateService
+		subscriptionService *StubEmailSubscriptionService
+		emailSenderService  *StubEmailSenderService
 		expectedStatus      int
 	}{
 		{
-			name:                "Exchange rate error",
-			exchangeRateService: &StubExchangeRateServiceError{},
+			name: "Send emails",
+			exchangeRateService: &StubExchangeRateService{
+				rate: 1.5,
+			},
+			subscriptionService: &StubEmailSubscriptionService{
+				subscriptions: []string{"subscriber1@example.com", "subscriber2@example.com"},
+			},
+			emailSenderService: &StubEmailSenderService{},
+			expectedStatus:     http.StatusOK,
+		},
+		{
+			name: "Exchange rate error",
+			exchangeRateService: &StubExchangeRateService{
+				err: errExchangeRate,
+			},
 			subscriptionService: &StubEmailSubscriptionService{},
 			emailSenderService:  &StubEmailSenderService{},
 			expectedStatus:      http.StatusBadRequest,
@@ -288,16 +185,20 @@ func TestSendEmailsError(t *testing.T) {
 		{
 			name:                "Subscription service error",
 			exchangeRateService: &StubExchangeRateService{},
-			subscriptionService: &StubEmailSubscriptionServiceError{},
-			emailSenderService:  &StubEmailSenderService{},
-			expectedStatus:      http.StatusInternalServerError,
+			subscriptionService: &StubEmailSubscriptionService{
+				subscriptionsErr: errSubscriptions,
+			},
+			emailSenderService: &StubEmailSenderService{},
+			expectedStatus:     http.StatusInternalServerError,
 		},
 		{
 			name:                "Email sender service error",
 			exchangeRateService: &StubExchangeRateService{},
 			subscriptionService: &StubEmailSubscriptionService{},
-			emailSenderService:  &StubEmailSenderServiceError{},
-			expectedStatus:      http.StatusInternalServerError,
+			emailSenderService: &StubEmailSenderService{
+				sendErr: errSendEmail,
+			},
+			expectedStatus: http.StatusInternalServerError,
 		},
 	}
 
@@ -309,7 +210,7 @@ func TestSendEmailsError(t *testing.T) {
 				tt.emailSenderService,
 			)
 
-			req, err := http.NewRequest("POST", "/send", nil)
+			req, err := http.NewRequest(http.MethodPost, "/send", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
