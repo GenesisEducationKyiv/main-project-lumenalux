@@ -1,4 +1,4 @@
-name: golangci
+name: Go CI QA Checks
 on:
   push:
     branches:
