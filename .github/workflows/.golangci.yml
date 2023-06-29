@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  golangci:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
@@ -20,13 +20,22 @@ jobs:
         with:
           go-version: 1.17
 
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+            
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.53.3
           args: --config=.golangci.yml
+
   test:
-    name: Unit tests
+    name: Unit & Integration tests
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.x
@@ -37,6 +46,14 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
 
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Get dependencies
         run: go mod download
 
@@ -45,3 +62,78 @@ jobs:
 
       - name: Test
         run: go test -v ./...
+
+  mutation_test:
+    name: Mutation test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install go-mutesting
+        run: go install github.com/zimmski/go-mutesting/cmd/go-mutesting@latest
+
+      - name: Run Mutation Tests
+        run: |
+          output=$(go-mutesting ./...);
+          mutation_score=$(echo "$output" | awk '/The mutation score is/{print $5}');
+          threshold=0.3;
+          if (( $(echo "$mutation_score > $threshold" | bc -l) )); then
+            echo "Test is complete. Mutation score ($mutation_score) is higher than $threshold.";
+          else
+            echo "Test is incomplete. Mutation score ($mutation_score) is not higher than $threshold.";
+            exit 1; # Fail the job if the score is not higher than the threshold
+          fi
+
+  e2e_test:
+    name: E2E Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Docker Compose
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+
+    - name: Docker Compose Up
+      run: docker-compose -f docker-compose.e2e.yml up -d
+
+    - name: Install Newman
+      run: sudo npm install -g newman
+
+    - name: Wait for service
+      run: |
+        timeout=60
+        while ! nc -z localhost 8080; do
+          sleep 1
+          timeout=$(($timeout - 1))
+          if [ $timeout -eq 0 ]; then
+            echo "Service is still unavailable - timeout!"
+            exit 1
+          fi
+        done
+        echo "Service is up - executing command"
+
+    - name: Run E2E Tests
+      run: newman run ./test/E2E/postman/tests.e2e.json
+
+    - name: Docker Compose Down
+      if: always()
+      run: docker-compose -f docker-compose.e2e.yml down
