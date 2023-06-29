@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -95,15 +97,20 @@ func TestGetRate(t *testing.T) {
 			handler := http.HandlerFunc(controller.GetRate)
 			handler.ServeHTTP(rr, req)
 
-			if status := rr.Code; status != tt.expectedStatus {
-				t.Errorf("GetRate returned wrong status code: got %v, expected %v", status, tt.expectedStatus)
-			}
+			require.Equal(t,
+				tt.expectedStatus,
+				rr.Code,
+				"GetRate returned wrong status code: got %v, expected %v",
+			)
 
 			if tt.expectedBody != "" {
 				actual := strings.TrimSpace(rr.Body.String())
-				if actual != tt.expectedBody {
-					t.Errorf("GetRate returned unexpected body: got %s, expected %s", actual, tt.expectedBody)
-				}
+				require.Equal(
+					t,
+					tt.expectedBody,
+					actual,
+					"GetRate returned unexpected body: got %s, expected %s",
+				)
 			}
 		})
 	}
@@ -147,9 +154,12 @@ func TestSubscribeEmail(t *testing.T) {
 			handler := http.HandlerFunc(controller.SubscribeEmail)
 			handler.ServeHTTP(rr, req)
 
-			if status := rr.Code; status != tt.expectedStatus {
-				t.Errorf("SubscribeEmail returned wrong status code: got %v, expected %v", status, tt.expectedStatus)
-			}
+			require.Equal(
+				t,
+				tt.expectedStatus,
+				rr.Code,
+				"SubscribeEmail returned wrong status code: got %v, expected %v",
+			)
 		})
 	}
 }
@@ -220,9 +230,12 @@ func TestSendEmails(t *testing.T) {
 			handler := http.HandlerFunc(controller.SendEmails)
 			handler.ServeHTTP(rr, req)
 
-			if status := rr.Code; status != tt.expectedStatus {
-				t.Errorf("SendEmails returned wrong status code: got %v, expected %v", status, tt.expectedStatus)
-			}
+			require.Equal(
+				t,
+				tt.expectedStatus,
+				rr.Code,
+				"SendEmails returned wrong status code: got %v, expected %v",
+			)
 		})
 	}
 }
