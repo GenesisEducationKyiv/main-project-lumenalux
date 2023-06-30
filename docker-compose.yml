@@ -6,8 +6,11 @@ services:
       dockerfile: Dockerfile
     volumes:
       - storage_volume:/app/storage/
+      - ./configs:/app/configs
     ports:
       - "8080:8080"
       - "465:465"
+    restart: on-failure
+
 volumes:
   storage_volume:

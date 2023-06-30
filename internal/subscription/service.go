@@ -5,7 +5,7 @@ import (
 )
 
 type Storage interface {
-	Append(record []string) error
+	Append(record ...string) error
 	AllRecords() (records [][]string, err error)
 }
 
@@ -28,7 +28,7 @@ func (s *Service) Subscribe(email string) error {
 		return ErrAlreadySubscribed
 	}
 
-	return s.Storage.Append([]string{email})
+	return s.Storage.Append(email)
 }
 
 func (s *Service) IsSubscribed(email string) (bool, error) {

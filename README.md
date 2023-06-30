@@ -14,12 +14,59 @@ This is an API that provides the current exchange rate between Bitcoin and the U
    cd gses2-api
    ```
 
+2. Configure the configuration file
+
+   The application uses the `config.yaml` file to configure the SMTP server and email settings. Create the configuration in the `config.yaml` file to use your own SMTP server for sending email updates.
+
+   Create the `config.yaml` file
+
+   ```bash
+   mkdir -p configs && touch ./configs/config.yaml
+   ```
+
+   Copy the following content into `config.yaml`:
+
+   ```yaml
+   smtp:
+     host: smpt-server.example.com
+     port: 465
+     user: <user>
+     password: <password>
+   email:
+     from: no.reply@currency.info.api
+     subject: BTC to UAH exchange rate
+     body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
+   storage:
+     path: ./storage.csv
+   http:
+     port: 8080
+     timeout_in_seconds: 10
+   kuna_api:
+     url: https://api.kuna.io/v3/tickers?symbols=btcuah
+   ```
+
+   The `config.yaml` file contains settings for the SMTP server, as well as the content of the email messages sent to subscribers. This includes a template for the email body, which uses Go's text/template syntax. The application replaces `{{.Rate}}` with the current BTC to UAH exchange rate before sending the email.
+
+   In the `email` section:
+
+   - `from`: This field specifies the email address that will be displayed as the sender of the email.
+   - `subject`: This field contains the subject line of the email.
+   - `body`: This field contains the body of the email. Any occurrence of `{{.Rate}}` in this field will be replaced with the current BTC to UAH exchange rate when the email is sent.
+
+   If you want to change the content of the email, simply edit the `subject` and/or `body` fields as desired.
+
+   > **Note**
+   > If you wish to modify the content of the email, simply edit the `subject` and/or `body` fields as desired. Remember to rebuild your Docker image to apply the new settings after making changes to `config.yaml`.
+
+   > **Warning**
+   > It's important to keep the `{{.Rate}}` placeholder in the `body` field if you want to include the current exchange rate in the email.
+
 ## Usage
 
 1. Up the docker compose:
 
    ```bash
-   docker-compose up --build
+   docker-compose up --build --detach
    ```
 
 2. Use the API:
@@ -45,47 +92,6 @@ This is an API that provides the current exchange rate between Bitcoin and the U
 ## Detailed API Usage
 
 For detailed examples of how the API works including screenshots, please see [API_USAGE.md](./docs/API_USAGE.md).
-
-## App settings
-
-The application uses a `config.yaml` file for SMTP server and email configuration. Update the settings in `config.yaml` to use your own SMTP server for sending email updates.
-
-## Configuring the Email Template
-
-The `config.yaml` file contains configuration for the SMTP server as well as the content of the email notifications sent to subscribers. This includes a template for the body of the email, which uses Go's text/template syntax. The application replaces `{{.Rate}}` with the current BTC to UAH exchange rate before sending the email.
-
-Here's what the `config.yaml` looks like:
-
-```yaml
-smtp:
-  host: smpt-server.example.com
-  port: 465
-  user: <user>
-  password: <password>
-email:
-  from: no.reply@currency.info.api
-  subject: BTC to UAH exchange rate
-  body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
-storage:
-  path: ./storage.csv
-http:
-  port: 8080
-  timeout_in_seconds: 10
-kuna_api:
-  url: https://api.kuna.io/v3/tickers?symbols=btcuah
-```
-
-In the `email` section:
-
-- `from`: This field specifies the email address that will appear as the sender of the email.
-- `subject`: This field contains the subject line of the email.
-- `body`: This field contains the body of the email. Any instance of `{{.Rate}}` in this field will be replaced with the current BTC to UAH exchange rate when the email is sent.
-
-> **Note**
-> If you wish to modify the content of the email, simply edit the `subject` and/or `body` fields as desired. Remember to rebuild your Docker image to apply the new settings after making changes to `config.yaml`.
-
-> **Warning**
-> It's important to keep the `{{.Rate}}` placeholder in the `body` field if you want to include the current exchange rate in the email.
 
 ## Description of the API
 

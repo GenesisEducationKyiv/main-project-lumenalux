@@ -1,8 +1,8 @@
 smtp:
-  host: smpt-server.example.com
-  port: 465
-  user: <user>
-  password: <password>
+  host: smtp
+  port: 1025
+  user: test
+  password: password
 email:
   from: no.reply@currency.info.api
   subject: BTC to UAH exchange rate
@@ -13,5 +13,5 @@ http:
   port: 8080
   timeout_in_seconds: 10
 kuna_api:
-  url: https://api.kuna.io/v3/tickers?symbols=btcuah
+  url: http://kuna_api:8082
   default_rate: 0

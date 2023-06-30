@@ -22,12 +22,7 @@ func NewSenderService(
 		return nil, err
 	}
 
-	SMTPClient := &SenderService{
-		config:     config,
-		connection: clientConnection,
-	}
-
-	return SMTPClient, nil
+	return &SenderService{config: config, connection: clientConnection}, nil
 }
 
 type TemplateData struct {
@@ -40,15 +35,10 @@ func (es *SenderService) SendExchangeRate(
 ) error {
 
 	templateData := TemplateData{Rate: fmt.Sprintf("%.2f", exchangeRate)}
-	email, err := NewEmailMessage(es.config.Email, emailAddresses, templateData)
+	emailMessage, err := NewEmailMessage(es.config.Email, emailAddresses, templateData)
 	if err != nil {
 		return err
 	}
 
-	err = SendEmail(es.connection, email)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return SendEmail(es.connection, emailMessage)
 }

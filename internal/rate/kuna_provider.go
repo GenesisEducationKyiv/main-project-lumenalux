@@ -2,11 +2,19 @@ package rate
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
 	"gses2-app/pkg/config"
+)
+
+var (
+	ErrHTTPRequestFailure           = errors.New("http request failure")
+	ErrUnexpectedStatusSode         = errors.New("unexpected status code")
+	ErrUnexpectedResponseFormat     = errors.New("unexpected response format")
+	ErrUnexpectedExchangeRateFormat = errors.New("unexpected exchange rate format")
 )
 
 const (
@@ -44,11 +52,11 @@ func (p *KunaProvider) requestAPI() (*http.Response, error) {
 
 	resp, err := p.httpClient.Get(p.config.URL)
 	if err != nil {
-		return nil, err
+		return nil, ErrHTTPRequestFailure
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("%v: %d", ErrUnexpectedStatusSode, resp.StatusCode)
 	}
 
 	return resp, nil
@@ -69,12 +77,12 @@ func (p *KunaProvider) extractRateFromResponse(resp *http.Response) (float32, er
 	}
 
 	if len(data) == 0 || len(data[firstItemIndex]) < minResponseItems {
-		return p.config.DefaultRate, fmt.Errorf("unexpected response format")
+		return p.config.DefaultRate, ErrUnexpectedResponseFormat
 	}
 
 	exchangeRate, ok := data[firstItemIndex][rateIndex].(float64)
 	if !ok {
-		return p.config.DefaultRate, fmt.Errorf("unexpected exchange rate format")
+		return p.config.DefaultRate, ErrUnexpectedExchangeRateFormat
 	}
 
 	return float32(exchangeRate), nil

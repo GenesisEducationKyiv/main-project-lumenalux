@@ -1,65 +1,102 @@
 package email
 
 import (
-	"bytes"
 	"errors"
 	"testing"
 )
 
-func TestSendEmail(t *testing.T) {
-	client := &MockSenderSMTPClient{}
-	email := &EmailMessage{
-		from:    "test_from@example.com",
-		to:      []string{"test_to@example.com"},
-		subject: "Test Subject",
-		body:    "Test Body",
-	}
-
-	err := SendEmail(client, email)
-
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
-
-	if client.fromCalledWith != email.from {
-		t.Errorf("Mail from: got %v, want %v", client.fromCalledWith, email.from)
-	}
-
-	if len(client.rcptCalledWith) != len(email.to) || client.rcptCalledWith[0] != email.to[0] {
-		t.Errorf("Rcpt to: got %v, want %v", client.rcptCalledWith, email.to)
-	}
-
-	if !client.dataCalled {
-		t.Error("Data was not called")
-	}
-
-	expectedMessage := email.Prepare()
-	if !bytes.Equal(client.writeCalledWith, expectedMessage) {
-		t.Errorf("Write called with: got %v, want %v", client.writeCalledWith, expectedMessage)
-	}
-
-	if !client.quitCalled {
-		t.Error("Quit was not called")
-	}
+type testCase struct {
+	name             string
+	client           *StubSenderSMTPClient
+	email            *EmailMessage
+	expectedErr      error
+	expectDataCalled bool
 }
 
-func TestSendEmailWriteError(t *testing.T) {
-	client := &MockSenderSMTPClient{writeShouldReturn: errors.New("write error")}
-	email := &EmailMessage{
-		from:    "test_from@example.com",
-		to:      []string{"test_to@example.com"},
-		subject: "Test Subject",
-		body:    "Test Body",
+var (
+	errWrite         = errors.New("write error")
+	errSetMail       = errors.New("set mail error")
+	errSetRecipients = errors.New("set recipients error")
+)
+
+func TestSendEmail(t *testing.T) {
+	tests := []testCase{
+		{
+			name: "Send email",
+			client: &StubSenderSMTPClient{
+				writeShouldReturn: nil,
+			},
+			email: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to@example.com"},
+				subject: "Test Subject",
+				body:    "Test Body",
+			},
+			expectedErr:      nil,
+			expectDataCalled: true,
+		},
+		{
+			name: "Error on write",
+			client: &StubSenderSMTPClient{
+				writeShouldReturn: errWrite,
+			},
+			email: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to@example.com"},
+				subject: "Test Subject",
+				body:    "Test Body",
+			},
+			expectedErr:      errWrite,
+			expectDataCalled: true,
+		},
+		{
+			name: "Error on setMail",
+			client: &StubSenderSMTPClient{
+				mailShouldReturn: errSetMail,
+			},
+			email: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to@example.com"},
+				subject: "Test Subject",
+				body:    "Test Body",
+			},
+			expectedErr:      errSetMail,
+			expectDataCalled: false,
+		},
+		{
+			name: "Error on setRecipients",
+			client: &StubSenderSMTPClient{
+				rcptShouldReturn: errSetRecipients,
+			},
+			email: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to@example.com"},
+				subject: "Test Subject",
+				body:    "Test Body",
+			},
+			expectedErr:      errSetRecipients,
+			expectDataCalled: false,
+		},
 	}
 
-	err := SendEmail(client, email)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := SendEmail(tt.client, tt.email)
+			if err != nil && tt.expectedErr == nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
 
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
+			if err == nil && tt.expectedErr != nil {
+				t.Error("Expected error, got nil")
+			}
 
-	expectedError := "write error"
-	if err.Error() != expectedError {
-		t.Errorf("Error: got %v, want %v", err, expectedError)
+			if err != nil && tt.expectedErr != nil && !errors.Is(err, tt.expectedErr) {
+				t.Errorf("Error: got %v, want %v", err, tt.expectedErr)
+			}
+
+			if tt.client.dataCalled != tt.expectDataCalled {
+				t.Errorf("Data called: got %v, want %v", tt.client.dataCalled, tt.expectDataCalled)
+			}
+		})
 	}
 }

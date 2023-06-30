@@ -4,58 +4,186 @@ import (
 	"testing"
 
 	"gses2-app/pkg/config"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewEmailMessage(t *testing.T) {
-	emailConfig := config.EmailConfig{
-		From:    "test_from@example.com",
-		Subject: "Test Subject",
-		Body:    "The current exchange rate is {{.Rate}}.",
-	}
-	to := []string{"test_to@example.com"}
-	templateData := TemplateData{
-		Rate: "200",
+	tests := []struct {
+		name         string
+		emailConfig  config.EmailConfig
+		to           []string
+		templateData TemplateData
+		expected     *EmailMessage
+		hasError     bool
+	}{
+		{
+			name: "Create email message",
+			emailConfig: config.EmailConfig{
+				From:    "test_from@example.com",
+				Subject: "Test Subject",
+				Body:    "The current exchange rate is {{.Rate}}.",
+			},
+			to: []string{"test_to@example.com"},
+			templateData: TemplateData{
+				Rate: "200",
+			},
+			expected: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to@example.com"},
+				subject: "Test Subject",
+				body:    "The current exchange rate is 200.",
+			},
+			hasError: false,
+		},
+		{
+			name: "Bad template",
+			emailConfig: config.EmailConfig{
+				From:    "test_from@example.com",
+				Subject: "Test Subject",
+				Body:    "The current exchange rate is {{.Rate",
+			},
+			to: []string{"test_to@example.com"},
+			templateData: TemplateData{
+				Rate: "200",
+			},
+			expected: nil,
+			hasError: true,
+		},
 	}
 
-	emailMessage, err := NewEmailMessage(emailConfig, to, templateData)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			emailMessage, err := NewEmailMessage(tt.emailConfig, tt.to, tt.templateData)
+			require.Equal(
+				t,
+				tt.hasError,
+				err != nil,
+				"NewEmailMessage() error = %v, wantErr %v",
+				err,
+				tt.hasError,
+			)
 
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
+			if err != nil {
+				return
+			}
 
-	if emailMessage.from != emailConfig.From {
-		t.Errorf("From: got %v, want %v", emailMessage.from, emailConfig.From)
-	}
+			require.Equal(
+				t,
+				tt.expected.from,
+				emailMessage.from,
+				"From: got %v, want %v",
+				emailMessage.from,
+				tt.expected.from,
+			)
 
-	if len(emailMessage.to) != len(to) || emailMessage.to[0] != to[0] {
-		t.Errorf("To: got %v, want %v", emailMessage.to, to)
-	}
+			require.Equal(
+				t,
+				tt.expected.to,
+				emailMessage.to,
+				"To: got %v, want %v",
+				emailMessage.to,
+				tt.expected.to,
+			)
 
-	if emailMessage.subject != emailConfig.Subject {
-		t.Errorf("Subject: got %v, want %v", emailMessage.subject, emailConfig.Subject)
-	}
+			require.Equal(
+				t,
+				tt.expected.subject,
+				emailMessage.subject,
+				"Subject: got %v, want %v",
+				emailMessage.subject,
+				tt.expected.subject,
+			)
 
-	expectedBody := "The current exchange rate is 200."
-	if emailMessage.body != expectedBody {
-		t.Errorf("Body: got %v, want %v", emailMessage.body, expectedBody)
+			require.Equal(
+				t,
+				tt.expected.body,
+				emailMessage.body,
+				"Body: got %v, want %v",
+				emailMessage.body,
+				tt.expected.body,
+			)
+		})
 	}
 }
 
 func TestPrepare(t *testing.T) {
-	emailMessage := &EmailMessage{
-		from:    "test_from@example.com",
-		to:      []string{"test_to@example.com"},
-		subject: "Test Subject",
-		body:    "Test Body",
+	tests := []struct {
+		name     string
+		message  *EmailMessage
+		expected string
+	}{
+		{
+			name: "Prepare single recipient message",
+			message: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to@example.com"},
+				subject: "Test Subject",
+				body:    "Test Body",
+			},
+			expected: `From: test_from@example.com
+To: test_to@example.com
+Subject: Test Subject
+
+Test Body`,
+		},
+		{
+			name: "Prepare multiple recipient message",
+			message: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to1@example.com", "test_to2@example.com"},
+				subject: "Test Subject",
+				body:    "Test Body",
+			},
+			expected: `From: test_from@example.com
+To: test_to1@example.com,test_to2@example.com
+Subject: Test Subject
+
+Test Body`,
+		},
+		{
+			name: "Prepare message with no body",
+			message: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to@example.com"},
+				subject: "Test Subject",
+				body:    "",
+			},
+			expected: `From: test_from@example.com
+To: test_to@example.com
+Subject: Test Subject
+
+`,
+		},
+		{
+			name: "Prepare message with no subject",
+			message: &EmailMessage{
+				from:    "test_from@example.com",
+				to:      []string{"test_to@example.com"},
+				subject: "",
+				body:    "Test Body",
+			},
+			expected: `From: test_from@example.com
+To: test_to@example.com
+Subject: 
+
+Test Body`,
+		},
 	}
 
-	prepared := emailMessage.Prepare()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prepared, err := tt.message.Prepare()
 
-	expected := "From: test_from@example.com\r\n" +
-		"To: test_to@example.com\r\n" +
-		"Subject: Test Subject\r\n" +
-		"\r\nTest Body\r\n"
-	if string(prepared) != expected {
-		t.Errorf("Prepared message: got %v, want %v", string(prepared), expected)
+			require.NoError(t, err, "Prepared message: want %v but got error %v", tt.expected, err)
+			require.Equal(
+				t,
+				tt.expected,
+				string(prepared),
+				"Prepared message: got \n%v, want \n%v",
+				string(prepared),
+				tt.expected,
+			)
+		})
 	}
 }

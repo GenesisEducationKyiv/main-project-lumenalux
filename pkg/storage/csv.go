@@ -24,7 +24,7 @@ func (s *CSVStorage) AllRecords() ([][]string, error) {
 	return r.ReadAll()
 }
 
-func (s *CSVStorage) Append(record []string) error {
+func (s *CSVStorage) Append(record ...string) error {
 	f, err := os.OpenFile(s.FilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err

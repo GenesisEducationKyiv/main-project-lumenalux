@@ -68,7 +68,7 @@ func NewSMTPClient(
 
 func (c *SMTPClient) createTLSConfig() *tls.Config {
 	return &tls.Config{
-		InsecureSkipVerify: false,
+		InsecureSkipVerify: true,
 		ServerName:         c.host,
 	}
 }

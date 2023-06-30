@@ -5,24 +5,24 @@ import (
 	"testing"
 )
 
-type MockStorage struct {
+type StubStorage struct {
 	Records [][]string
 	Error   error
 }
 
-func (m *MockStorage) Append(record []string) error {
+func (m *StubStorage) Append(record ...string) error {
 	m.Records = append(m.Records, record)
 	return m.Error
 }
 
-func (m *MockStorage) AllRecords() ([][]string, error) {
+func (m *StubStorage) AllRecords() ([][]string, error) {
 	return m.Records, m.Error
 }
 
 func TestSubscription(t *testing.T) {
 	t.Run("Subscribe and check subscriptions", func(t *testing.T) {
-		mockStorage := &MockStorage{Records: [][]string{}}
-		service := NewService(mockStorage)
+		stubStorage := &StubStorage{Records: [][]string{}}
+		service := NewService(stubStorage)
 		email := "test@example.com"
 
 		err := service.Subscribe(email)
@@ -42,8 +42,8 @@ func TestSubscription(t *testing.T) {
 	})
 
 	t.Run("Subscribe twice", func(t *testing.T) {
-		mockStorage := &MockStorage{Records: [][]string{}}
-		service := NewService(mockStorage)
+		stubStorage := &StubStorage{Records: [][]string{}}
+		service := NewService(stubStorage)
 		email := "test@example.com"
 
 		err := service.Subscribe(email)
@@ -54,6 +54,17 @@ func TestSubscription(t *testing.T) {
 		err = service.Subscribe(email)
 		if !errors.Is(err, ErrAlreadySubscribed) {
 			t.Errorf("expected error due to duplicate subscription, got: %v", err)
+		}
+	})
+
+	t.Run("Subscribed with non-existent email", func(t *testing.T) {
+		mockStorage := &StubStorage{Records: [][]string{}}
+		service := NewService(mockStorage)
+		email := "test@example.com"
+
+		subscribed, err := service.IsSubscribed(email)
+		if err != nil || subscribed {
+			t.Errorf("expected email not to be subscribed, got: %v", err)
 		}
 	})
 }

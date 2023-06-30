@@ -8,13 +8,13 @@ import (
 func TestExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
-		mockProvider   *MockProvider
+		mockProvider   *StubProvider
 		expectedRate   float32
 		expectingError bool
 	}{
 		{
 			name: "Success",
-			mockProvider: &MockProvider{
+			mockProvider: &StubProvider{
 				Rate:  1.23,
 				Error: nil,
 			},
@@ -23,7 +23,7 @@ func TestExchangeRate(t *testing.T) {
 		},
 		{
 			name: "Failure",
-			mockProvider: &MockProvider{
+			mockProvider: &StubProvider{
 				Rate:  0,
 				Error: errors.New("error fetching rate"),
 			},
