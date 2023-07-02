@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"gses2-app/internal/controller"
-	"gses2-app/internal/email"
 	"gses2-app/internal/rate"
+	"gses2-app/internal/sender"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
@@ -42,7 +42,7 @@ func main() {
 func createServices(config *config.Config) (
 	*rate.Service,
 	*subscription.Service,
-	*email.SenderService,
+	*sender.SenderService,
 	error,
 ) {
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
@@ -51,10 +51,10 @@ func createServices(config *config.Config) (
 
 	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
 
-	emailSenderService, err := email.NewSenderService(
+	emailSenderService, err := sender.NewSenderService(
 		config,
-		&email.TLSConnectionDialerImpl{},
-		&email.SMTPClientFactoryImpl{},
+		&sender.TLSConnectionDialerImpl{},
+		&sender.SMTPClientFactoryImpl{},
 	)
 
 	if err != nil {

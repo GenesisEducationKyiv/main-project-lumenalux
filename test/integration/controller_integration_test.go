@@ -14,8 +14,8 @@ import (
 	"testing"
 
 	"gses2-app/internal/controller"
-	"gses2-app/internal/email"
 	"gses2-app/internal/rate"
+	"gses2-app/internal/sender"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
@@ -47,8 +47,8 @@ func TestAppController_Integration(t *testing.T) {
 	defaultEmailSenderService := initSenderService(
 		t,
 		config,
-		&email.StubDialer{},
-		&email.StubSMTPClientFactory{Client: &email.StubSMTPClient{}},
+		&sender.StubDialer{},
+		&sender.StubSMTPClientFactory{Client: &sender.StubSMTPClient{}},
 	)
 
 	defaultRateService := rate.NewService(&rate.StubProvider{Rate: 42})
@@ -60,7 +60,7 @@ func TestAppController_Integration(t *testing.T) {
 		requestURL          string
 		requestBody         io.Reader
 		expectedStatus      int
-		senderService       *email.SenderService
+		senderService       *sender.SenderService
 		subscriptionService *subscription.Service
 		rateService         *rate.Service
 	}{
@@ -142,9 +142,9 @@ func TestAppController_Integration(t *testing.T) {
 			senderService: initSenderService(
 				t,
 				config,
-				&email.StubDialer{},
-				&email.StubSMTPClientFactory{
-					Client: &email.StubSMTPClient{MailErr: errSendMessage},
+				&sender.StubDialer{},
+				&sender.StubSMTPClientFactory{
+					Client: &sender.StubSMTPClient{MailErr: errSendMessage},
 				},
 			),
 			rateService: defaultRateService,
@@ -227,10 +227,10 @@ kuna_api:
 func initSenderService(
 	t *testing.T,
 	config *config.Config,
-	dialer email.TLSConnectionDialer,
-	factory email.SMTPClientFactory,
-) *email.SenderService {
-	service, err := email.NewSenderService(config, dialer, factory)
+	dialer sender.TLSConnectionDialer,
+	factory sender.SMTPClientFactory,
+) *sender.SenderService {
+	service, err := sender.NewSenderService(config, dialer, factory)
 
 	if err != nil {
 		t.Fatalf("error creating email sender service: %v", err)
