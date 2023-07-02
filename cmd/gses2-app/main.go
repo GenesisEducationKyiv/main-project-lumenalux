@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"gses2-app/internal/controllers"
+	"gses2-app/internal/controller"
 	"gses2-app/internal/email"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/subscription"
@@ -24,7 +24,7 @@ func main() {
 	}
 
 	rateService, emailSubscriptionService, emailSenderService, err := createServices(&config)
-	controller := controllers.NewAppController(
+	appController := controller.NewAppController(
 		rateService,
 		emailSubscriptionService,
 		emailSenderService,
@@ -35,7 +35,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	mux := registerRoutes(controller)
+	mux := registerRoutes(appController)
 	startServer(config.HTTP.Port, mux)
 }
 
@@ -64,8 +64,8 @@ func createServices(config *config.Config) (
 	return rateService, emailSubscriptionService, emailSenderService, err
 }
 
-func registerRoutes(controller *controllers.AppController) *http.ServeMux {
-	router := transport.NewHTTPRouter(controller)
+func registerRoutes(appController *controller.AppController) *http.ServeMux {
+	router := transport.NewHTTPRouter(appController)
 
 	mux := http.NewServeMux()
 	router.RegisterRoutes(mux)

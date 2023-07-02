@@ -13,7 +13,7 @@ import (
 	"os"
 	"testing"
 
-	"gses2-app/internal/controllers"
+	"gses2-app/internal/controller"
 	"gses2-app/internal/email"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/subscription"
@@ -158,7 +158,7 @@ func TestAppController_Integration(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			controller := controllers.NewAppController(
+			appController := controller.NewAppController(
 				tt.rateService,
 				tt.subscriptionService,
 				tt.senderService,
@@ -170,7 +170,7 @@ func TestAppController_Integration(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 
-			router := transport.NewHTTPRouter(controller)
+			router := transport.NewHTTPRouter(appController)
 			mux := http.NewServeMux()
 			router.RegisterRoutes(mux)
 
