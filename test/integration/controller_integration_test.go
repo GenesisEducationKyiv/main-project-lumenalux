@@ -60,7 +60,7 @@ func TestAppController_Integration(t *testing.T) {
 		requestURL          string
 		requestBody         io.Reader
 		expectedStatus      int
-		senderService       *sender.SenderService
+		senderService       *sender.Service
 		subscriptionService *subscription.Service
 		rateService         *rate.Service
 	}{
@@ -229,8 +229,8 @@ func initSenderService(
 	config *config.Config,
 	dialer sender.TLSConnectionDialer,
 	factory sender.SMTPClientFactory,
-) *sender.SenderService {
-	service, err := sender.NewSenderService(config, dialer, factory)
+) *sender.Service {
+	service, err := sender.NewService(config, dialer, factory)
 
 	if err != nil {
 		t.Fatalf("error creating email sender service: %v", err)

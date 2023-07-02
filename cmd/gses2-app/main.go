@@ -42,7 +42,7 @@ func main() {
 func createServices(config *config.Config) (
 	*rate.Service,
 	*subscription.Service,
-	*sender.SenderService,
+	*sender.Service,
 	error,
 ) {
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
@@ -51,7 +51,7 @@ func createServices(config *config.Config) (
 
 	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
 
-	emailSenderService, err := sender.NewSenderService(
+	emailSenderService, err := sender.NewService(
 		config,
 		&sender.TLSConnectionDialerImpl{},
 		&sender.SMTPClientFactoryImpl{},

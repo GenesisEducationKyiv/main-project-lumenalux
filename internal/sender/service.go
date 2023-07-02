@@ -6,30 +6,30 @@ import (
 	"gses2-app/pkg/config"
 )
 
-type SenderService struct {
+type Service struct {
 	config     *config.Config
 	connection SMTPConnectionClient
 }
 
-func NewSenderService(
+func NewService(
 	config *config.Config,
 	dialer TLSConnectionDialer,
 	factory SMTPClientFactory,
-) (*SenderService, error) {
+) (*Service, error) {
 	client := NewSMTPClient(config.SMTP, dialer, factory)
 	clientConnection, err := client.Connect()
 	if err != nil {
 		return nil, err
 	}
 
-	return &SenderService{config: config, connection: clientConnection}, nil
+	return &Service{config: config, connection: clientConnection}, nil
 }
 
 type TemplateData struct {
 	Rate string
 }
 
-func (es *SenderService) SendExchangeRate(
+func (es *Service) SendExchangeRate(
 	exchangeRate float32,
 	emailAddresses []string,
 ) error {
