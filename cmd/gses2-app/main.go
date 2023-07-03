@@ -14,6 +14,8 @@ import (
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/storage"
+
+	rateProvider "gses2-app/internal/rate/provider"
 )
 
 func main() {
@@ -48,7 +50,7 @@ func createServices(config *config.Config) (
 ) {
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
 
-	rateService := rate.NewService(rate.NewKunaProvider(config.KunaAPI, httpClient))
+	rateService := rate.NewService(rateProvider.NewKunaProvider(config.KunaAPI, httpClient))
 
 	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
 

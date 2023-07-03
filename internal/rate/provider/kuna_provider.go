@@ -1,4 +1,4 @@
-package rate
+package provider
 
 import (
 	"encoding/json"

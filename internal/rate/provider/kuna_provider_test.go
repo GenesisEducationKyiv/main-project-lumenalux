@@ -1,4 +1,4 @@
-package rate
+package provider
 
 import (
 	"bytes"
@@ -7,10 +7,19 @@ import (
 	"net/http"
 	"testing"
 
-	"gses2-app/pkg/config"
-
 	"github.com/stretchr/testify/require"
+
+	"gses2-app/pkg/config"
 )
+
+type StubHTTPClient struct {
+	Response *http.Response
+	Error    error
+}
+
+func (m *StubHTTPClient) Get(url string) (*http.Response, error) {
+	return m.Response, m.Error
+}
 
 func TestKunaProviderExchangeRate(t *testing.T) {
 	tests := []struct {

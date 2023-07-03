@@ -19,6 +19,8 @@ import (
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
+
+	rateProvider "gses2-app/internal/rate/provider"
 )
 
 type StubStorage struct {
@@ -50,7 +52,7 @@ func TestAppController_Integration(t *testing.T) {
 		&sender.StubSMTPClientFactory{Client: &sender.StubSMTPClient{}},
 	)
 
-	defaultRateService := rate.NewService(&rate.StubProvider{Rate: 42})
+	defaultRateService := rate.NewService(&rateProvider.StubProvider{Rate: 42})
 	defaultSubscriptionService := subscription.NewService(&StubStorage{})
 
 	tests := []struct {
@@ -114,7 +116,7 @@ func TestAppController_Integration(t *testing.T) {
 			subscriptionService: defaultSubscriptionService,
 			senderService:       defaultEmailSenderService,
 			rateService: rate.NewService(
-				&rate.StubProvider{
+				&rateProvider.StubProvider{
 					Error: errRateProviderAnavailable,
 				},
 			),
