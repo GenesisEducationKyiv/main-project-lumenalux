@@ -3,6 +3,8 @@ package sender
 import (
 	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type testCase struct {
@@ -80,23 +82,19 @@ func TestSendEmail(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			err := SendEmail(tt.client, tt.email)
-			if err != nil && tt.expectedErr == nil {
-				t.Errorf("Unexpected error: %v", err)
+
+			if tt.expectedErr != nil {
+				require.ErrorIs(t, err, tt.expectedErr, "Error: got %v, want %v", err, tt.expectedErr)
+			} else {
+				require.NoError(t, err, "Unexpected error: %v", err)
 			}
 
-			if err == nil && tt.expectedErr != nil {
-				t.Error("Expected error, got nil")
-			}
-
-			if err != nil && tt.expectedErr != nil && !errors.Is(err, tt.expectedErr) {
-				t.Errorf("Error: got %v, want %v", err, tt.expectedErr)
-			}
-
-			if tt.client.dataCalled != tt.expectDataCalled {
-				t.Errorf("Data called: got %v, want %v", tt.client.dataCalled, tt.expectDataCalled)
-			}
+			require.Equal(t, tt.expectDataCalled, tt.client.dataCalled, "Data called: got %v, want %v", tt.client.dataCalled, tt.expectDataCalled)
 		})
 	}
 }
