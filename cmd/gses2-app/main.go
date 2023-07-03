@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
@@ -47,7 +46,7 @@ func createServices(config *config.Config) (
 	*sender.Service,
 	error,
 ) {
-	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
+	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
 
 	rateService := rate.NewService(rate.NewKunaProvider(config.KunaAPI, httpClient))
 
