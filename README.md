@@ -41,7 +41,7 @@ This is an API that provides the current exchange rate between Bitcoin and the U
    ```
 
    ```bash
-    export GSES2_APP_SMTP_USER="<smtp username>"
+   export GSES2_APP_SMTP_USER="<smtp username>"
    ```
 
    ```bash

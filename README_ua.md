@@ -82,23 +82,23 @@
 
 2.  Використання API:
 
-- Отримати поточний курс BTC до UAH:
+    Отримати поточний курс BTC до UAH:
 
-  ```bash
-  curl localhost:8080/api/rate
-  ```
+    ```bash
+    curl localhost:8080/api/rate
+    ```
 
-- Підписатися на оновлення курсу:
+    Підписатися на оновлення курсу:
 
-  ```bash
-  curl -X POST -d "email=subscriber@email.com" localhost:8080/api/subscribe
-  ```
+    ```bash
+    curl -X POST -d "email=subscriber@email.com" localhost:8080/api/subscribe
+    ```
 
-- Надіслати оновлення курсу всім підписникам:
+    Надіслати оновлення курсу всім підписникам:
 
-  ```bash
-  curl -X POST localhost:8080/api/sendEmails
-  ```
+    ```bash
+    curl -X POST localhost:8080/api/sendEmails
+    ```
 
 ## Додатково про використання API
 
