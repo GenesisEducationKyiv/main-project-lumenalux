@@ -22,7 +22,7 @@ This is an API that provides the current exchange rate between Bitcoin and the U
 
 ## Installation
 
-1. Clone the repository to your desired location:
+1. **Clone the repository to your desired location:**
 
    ```bash
    git clone https://github.com/lumenalux/gses2-app.git gses2-app
@@ -32,7 +32,7 @@ This is an API that provides the current exchange rate between Bitcoin and the U
    cd gses2-app
    ```
 
-2. Configure the environment variables
+2. **Configure the environment variables:**
 
    The application uses environment variables for configuration. Set up the following environment variables for the SMTP server and email settings:
 
@@ -62,7 +62,7 @@ This is an API that provides the current exchange rate between Bitcoin and the U
 
    The environment variables include settings for the SMTP server and the content of the email messages sent to subscribers. The body of the email is designed as a template using Go's text/template syntax. The application replaces `{{.Rate}}` with the current BTC to UAH exchange rate before sending the email.
 
-   For the `email` settings:
+   **For the** `email` **settings:**
 
    - `GSES2_APP_EMAIL_FROM`: This variable specifies the email address that will be displayed as the sender of the email.
    - `GSES2_APP_EMAIL_SUBJECT`: This variable contains the subject line of the email.
@@ -78,13 +78,13 @@ This is an API that provides the current exchange rate between Bitcoin and the U
 
 ## Usage
 
-1. Up the docker compose:
+1. **Up the docker compose:**
 
    ```bash
    docker-compose up --build --detach
    ```
 
-2. Use the API:
+2. **Use the API:**
 
    Get the current BTC to UAH rate:
 
@@ -92,13 +92,13 @@ This is an API that provides the current exchange rate between Bitcoin and the U
    curl localhost:8080/api/rate
    ```
 
-   Subscribe to rate updates:
+   **Subscribe to rate updates:**
 
    ```bash
    curl -X POST -d "email=subscriber@email.com" localhost:8080/api/subscribe
    ```
 
-   Send rate updates to all subscribers:
+   **Send rate updates to all subscribers:**
 
    ```bash
    curl -X POST localhost:8080/api/sendEmails
