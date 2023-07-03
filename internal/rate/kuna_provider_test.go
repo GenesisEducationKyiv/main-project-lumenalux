@@ -5,10 +5,11 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strings"
 	"testing"
 
 	"gses2-app/pkg/config"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestKunaProviderExchangeRate(t *testing.T) {
@@ -76,26 +77,26 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			config := config.KunaAPIConfig{}
 			provider := NewKunaProvider(config, tt.mockHTTPClient)
 			rate, err := provider.ExchangeRate()
 
-			if err != nil && tt.expectedError == nil {
-				t.Errorf("didn't expect an error but got: %v", err)
+			if tt.expectedError != nil {
+				require.Error(t, err, "Expected an error but got nil")
+				require.Contains(
+					t, err.Error(), tt.expectedError.Error(),
+					"Expected error message to contain %v, got %v", tt.expectedError, err,
+				)
+			} else {
+				require.NoError(t, err, "Didn't expect an error but got: %v", err)
 			}
 
-			if err != nil && !strings.Contains(err.Error(), tt.expectedError.Error()) {
-				t.Errorf("expected error message to contain %v, got %v", tt.expectedError, err)
-			}
-
-			if err == nil && tt.expectedError != nil {
-				t.Errorf("expected an error %v but got nil", tt.expectedError)
-			}
-
-			if rate != tt.expectedRate {
-				t.Errorf("expected rate %v, got %v", tt.expectedRate, rate)
-			}
+			require.Equal(t, tt.expectedRate, rate, "Expected rate %v, got %v", tt.expectedRate, rate)
 		})
 	}
+
 }
