@@ -8,12 +8,12 @@
 
 ## Зміст
 
-- [Про проект](https://chat.openai.com/?model=gpt-4#%D0%BF%D1%80%D0%BE-%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82)
-- [Встановлення](https://chat.openai.com/?model=gpt-4#%D0%B2%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BB%D0%B5%D0%BD%D0%BD%D1%8F)
-- [Використання](https://chat.openai.com/?model=gpt-4#%D0%B2%D0%B8%D0%BA%D0%BE%D1%80%D0%B8%D1%81%D1%82%D0%B0%D0%BD%D0%BD%D1%8F)
-- [Опис](https://chat.openai.com/?model=gpt-4#%D0%BE%D0%BF%D0%B8%D1%81)
-- [Як це працює](https://chat.openai.com/?model=gpt-4#%D1%8F%D0%BA-%D1%86%D0%B5-%D0%BF%D1%80%D0%B0%D1%86%D1%8E%D1%94)
-- [Архітектура](https://chat.openai.com/?model=gpt-4#%D0%B0%D1%80%D1%85%D1%96%D1%82%D0%B5%D0%BA%D1%82%D1%83%D1%80%D0%B0)
+- [Про проект](#про-проект)
+- [Встановлення](#встановлення)
+- [Використання](#використання)
+- [Опис API](#опис-api)
+- [Як це працює](#як-це-працює)
+- [Архітектура](#архітектура)
 
 ## Про проект
 
