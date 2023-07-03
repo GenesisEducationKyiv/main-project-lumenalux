@@ -3,13 +3,25 @@ services:
   gses2-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./build/package/Dockerfile
     volumes:
       - storage_volume:/app/storage/
-      - ./configs:/app/configs
     ports:
       - "8080:8080"
       - "465:465"
+    environment:
+      - GSES2_APP_SMTP_HOST=${GSES2_APP_SMTP_HOST:-www.default.com}
+      - GSES2_APP_SMTP_USER=${GSES2_APP_SMTP_USER:-default@user.com}
+      - GSES2_APP_SMTP_PASSWORD=${GSES2_APP_SMTP_PASSWORD:-defaultpassword}
+      - GSES2_APP_SMTP_PORT=${GSES2_APP_SMTP_PORT:-465}
+      - GSES2_APP_EMAIL_FROM=${GSES2_APP_EMAIL_FROM:-no.reply@test.info.api}
+      - GSES2_APP_EMAIL_SUBJECT=${GSES2_APP_EMAIL_SUBJECT:-BTC to UAH exchange rate}
+      - GSES2_APP_EMAIL_BODY=${GSES2_APP_EMAIL_BODY:-'The BTC to UAH exchange rate is {{.Rate}} UAH per BTC'}
+      - GSES2_APP_STORAGE_PATH=${GSES2_APP_STORAGE_PATH:-./storage/storage.csv}
+      - GSES2_APP_HTTP_PORT=${GSES2_APP_HTTP_PORT:-8080}
+      - GSES2_APP_HTTP_TIMEOUT=${GSES2_APP_HTTP_TIMEOUT:-10s}
+      - GSES2_APP_KUNA_API_URL=${GSES2_APP_KUNA_API_URL:-https://api.kuna.io/v3/tickers?symbols=btcuah}
+      - GSES2_APP_KUNA_API_DEFAULT_RATE=${GSES2_APP_KUNA_API_DEFAULT_RATE:-0}
     restart: on-failure
 
 volumes:
