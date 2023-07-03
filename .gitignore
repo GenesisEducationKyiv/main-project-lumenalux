@@ -11,4 +11,5 @@
 *.swp
 .vscode/
 
-storage.csv
+storage/storage.csv
+gses2-app
