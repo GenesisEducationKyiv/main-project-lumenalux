@@ -3,6 +3,8 @@ package rate
 import (
 	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestExchangeRate(t *testing.T) {
@@ -33,21 +35,24 @@ func TestExchangeRate(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			service := NewService(tt.mockProvider)
 			rate, err := service.ExchangeRate()
 
-			if rate != tt.expectedRate {
-				t.Errorf("expected rate %v, got %v", tt.expectedRate, rate)
+			require.Equal(
+				t, tt.expectedRate, rate,
+				"Expected rate %v, got %v", tt.expectedRate, rate,
+			)
+
+			if tt.expectingError {
+				require.Error(t, err, "Expected an error but got nil")
+				return
 			}
 
-			if tt.expectingError && err == nil {
-				t.Errorf("expected an error but got nil")
-			}
-
-			if !tt.expectingError && err != nil {
-				t.Errorf("didn't expect an error but got: %v", err)
-			}
+			require.NoError(t, err, "Didn't expect an error but got: %v", err)
 		})
 	}
+
 }
