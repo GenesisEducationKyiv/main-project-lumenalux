@@ -1,4 +1,4 @@
-package sender
+package message
 
 import (
 	"testing"
@@ -29,10 +29,10 @@ func TestNewEmailMessage(t *testing.T) {
 				Rate: "200",
 			},
 			expected: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to@example.com"},
-				subject: "Test Subject",
-				body:    "The current exchange rate is 200.",
+				From:    "test_from@example.com",
+				To:      []string{"test_to@example.com"},
+				Subject: "Test Subject",
+				Body:    "The current exchange rate is 200.",
 			},
 			hasError: false,
 		},
@@ -73,38 +73,38 @@ func TestNewEmailMessage(t *testing.T) {
 
 			require.Equal(
 				t,
-				tt.expected.from,
-				emailMessage.from,
+				tt.expected.From,
+				emailMessage.From,
 				"From: got %v, want %v",
-				emailMessage.from,
-				tt.expected.from,
+				emailMessage.From,
+				tt.expected.From,
 			)
 
 			require.Equal(
 				t,
-				tt.expected.to,
-				emailMessage.to,
+				tt.expected.To,
+				emailMessage.To,
 				"To: got %v, want %v",
-				emailMessage.to,
-				tt.expected.to,
+				emailMessage.To,
+				tt.expected.To,
 			)
 
 			require.Equal(
 				t,
-				tt.expected.subject,
-				emailMessage.subject,
+				tt.expected.Subject,
+				emailMessage.Subject,
 				"Subject: got %v, want %v",
-				emailMessage.subject,
-				tt.expected.subject,
+				emailMessage.Subject,
+				tt.expected.Subject,
 			)
 
 			require.Equal(
 				t,
-				tt.expected.body,
-				emailMessage.body,
+				tt.expected.Body,
+				emailMessage.Body,
 				"Body: got %v, want %v",
-				emailMessage.body,
-				tt.expected.body,
+				emailMessage.Body,
+				tt.expected.Body,
 			)
 		})
 	}
@@ -119,10 +119,10 @@ func TestPrepare(t *testing.T) {
 		{
 			name: "Prepare single recipient message",
 			message: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to@example.com"},
-				subject: "Test Subject",
-				body:    "Test Body",
+				From:    "test_from@example.com",
+				To:      []string{"test_to@example.com"},
+				Subject: "Test Subject",
+				Body:    "Test Body",
 			},
 			expected: `From: test_from@example.com
 To: test_to@example.com
@@ -133,10 +133,10 @@ Test Body`,
 		{
 			name: "Prepare multiple recipient message",
 			message: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to1@example.com", "test_to2@example.com"},
-				subject: "Test Subject",
-				body:    "Test Body",
+				From:    "test_from@example.com",
+				To:      []string{"test_to1@example.com", "test_to2@example.com"},
+				Subject: "Test Subject",
+				Body:    "Test Body",
 			},
 			expected: `From: test_from@example.com
 To: test_to1@example.com,test_to2@example.com
@@ -147,10 +147,10 @@ Test Body`,
 		{
 			name: "Prepare message with no body",
 			message: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to@example.com"},
-				subject: "Test Subject",
-				body:    "",
+				From:    "test_from@example.com",
+				To:      []string{"test_to@example.com"},
+				Subject: "Test Subject",
+				Body:    "",
 			},
 			expected: `From: test_from@example.com
 To: test_to@example.com
@@ -161,10 +161,10 @@ Subject: Test Subject
 		{
 			name: "Prepare message with no subject",
 			message: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to@example.com"},
-				subject: "",
-				body:    "Test Body",
+				From:    "test_from@example.com",
+				To:      []string{"test_to@example.com"},
+				Subject: "",
+				Body:    "Test Body",
 			},
 			expected: `From: test_from@example.com
 To: test_to@example.com

@@ -10,12 +10,14 @@ import (
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/sender"
+	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/storage"
 
-	rateProvider "gses2-app/internal/rate/provider"
+	rateProvider "gses2-app/internal/rate/provider/kuna"
+	emailSenderProvider "gses2-app/internal/sender/provider/email"
 )
 
 func main() {
@@ -26,11 +28,11 @@ func main() {
 		os.Exit(0)
 	}
 
-	rateService, emailSubscriptionService, emailSenderService, err := createServices(&config)
+	rateService, subscriptionService, senderService, err := createServices(&config)
 	appController := controller.NewAppController(
 		rateService,
-		emailSubscriptionService,
-		emailSenderService,
+		subscriptionService,
+		senderService,
 	)
 
 	if err != nil {
@@ -48,23 +50,36 @@ func createServices(config *config.Config) (
 	*sender.Service,
 	error,
 ) {
-	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
-
-	rateService := rate.NewService(rateProvider.NewKunaProvider(config.KunaAPI, httpClient))
-
-	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
-
-	emailSenderService, err := sender.NewService(
-		config,
-		&sender.TLSConnectionDialerImpl{},
-		&sender.SMTPClientFactoryImpl{},
-	)
-
+	senderService, err := createSenderService(config)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	return rateService, emailSubscriptionService, emailSenderService, err
+	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
+	exchangeRateProvider := rateProvider.NewKunaProvider(
+		config.KunaAPI, httpClient,
+	)
+	rateService := rate.NewService(exchangeRateProvider)
+
+	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
+
+	return rateService, emailSubscriptionService, senderService, nil
+}
+
+func createSenderService(
+	config *config.Config,
+) (*sender.Service, error) {
+	emailSenderProvider, err := emailSenderProvider.NewProvider(
+		config,
+		&smtp.TLSConnectionDialerImpl{},
+		&smtp.SMTPClientFactoryImpl{},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return sender.NewService(emailSenderProvider), nil
 }
 
 func registerRoutes(appController *controller.AppController) *http.ServeMux {

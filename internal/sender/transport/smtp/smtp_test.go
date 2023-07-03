@@ -1,4 +1,4 @@
-package sender
+package smtp
 
 import (
 	"errors"

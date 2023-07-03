@@ -1,16 +1,18 @@
-package sender
+package send
 
 import (
 	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"gses2-app/internal/sender/provider/email/message"
 )
 
 type testCase struct {
 	name             string
-	client           *StubSenderSMTPClient
-	email            *EmailMessage
+	client           *StubSMTPClient
+	email            *message.EmailMessage
 	expectedErr      error
 	expectDataCalled bool
 }
@@ -25,56 +27,56 @@ func TestSendEmail(t *testing.T) {
 	tests := []testCase{
 		{
 			name: "Send email",
-			client: &StubSenderSMTPClient{
+			client: &StubSMTPClient{
 				writeShouldReturn: nil,
 			},
-			email: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to@example.com"},
-				subject: "Test Subject",
-				body:    "Test Body",
+			email: &message.EmailMessage{
+				From:    "test_from@example.com",
+				To:      []string{"test_to@example.com"},
+				Subject: "Test Subject",
+				Body:    "Test Body",
 			},
 			expectedErr:      nil,
 			expectDataCalled: true,
 		},
 		{
 			name: "Error on write",
-			client: &StubSenderSMTPClient{
+			client: &StubSMTPClient{
 				writeShouldReturn: errWrite,
 			},
-			email: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to@example.com"},
-				subject: "Test Subject",
-				body:    "Test Body",
+			email: &message.EmailMessage{
+				From:    "test_from@example.com",
+				To:      []string{"test_to@example.com"},
+				Subject: "Test Subject",
+				Body:    "Test Body",
 			},
 			expectedErr:      errWrite,
 			expectDataCalled: true,
 		},
 		{
 			name: "Error on setMail",
-			client: &StubSenderSMTPClient{
+			client: &StubSMTPClient{
 				mailShouldReturn: errSetMail,
 			},
-			email: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to@example.com"},
-				subject: "Test Subject",
-				body:    "Test Body",
+			email: &message.EmailMessage{
+				From:    "test_from@example.com",
+				To:      []string{"test_to@example.com"},
+				Subject: "Test Subject",
+				Body:    "Test Body",
 			},
 			expectedErr:      errSetMail,
 			expectDataCalled: false,
 		},
 		{
 			name: "Error on setRecipients",
-			client: &StubSenderSMTPClient{
+			client: &StubSMTPClient{
 				rcptShouldReturn: errSetRecipients,
 			},
-			email: &EmailMessage{
-				from:    "test_from@example.com",
-				to:      []string{"test_to@example.com"},
-				subject: "Test Subject",
-				body:    "Test Body",
+			email: &message.EmailMessage{
+				From:    "test_from@example.com",
+				To:      []string{"test_to@example.com"},
+				Subject: "Test Subject",
+				Body:    "Test Body",
 			},
 			expectedErr:      errSetRecipients,
 			expectDataCalled: false,

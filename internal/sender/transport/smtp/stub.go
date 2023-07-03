@@ -1,4 +1,4 @@
-package sender
+package smtp
 
 import (
 	"crypto/tls"
@@ -7,47 +7,17 @@ import (
 	"net/smtp"
 )
 
-type StubSenderSMTPClient struct {
-	fromCalledWith    string
-	rcptCalledWith    []string
-	rcptShouldReturn  error
-	dataCalled        bool
-	quitCalled        bool
-	writeCalledWith   []byte
-	writeShouldReturn error
-	mailShouldReturn  error
+type StubWriteCloser struct {
+	Writer io.Writer
+	Closer io.Closer
 }
 
-func (m *StubSenderSMTPClient) Mail(from string) error {
-	m.fromCalledWith = from
-	return m.mailShouldReturn
-}
-
-func (m *StubSenderSMTPClient) Rcpt(to string) error {
-	m.rcptCalledWith = append(m.rcptCalledWith, to)
-	return m.rcptShouldReturn
-}
-
-func (m *StubSenderSMTPClient) Data() (wc io.WriteCloser, err error) {
-	m.dataCalled = true
-	if m.writeShouldReturn != nil {
-		return nil, m.writeShouldReturn
-	}
-	return m, nil
-}
-
-func (m *StubSenderSMTPClient) Write(p []byte) (n int, err error) {
-	m.writeCalledWith = p
-	return len(p), nil
-}
-
-func (m *StubSenderSMTPClient) Close() error {
+func (m *StubWriteCloser) Close() error {
 	return nil
 }
 
-func (m *StubSenderSMTPClient) Quit() error {
-	m.quitCalled = true
-	return nil
+func (m *StubWriteCloser) Write(data []byte) (int, error) {
+	return 0, nil
 }
 
 type StubSMTPClient struct {
@@ -74,19 +44,6 @@ func (m *StubSMTPClient) Auth(a smtp.Auth) error {
 func (m *StubSMTPClient) Quit() error {
 	m.quitCalled = true
 	return m.quitErr
-}
-
-type StubWriteCloser struct {
-	Writer io.Writer
-	Closer io.Closer
-}
-
-func (m *StubWriteCloser) Close() error {
-	return nil
-}
-
-func (m *StubWriteCloser) Write(data []byte) (int, error) {
-	return 0, nil
 }
 
 func (m *StubSMTPClient) Data() (io.WriteCloser, error) {

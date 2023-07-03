@@ -1,12 +1,13 @@
-package sender
+package email
 
 import (
 	"errors"
 	"testing"
 
-	"gses2-app/pkg/config"
-
 	"github.com/stretchr/testify/require"
+
+	"gses2-app/internal/sender/transport/smtp"
+	"gses2-app/pkg/config"
 )
 
 var (
@@ -19,33 +20,33 @@ func TestSendExchangeRate(t *testing.T) {
 		name           string
 		emailAddresses []string
 		exchangeRate   float32
-		dialer         TLSConnectionDialer
-		factory        SMTPClientFactory
+		dialer         smtp.TLSConnectionDialer
+		factory        smtp.SMTPClientFactory
 		expectedErr    error
 	}{
 		{
 			name:           "Successful SendExchangeRate",
 			emailAddresses: []string{"test@example.com"},
 			exchangeRate:   10.5,
-			dialer:         &StubDialer{},
-			factory:        &StubSMTPClientFactory{Client: &StubSMTPClient{}},
+			dialer:         &smtp.StubDialer{},
+			factory:        &smtp.StubSMTPClientFactory{Client: &smtp.StubSMTPClient{}},
 			expectedErr:    nil,
 		},
 		{
 			name:           "Failed due to dialer error",
 			emailAddresses: []string{"test@example.com"},
 			exchangeRate:   10.5,
-			dialer:         &StubDialer{Err: errDialerError},
-			factory:        &StubSMTPClientFactory{Client: &StubSMTPClient{}},
+			dialer:         &smtp.StubDialer{Err: errDialerError},
+			factory:        &smtp.StubSMTPClientFactory{Client: &smtp.StubSMTPClient{}},
 			expectedErr:    errDialerError,
 		},
 		{
 			name:           "Failed due to factory error",
 			emailAddresses: []string{"test@example.com"},
 			exchangeRate:   10.5,
-			dialer:         &StubDialer{},
-			factory: &StubSMTPClientFactory{
-				Client: &StubSMTPClient{},
+			dialer:         &smtp.StubDialer{},
+			factory: &smtp.StubSMTPClientFactory{
+				Client: &smtp.StubSMTPClient{},
 				Err:    errFactoryError,
 			},
 			expectedErr: errFactoryError,
@@ -58,7 +59,7 @@ func TestSendExchangeRate(t *testing.T) {
 			t.Parallel()
 
 			config := &config.Config{}
-			service, err := NewService(config, tt.dialer, tt.factory)
+			service, err := NewProvider(config, tt.dialer, tt.factory)
 
 			if tt.expectedErr != nil {
 				require.ErrorIs(

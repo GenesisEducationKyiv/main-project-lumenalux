@@ -1,4 +1,4 @@
-package sender
+package message
 
 import (
 	"bytes"
@@ -20,11 +20,15 @@ var (
 	errExecuteTempate = errors.New("cannot execute email")
 )
 
+type TemplateData struct {
+	Rate string
+}
+
 type EmailMessage struct {
-	from    string
-	to      []string
-	subject string
-	body    string
+	From    string
+	To      []string
+	Subject string
+	Body    string
 }
 
 func NewEmailMessage(
@@ -44,10 +48,10 @@ func NewEmailMessage(
 	}
 
 	return &EmailMessage{
-		from:    config.From,
-		to:      to,
-		subject: config.Subject,
-		body:    body.String(),
+		From:    config.From,
+		To:      to,
+		Subject: config.Subject,
+		Body:    body.String(),
 	}, nil
 }
 
@@ -64,10 +68,10 @@ func (e *EmailMessage) Prepare() ([]byte, error) {
 		Subject string
 		Body    string
 	}{
-		From:    e.from,
-		To:      strings.Join(e.to, ","),
-		Subject: e.subject,
-		Body:    e.body,
+		From:    e.From,
+		To:      strings.Join(e.To, ","),
+		Subject: e.Subject,
+		Body:    e.Body,
 	})
 	if err != nil {
 		return nil, errExecuteTempate

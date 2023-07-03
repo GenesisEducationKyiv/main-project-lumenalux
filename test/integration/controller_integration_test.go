@@ -22,6 +22,8 @@ import (
 	"gses2-app/pkg/config"
 
 	stubRateProvider "gses2-app/internal/rate/provider/stub"
+	emailSenderProvider "gses2-app/internal/sender/provider/email"
+	stubSendProvider "gses2-app/internal/sender/provider/stub"
 )
 
 type StubStorage struct {
@@ -46,11 +48,8 @@ var (
 func TestAppController_Integration(t *testing.T) {
 	config := initConfig(t)
 
-	defaultEmailSenderService := initSenderService(
-		t,
-		config,
-		&smtp.StubDialer{},
-		&smtp.StubSMTPClientFactory{Client: &smtp.StubSMTPClient{}},
+	defaultEmailSenderService := sender.NewService(
+		&stubSendProvider.StubProvider{},
 	)
 
 	defaultRateService := rate.NewService(&stubRateProvider.StubProvider{Rate: 42})
@@ -141,7 +140,7 @@ func TestAppController_Integration(t *testing.T) {
 			requestBody:         nil,
 			expectedStatus:      http.StatusInternalServerError,
 			subscriptionService: defaultSubscriptionService,
-			senderService: initSenderService(
+			senderService: initEmailSenderService(
 				t,
 				config,
 				&smtp.StubDialer{},
@@ -216,17 +215,17 @@ func initConfig(t *testing.T) *config.Config {
 	return &config
 }
 
-func initSenderService(
+func initEmailSenderService(
 	t *testing.T,
 	config *config.Config,
 	dialer smtp.TLSConnectionDialer,
 	factory smtp.SMTPClientFactory,
 ) *sender.Service {
-	service, err := sender.NewService(config, dialer, factory)
+	provider, err := emailSenderProvider.NewProvider(config, dialer, factory)
 
 	if err != nil {
-		t.Fatalf("error creating email sender service: %v", err)
+		t.Fatalf("error creating email sender provider: %v", err)
 	}
 
-	return service
+	return sender.NewService(provider)
 }
