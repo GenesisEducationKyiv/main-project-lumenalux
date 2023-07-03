@@ -8,17 +8,17 @@ import (
 )
 
 type SenderService interface {
-	SendExchangeRate(float32, []string) error
+	SendExchangeRate(rate float32, subscribers ...string) error
 }
 
 type RateService interface {
-	ExchangeRate() (float32, error)
+	ExchangeRate() (rate float32, err error)
 }
 
 type SubscriptionService interface {
 	Subscribe(email string) error
 	IsSubscribed(email string) (bool, error)
-	Subscriptions() ([]string, error)
+	Subscriptions() (subscribers []string, err error)
 }
 
 type AppController struct {
@@ -81,7 +81,12 @@ func (ac *AppController) SendEmails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := ac.EmailSenderService.SendExchangeRate(exchangeRate, subscribers); err != nil {
+	err = ac.EmailSenderService.SendExchangeRate(
+		exchangeRate,
+		subscribers...,
+	)
+
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

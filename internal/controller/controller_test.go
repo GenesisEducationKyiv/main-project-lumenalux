@@ -54,7 +54,7 @@ type StubEmailSenderService struct {
 
 func (m *StubEmailSenderService) SendExchangeRate(
 	rate float32,
-	subscribers []string,
+	subscribers ...string,
 ) error {
 	return m.sendErr
 }
