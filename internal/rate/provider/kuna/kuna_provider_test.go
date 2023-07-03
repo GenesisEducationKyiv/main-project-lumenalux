@@ -1,4 +1,4 @@
-package provider
+package kuna
 
 import (
 	"bytes"

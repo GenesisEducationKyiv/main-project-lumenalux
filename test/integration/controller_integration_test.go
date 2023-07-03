@@ -16,11 +16,12 @@ import (
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/sender"
+	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
 
-	rateProvider "gses2-app/internal/rate/provider"
+	stubRateProvider "gses2-app/internal/rate/provider/stub"
 )
 
 type StubStorage struct {
@@ -48,11 +49,11 @@ func TestAppController_Integration(t *testing.T) {
 	defaultEmailSenderService := initSenderService(
 		t,
 		config,
-		&sender.StubDialer{},
-		&sender.StubSMTPClientFactory{Client: &sender.StubSMTPClient{}},
+		&smtp.StubDialer{},
+		&smtp.StubSMTPClientFactory{Client: &smtp.StubSMTPClient{}},
 	)
 
-	defaultRateService := rate.NewService(&rateProvider.StubProvider{Rate: 42})
+	defaultRateService := rate.NewService(&stubRateProvider.StubProvider{Rate: 42})
 	defaultSubscriptionService := subscription.NewService(&StubStorage{})
 
 	tests := []struct {
@@ -116,7 +117,7 @@ func TestAppController_Integration(t *testing.T) {
 			subscriptionService: defaultSubscriptionService,
 			senderService:       defaultEmailSenderService,
 			rateService: rate.NewService(
-				&rateProvider.StubProvider{
+				&stubRateProvider.StubProvider{
 					Error: errRateProviderAnavailable,
 				},
 			),
@@ -143,9 +144,9 @@ func TestAppController_Integration(t *testing.T) {
 			senderService: initSenderService(
 				t,
 				config,
-				&sender.StubDialer{},
-				&sender.StubSMTPClientFactory{
-					Client: &sender.StubSMTPClient{MailErr: errSendMessage},
+				&smtp.StubDialer{},
+				&smtp.StubSMTPClientFactory{
+					Client: &smtp.StubSMTPClient{MailErr: errSendMessage},
 				},
 			),
 			rateService: defaultRateService,
@@ -218,8 +219,8 @@ func initConfig(t *testing.T) *config.Config {
 func initSenderService(
 	t *testing.T,
 	config *config.Config,
-	dialer sender.TLSConnectionDialer,
-	factory sender.SMTPClientFactory,
+	dialer smtp.TLSConnectionDialer,
+	factory smtp.SMTPClientFactory,
 ) *sender.Service {
 	service, err := sender.NewService(config, dialer, factory)
 
