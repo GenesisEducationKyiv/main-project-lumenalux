@@ -2,10 +2,10 @@ name: Go CI QA Checks
 on:
   push:
     branches:
-      - main
+      - "*"
   pull_request:
     branches:
-      - main
+      - "*"
 
 jobs:
   lint:
@@ -113,7 +113,7 @@ jobs:
         sudo chmod +x /usr/local/bin/docker-compose
 
     - name: Docker Compose Up
-      run: docker-compose -f docker-compose.e2e.yml up -d
+      run: docker-compose -f test/E2E/build/docker-compose.e2e.yml up -d
 
     - name: Install Newman
       run: sudo npm install -g newman
@@ -136,4 +136,4 @@ jobs:
 
     - name: Docker Compose Down
       if: always()
-      run: docker-compose -f docker-compose.e2e.yml down
+      run: docker-compose -f test/E2E/build/docker-compose.e2e.yml down
