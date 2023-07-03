@@ -2,8 +2,8 @@ version: "3"
 services:
   gses2-app:
     build:
-      context: .
-      dockerfile: DockerfileE2E
+      context: ../../..
+      dockerfile: ./test/E2E/build/Dockerfile
     volumes:
       - storage_volume:/app/storage/
     ports:
@@ -27,14 +27,14 @@ services:
 
   smtp:
     build:
-      context: ./test/E2E/fake/smtp
+      context: ../fake/smtp
       dockerfile: Dockerfile
     networks:
       - test_net
 
   kuna_api:
     build:
-      context: ./test/E2E/fake/kunaapi
+      context: ../fake/kunaapi
       dockerfile: Dockerfile
     networks:
       - test_net
