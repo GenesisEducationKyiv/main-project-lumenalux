@@ -53,7 +53,10 @@ func TestSendExchangeRate(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			config := &config.Config{}
 			service, err := NewService(config, tt.dialer, tt.factory)
 
