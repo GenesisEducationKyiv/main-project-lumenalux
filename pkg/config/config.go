@@ -1,28 +1,19 @@
 package config
 
 import (
+	"context"
 	"errors"
-	"os"
 
-	"gopkg.in/yaml.v2"
+	"github.com/sethvargo/go-envconfig"
 )
 
 var (
-	ErrReadFile      = errors.New("failed to read config file")
-	ErrUnmarshalYAML = errors.New("failed to unmarshal yaml data")
+	ErrLoadEnvVariable = errors.New("failed to load env variables")
 )
 
-func Load(filename string) (Config, error) {
-	var configuration Config
-
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return configuration, errors.Join(ErrReadFile, err)
-	}
-
-	err = yaml.Unmarshal(data, &configuration)
-	if err != nil {
-		return configuration, errors.Join(ErrUnmarshalYAML, err)
+func Load(ctx context.Context) (configuration Config, err error) {
+	if err := envconfig.Process(ctx, &configuration); err != nil {
+		return configuration, ErrLoadEnvVariable
 	}
 
 	return configuration, nil

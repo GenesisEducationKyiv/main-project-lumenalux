@@ -5,36 +5,36 @@ import (
 )
 
 type Config struct {
-	SMTP    SMTPConfig    `yaml:"smtp"`
-	Email   EmailConfig   `yaml:"email"`
-	Storage StorageConfig `yaml:"storage"`
-	HTTP    HTTPConfig    `yaml:"http"`
-	KunaAPI KunaAPIConfig `yaml:"kuna_api"`
+	SMTP    SMTPConfig    `env:",prefix=GSES2_APP_SMTP_"`
+	Email   EmailConfig   `env:",prefix=GSES2_APP_EMAIL_"`
+	Storage StorageConfig `env:",prefix=GSES2_APP_STORAGE_"`
+	HTTP    HTTPConfig    `env:",prefix=GSES2_APP_HTTP_"`
+	KunaAPI KunaAPIConfig `env:",prefix=GSES2_APP_KUNA_API_"`
 }
 
 type EmailConfig struct {
-	From    string `yaml:"from"`
-	Subject string `yaml:"subject"`
-	Body    string `yaml:"body"`
+	From    string `env:"FROM,default=no.reply@currency.info.api"`
+	Subject string `env:"SUBJECT,default=BTC to UAH exchange rate"`
+	Body    string `env:"BODY,default=The BTC to UAH exchange rate is {{.Rate}} UAH per BTC"`
 }
 
 type SMTPConfig struct {
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
+	Host     string `env:"HOST,required"`
+	Port     int    `env:"PORT,default=465"`
+	User     string `env:"USER,required"`
+	Password string `env:"PASSWORD,required"`
 }
 
 type StorageConfig struct {
-	Path string `yaml:"path"`
+	Path string `env:"PATH,default=./storage/storage.csv"`
 }
 
 type HTTPConfig struct {
-	Port    string        `yaml:"port"`
-	Timeout time.Duration `yaml:"timeout_in_seconds"`
+	Port    string        `env:"PORT,default=8080"`
+	Timeout time.Duration `env:"TIMEOUT,default=10s"`
 }
 
 type KunaAPIConfig struct {
-	URL         string  `yaml:"url"`
-	DefaultRate float32 `yaml:"default_rate"`
+	URL         string  `env:"URL,default=https://api.kuna.io/v3/tickers?symbols=btcuah"`
+	DefaultRate float32 `env:"DEFAULT_RATE,default=0"`
 }

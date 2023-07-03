@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,7 +18,8 @@ import (
 )
 
 func main() {
-	config, err := config.Load("./configs/config.yaml")
+	ctx := context.Background()
+	config, err := config.Load(ctx)
 	if err != nil {
 		log.Printf("Error, config wasn't loaded: %s", err)
 		os.Exit(0)

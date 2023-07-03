@@ -6,11 +6,11 @@ package integration
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"gses2-app/internal/controller"
@@ -41,8 +41,7 @@ var (
 )
 
 func TestAppController_Integration(t *testing.T) {
-	config, teardown := initConfig(t)
-	defer teardown()
+	config := initConfig(t)
 
 	defaultEmailSenderService := initSenderService(
 		t,
@@ -183,45 +182,33 @@ func TestAppController_Integration(t *testing.T) {
 	}
 }
 
-func initConfig(t *testing.T) (*config.Config, func()) {
-	yaml := `
-smtp:
-  host: smpt-server.example.com
-  port: 465
-  user: <user>
-  password: <password>
-email:
-  from: no.reply@currency.info.api
-  subject: BTC to UAH exchange rate
-  body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
-storage:
-  path: ./storage/storage.csv
-http:
-  port: 8080
-  timeout_in_seconds: 10
-kuna_api:
-  url: https://www.example.com
-  default_rate: 0
-`
-
-	tempFile, err := os.CreateTemp("", "template_config_file.yaml")
-	if err != nil {
-		t.Fatalf("failed to create temporary file: %v", err)
+func initConfig(t *testing.T) *config.Config {
+	envVariables := map[string]string{
+		"GSES2_APP_SMTP_HOST":             "test.server.com",
+		"GSES2_APP_SMTP_USER":             "testuser",
+		"GSES2_APP_SMTP_PORT":             "465",
+		"GSES2_APP_SMTP_PASSWORD":         "testpassword",
+		"GSES2_APP_EMAIL_FROM":            "no.reply@test.info.api",
+		"GSES2_APP_EMAIL_SUBJECT":         "BTC to UAH exchange rate",
+		"GSES2_APP_EMAIL_BODY":            "The BTC to UAH rate is {{.Rate}}",
+		"GSES2_APP_STORAGE_PATH":          "./storage/storage.csv",
+		"GSES2_APP_HTTP_PORT":             "8080",
+		"GSES2_APP_HTTP_TIMEOUT":          "10s",
+		"GSES2_APP_KUNA_API_URL":          "https://www.example.com",
+		"GSES2_APP_KUNA_API_DEFAULT_RATE": "0",
 	}
 
-	_, err = io.WriteString(tempFile, yaml)
-	if err != nil {
-		t.Fatalf("Failed to write test data to the temporary file: %v", err)
+	for key, value := range envVariables {
+		t.Setenv(key, value)
 	}
 
-	config, err := config.Load(tempFile.Name())
+	ctx := context.Background()
+	config, err := config.Load(ctx)
 	if err != nil {
 		t.Fatalf("error loading config: %v", err)
 	}
 
-	return &config, func() {
-		os.Remove(tempFile.Name())
-	}
+	return &config
 }
 
 func initSenderService(
