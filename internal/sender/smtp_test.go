@@ -61,7 +61,10 @@ func TestConnect(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			client := NewSMTPClient(tt.config, tt.dialer, tt.factory)
 			smtpClient, err := client.Connect()
 
