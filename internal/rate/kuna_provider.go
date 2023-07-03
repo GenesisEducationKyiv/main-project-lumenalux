@@ -18,9 +18,9 @@ var (
 )
 
 const (
-	firstItemIndex   = 0
-	minResponseItems = 9
-	rateIndex        = 7
+	_firstItemIndex   = 0
+	_minResponseItems = 9
+	_rateIndex        = 7
 )
 
 type HTTPClient interface {
@@ -76,11 +76,11 @@ func (p *KunaProvider) extractRateFromResponse(resp *http.Response) (float32, er
 		return p.config.DefaultRate, err
 	}
 
-	if len(data) == 0 || len(data[firstItemIndex]) < minResponseItems {
+	if len(data) == 0 || len(data[_firstItemIndex]) < _minResponseItems {
 		return p.config.DefaultRate, ErrUnexpectedResponseFormat
 	}
 
-	exchangeRate, ok := data[firstItemIndex][rateIndex].(float64)
+	exchangeRate, ok := data[_firstItemIndex][_rateIndex].(float64)
 	if !ok {
 		return p.config.DefaultRate, ErrUnexpectedExchangeRateFormat
 	}

@@ -9,7 +9,7 @@ import (
 	"gses2-app/pkg/config"
 )
 
-const emailTemplate = `From: {{.From}}
+const _emailTemplate = `From: {{.From}}
 To: {{.To}}
 Subject: {{.Subject}}
 
@@ -52,7 +52,7 @@ func NewEmailMessage(
 }
 
 func (e *EmailMessage) Prepare() ([]byte, error) {
-	tmpl, err := template.New("email").Parse(emailTemplate)
+	tmpl, err := template.New("email").Parse(_emailTemplate)
 	if err != nil {
 		return nil, errParseTemplate
 	}

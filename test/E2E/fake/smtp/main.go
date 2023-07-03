@@ -12,18 +12,18 @@ import (
 )
 
 const (
-	AppName = "SMTP server"
+	_appName = "SMTP server"
 
-	Hostname = "localhost"
-	Port     = ":1025"
-	Username = "test"
-	Password = "password"
+	_hostname = "localhost"
+	_port     = ":1025"
+	_username = "test"
+	_password = "password"
 
-	OneMBSize = 1024 * 1024
+	_oneMBSize = 1024 * 1024
 )
 
 func authHandler(remoteAddr net.Addr, mechanism string, username []byte, password []byte, shared []byte) (bool, error) {
-	return string(username) == Username && string(password) == Password, nil
+	return string(username) == _username && string(password) == _password, nil
 }
 
 func mailHandler(origin net.Addr, from string, to []string, data []byte) error {
@@ -47,24 +47,24 @@ func getTLSConfig() *tls.Config {
 
 	return &tls.Config{
 		Certificates:       []tls.Certificate{cert},
-		ServerName:         Hostname,
+		ServerName:         _hostname,
 		InsecureSkipVerify: true,
 	}
 }
 
 func main() {
 	server := &smtpd.Server{
-		Addr:         Port,
-		Hostname:     Hostname,
+		Addr:         _port,
+		Hostname:     _hostname,
 		Handler:      mailHandler,
 		AuthHandler:  authHandler,
-		Appname:      AppName,
-		MaxSize:      OneMBSize,
+		Appname:      _appName,
+		MaxSize:      _oneMBSize,
 		AuthRequired: true,
 		TLSConfig:    getTLSConfig(),
 	}
 
-	log.Printf("Starting server on %s\n", Port)
+	log.Printf("Starting server on %s\n", _port)
 
 	listener, err := net.Listen("tcp", server.Addr)
 	if err != nil {
