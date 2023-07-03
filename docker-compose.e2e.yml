@@ -6,7 +6,6 @@ services:
       dockerfile: DockerfileE2E
     volumes:
       - storage_volume:/app/storage/
-      - ./test/E2E/config:/app/configs
     ports:
       - "8080:8080"
     depends_on:
@@ -19,6 +18,12 @@ services:
       retries: 20
     networks:
       - test_net
+    environment:
+      - GSES2_APP_SMTP_HOST=smtp
+      - GSES2_APP_SMTP_USER=test
+      - GSES2_APP_SMTP_PASSWORD=password
+      - GSES2_APP_SMTP_PORT=1025
+      - GSES2_APP_KUNA_API_URL=http://kuna_api:8082
 
   smtp:
     build:
