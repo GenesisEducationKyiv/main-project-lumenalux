@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type stubController struct{}
@@ -31,29 +33,24 @@ func TestHttpRouter(t *testing.T) {
 	defer server.Close()
 
 	tests := []struct {
+		name  string
 		route string
 		want  string
 	}{
-		{route: "/api/rate", want: "getRate"},
-		{route: "/api/subscribe", want: "subscribeEmail"},
-		{route: "/api/sendEmails", want: "sendEmails"},
+		{name: "Test rate", route: "/api/rate", want: "getRate"},
+		{name: "Test subscribe", route: "/api/subscribe", want: "subscribeEmail"},
+		{name: "Test sendEmails", route: "/api/sendEmails", want: "sendEmails"},
 	}
 
 	for _, tt := range tests {
-		res, err := http.Get(server.URL + tt.route)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		body, err := io.ReadAll(res.Body)
-		res.Body.Close()
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		got := string(body)
-		if got != tt.want {
-			t.Errorf("got %q, want %q", got, tt.want)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := http.Get(server.URL + tt.route)
+			require.NoError(t, err)
+			body, err := io.ReadAll(res.Body)
+			require.NoError(t, err)
+			require.NoError(t, res.Body.Close())
+			got := string(body)
+			require.Equal(t, tt.want, got)
+		})
 	}
 }
