@@ -1,12 +1,8 @@
 # API Usage Example
 
-## Docker container build
+## Docker compose up
 
-![Docker container build](./images/docker-container-build.png)
-
-## Run docker image
-
-![Run docker image](./images/run-docker-image.png)
+![Docker container build](./images/docker-compose-up.png)
 
 ## Testing API using curl command]
 
