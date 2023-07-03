@@ -1,6 +1,6 @@
 *.md
 LICENSE
-images/
+docs/
 *_test.go
 storage.csv
 .idea/
