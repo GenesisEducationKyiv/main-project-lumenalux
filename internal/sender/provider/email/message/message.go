@@ -16,8 +16,8 @@ Subject: {{.Subject}}
 {{.Body}}`
 
 var (
-	errParseTemplate  = errors.New("parse template error")
-	errExecuteTempate = errors.New("cannot execute email")
+	errParseTemplate   = errors.New("parse template error")
+	errExecuteTemplate = errors.New("cannot execute email")
 )
 
 type TemplateData struct {
@@ -74,7 +74,7 @@ func (e *EmailMessage) Prepare() ([]byte, error) {
 		Body:    e.Body,
 	})
 	if err != nil {
-		return nil, errExecuteTempate
+		return nil, errExecuteTemplate
 	}
 
 	return message.Bytes(), nil
