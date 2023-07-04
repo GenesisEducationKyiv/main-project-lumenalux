@@ -7,13 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gses2-app/internal/rate/provider/stub"
+	"gses2-app/pkg/types"
 )
 
 func TestExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		mockProvider   *stub.StubProvider
-		expectedRate   float32
+		expectedRate   types.Rate
 		expectingError bool
 	}{
 		{

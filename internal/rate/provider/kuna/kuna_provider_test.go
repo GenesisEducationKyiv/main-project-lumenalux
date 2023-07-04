@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/types"
 )
 
 type StubHTTPClient struct {
@@ -25,7 +26,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		mockHTTPClient *StubHTTPClient
-		expectedRate   float32
+		expectedRate   types.Rate
 		expectedError  error
 	}{
 		{

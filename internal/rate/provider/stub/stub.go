@@ -1,10 +1,12 @@
 package stub
 
+import "gses2-app/pkg/types"
+
 type StubProvider struct {
-	Rate  float32
+	Rate  types.Rate
 	Error error
 }
 
-func (m *StubProvider) ExchangeRate() (float32, error) {
+func (m *StubProvider) ExchangeRate() (types.Rate, error) {
 	return m.Rate, m.Error
 }

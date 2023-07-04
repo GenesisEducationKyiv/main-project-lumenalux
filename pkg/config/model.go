@@ -1,6 +1,7 @@
 package config
 
 import (
+	"gses2-app/pkg/types"
 	"time"
 )
 
@@ -35,6 +36,6 @@ type HTTPConfig struct {
 }
 
 type KunaAPIConfig struct {
-	URL         string  `env:"URL,default=https://api.kuna.io/v3/tickers?symbols=btcuah"`
-	DefaultRate float32 `env:"DEFAULT_RATE,default=0"`
+	URL         string     `env:"URL,default=https://api.kuna.io/v3/tickers?symbols=btcuah"`
+	DefaultRate types.Rate `env:"DEFAULT_RATE,default=0"`
 }

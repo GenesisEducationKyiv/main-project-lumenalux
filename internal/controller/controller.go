@@ -3,22 +3,24 @@ package controller
 import (
 	"encoding/json"
 	"errors"
-	"gses2-app/internal/subscription"
 	"net/http"
+
+	"gses2-app/internal/subscription"
+	"gses2-app/pkg/types"
 )
 
 type SenderService interface {
-	SendExchangeRate(rate float32, subscribers ...string) error
+	SendExchangeRate(rate types.Rate, subscribers ...types.Subscriber) error
 }
 
 type RateService interface {
-	ExchangeRate() (rate float32, err error)
+	ExchangeRate() (rate types.Rate, err error)
 }
 
 type SubscriptionService interface {
-	Subscribe(email string) error
-	IsSubscribed(email string) (bool, error)
-	Subscriptions() (subscribers []string, err error)
+	Subscribe(subscriber types.Subscriber) error
+	IsSubscribed(subscriber types.Subscriber) (bool, error)
+	Subscriptions() (subscribers []types.Subscriber, err error)
 }
 
 type AppController struct {
@@ -52,8 +54,8 @@ func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	err := ac.EmailSubscriptionService.Subscribe(email)
+	subscriber := types.Subscriber(r.FormValue("email"))
+	err := ac.EmailSubscriptionService.Subscribe(subscriber)
 
 	if err != nil && errors.Is(err, subscription.ErrAlreadySubscribed) {
 		http.Error(w, err.Error(), http.StatusConflict)

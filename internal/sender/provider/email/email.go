@@ -7,6 +7,7 @@ import (
 	"gses2-app/internal/sender/provider/email/send"
 	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/types"
 )
 
 type Provider struct {
@@ -29,15 +30,27 @@ func NewProvider(
 }
 
 func (p *Provider) SendExchangeRate(
-	exchangeRate float32,
-	emailAddresses []string,
+	rate types.Rate,
+	subscribers []types.Subscriber,
 ) error {
 
-	templateData := message.TemplateData{Rate: fmt.Sprintf("%.2f", exchangeRate)}
+	emailAddresses := convertSubscribersToEmails(subscribers)
+
+	templateData := message.TemplateData{Rate: fmt.Sprintf("%.2f", rate)}
 	emailMessage, err := message.NewEmailMessage(p.config.Email, emailAddresses, templateData)
 	if err != nil {
 		return err
 	}
 
 	return send.SendEmail(p.connection, emailMessage)
+}
+
+func convertSubscribersToEmails(subscribers []types.Subscriber) []string {
+	emails := make([]string, len(subscribers))
+
+	for i, subscriber := range subscribers {
+		emails[i] = string(subscriber)
+	}
+
+	return emails
 }

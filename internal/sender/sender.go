@@ -1,7 +1,9 @@
 package sender
 
+import "gses2-app/pkg/types"
+
 type SenderProvider interface {
-	SendExchangeRate(rate float32, subscribers []string) error
+	SendExchangeRate(rate types.Rate, subscribers []types.Subscriber) error
 }
 
 type Service struct {
@@ -13,8 +15,8 @@ func NewService(provider SenderProvider) *Service {
 }
 
 func (s *Service) SendExchangeRate(
-	rate float32,
-	subscribers ...string,
+	rate types.Rate,
+	subscribers ...types.Subscriber,
 ) error {
 	return s.provider.SendExchangeRate(rate, subscribers)
 }

@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"gses2-app/internal/subscription"
+	"gses2-app/pkg/types"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -18,33 +19,33 @@ var (
 )
 
 type StubExchangeRateService struct {
-	rate float32
+	rate types.Rate
 	err  error
 }
 
-func (m *StubExchangeRateService) ExchangeRate() (float32, error) {
+func (m *StubExchangeRateService) ExchangeRate() (types.Rate, error) {
 	return m.rate, m.err
 }
 
 type StubEmailSubscriptionService struct {
 	subscribeErr     error
-	subscriptions    []string
+	subscriptions    []types.Subscriber
 	subscriptionsErr error
 	isSubscribedErr  error
 }
 
-func (m *StubEmailSubscriptionService) Subscribe(email string) error {
+func (m *StubEmailSubscriptionService) Subscribe(subscriber types.Subscriber) error {
 	return m.subscribeErr
 }
 
-func (m *StubEmailSubscriptionService) Subscriptions() ([]string, error) {
+func (m *StubEmailSubscriptionService) Subscriptions() ([]types.Subscriber, error) {
 	if m.subscriptionsErr != nil {
 		return nil, m.subscriptionsErr
 	}
 	return m.subscriptions, nil
 }
 
-func (m *StubEmailSubscriptionService) IsSubscribed(email string) (bool, error) {
+func (m *StubEmailSubscriptionService) IsSubscribed(subscriber types.Subscriber) (bool, error) {
 	return true, m.isSubscribedErr
 }
 
@@ -53,8 +54,8 @@ type StubEmailSenderService struct {
 }
 
 func (m *StubEmailSenderService) SendExchangeRate(
-	rate float32,
-	subscribers ...string,
+	rate types.Rate,
+	subscribers ...types.Subscriber,
 ) error {
 	return m.sendErr
 }
@@ -184,7 +185,9 @@ func TestSendEmails(t *testing.T) {
 				rate: 1.5,
 			},
 			subscriptionService: &StubEmailSubscriptionService{
-				subscriptions: []string{"subscriber1@example.com", "subscriber2@example.com"},
+				subscriptions: convertEmailsToSubscribers(
+					[]string{"subscriber1@example.com", "subscriber2@example.com"},
+				),
 			},
 			emailSenderService: &StubEmailSenderService{},
 			expectedStatus:     http.StatusOK,
@@ -246,4 +249,14 @@ func TestSendEmails(t *testing.T) {
 			)
 		})
 	}
+}
+
+func convertEmailsToSubscribers(emails []string) []types.Subscriber {
+	subscribers := make([]types.Subscriber, len(emails))
+
+	for i, email := range emails {
+		subscribers[i] = types.Subscriber(email)
+	}
+
+	return subscribers
 }

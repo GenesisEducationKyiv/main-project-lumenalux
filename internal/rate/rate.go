@@ -1,7 +1,9 @@
 package rate
 
+import "gses2-app/pkg/types"
+
 type Provider interface {
-	ExchangeRate() (float32, error)
+	ExchangeRate() (types.Rate, error)
 }
 
 type Service struct {
@@ -14,6 +16,6 @@ func NewService(provider Provider) *Service {
 	}
 }
 
-func (s *Service) ExchangeRate() (float32, error) {
+func (s *Service) ExchangeRate() (types.Rate, error) {
 	return s.provider.ExchangeRate()
 }

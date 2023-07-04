@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"errors"
+	"gses2-app/pkg/types"
 )
 
 type Storage interface {
@@ -19,8 +20,8 @@ func NewService(storage Storage) *Service {
 
 var ErrAlreadySubscribed = errors.New("email is already subscribed")
 
-func (s *Service) Subscribe(email string) error {
-	subscribed, err := s.IsSubscribed(email)
+func (s *Service) Subscribe(subscriber types.Subscriber) error {
+	subscribed, err := s.IsSubscribed(subscriber)
 	if err != nil {
 		return err
 	}
@@ -28,17 +29,17 @@ func (s *Service) Subscribe(email string) error {
 		return ErrAlreadySubscribed
 	}
 
-	return s.Storage.Append(email)
+	return s.Storage.Append(string(subscriber))
 }
 
-func (s *Service) IsSubscribed(email string) (bool, error) {
-	emails, err := s.allEmails()
+func (s *Service) IsSubscribed(subscriber types.Subscriber) (bool, error) {
+	subscribers, err := s.allSubscribers()
 	if err != nil {
 		return false, err
 	}
 
-	for _, e := range emails {
-		if e == email {
+	for _, s := range subscribers {
+		if s == subscriber {
 			return true, nil
 		}
 	}
@@ -46,24 +47,24 @@ func (s *Service) IsSubscribed(email string) (bool, error) {
 	return false, nil
 }
 
-func (s *Service) Subscriptions() ([]string, error) {
-	return s.allEmails()
+func (s *Service) Subscriptions() ([]types.Subscriber, error) {
+	return s.allSubscribers()
 }
 
-func (s *Service) allEmails() ([]string, error) {
+func (s *Service) allSubscribers() ([]types.Subscriber, error) {
 	records, err := s.Storage.AllRecords()
 	if err != nil {
 		return nil, err
 	}
 
-	return s.convertRecordsToEmails(records), nil
+	return s.convertRecordsToSubscribers(records), nil
 }
 
-func (s *Service) convertRecordsToEmails(records [][]string) []string {
-	emails := make([]string, len(records))
+func (s *Service) convertRecordsToSubscribers(records [][]string) []types.Subscriber {
+	subscribers := make([]types.Subscriber, len(records))
 	for i, record := range records {
-		emails[i] = record[0]
+		subscribers[i] = types.Subscriber(record[0])
 	}
 
-	return emails
+	return subscribers
 }

@@ -1,6 +1,7 @@
 package subscription
 
 import (
+	"gses2-app/pkg/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -26,12 +27,12 @@ func TestSubscription(t *testing.T) {
 
 		stubStorage := &StubStorage{Records: [][]string{}}
 		service := NewService(stubStorage)
-		email := "test@example.com"
+		subscriber := types.Subscriber("test@example.com")
 
-		err := service.Subscribe(email)
+		err := service.Subscribe(subscriber)
 		require.NoError(t, err)
 
-		subscribed, err := service.IsSubscribed(email)
+		subscribed, err := service.IsSubscribed(subscriber)
 		require.NoError(t, err)
 		require.True(t, subscribed, "expected email to be subscribed")
 
@@ -44,7 +45,7 @@ func TestSubscription(t *testing.T) {
 		)
 
 		require.Equal(
-			t, email, subscriptions[0],
+			t, subscriber, subscriptions[0],
 			"expected subscription list to contain the email",
 		)
 	})
@@ -54,12 +55,12 @@ func TestSubscription(t *testing.T) {
 
 		stubStorage := &StubStorage{Records: [][]string{}}
 		service := NewService(stubStorage)
-		email := "test@example.com"
+		subscriber := types.Subscriber("test@example.com")
 
-		err := service.Subscribe(email)
+		err := service.Subscribe(subscriber)
 		require.NoError(t, err)
 
-		err = service.Subscribe(email)
+		err = service.Subscribe(subscriber)
 		require.ErrorIs(
 			t, err, ErrAlreadySubscribed,
 			"expected error due to duplicate subscription",
@@ -71,9 +72,9 @@ func TestSubscription(t *testing.T) {
 
 		stubStorage := &StubStorage{Records: [][]string{}}
 		service := NewService(stubStorage)
-		email := "test@example.com"
+		subscriber := types.Subscriber("test@example.com")
 
-		subscribed, err := service.IsSubscribed(email)
+		subscribed, err := service.IsSubscribed(subscriber)
 		require.NoError(t, err)
 		require.False(t, subscribed, "expected email not to be subscribed")
 	})

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/types"
 )
 
 var (
@@ -39,7 +40,7 @@ func NewKunaProvider(config config.KunaAPIConfig, httpClient HTTPClient) *KunaPr
 	}
 }
 
-func (p *KunaProvider) ExchangeRate() (float32, error) {
+func (p *KunaProvider) ExchangeRate() (types.Rate, error) {
 	resp, err := p.requestAPI()
 	if err != nil {
 		return 0, err
@@ -62,7 +63,7 @@ func (p *KunaProvider) requestAPI() (*http.Response, error) {
 	return resp, nil
 }
 
-func (p *KunaProvider) extractRateFromResponse(resp *http.Response) (float32, error) {
+func (p *KunaProvider) extractRateFromResponse(resp *http.Response) (types.Rate, error) {
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
@@ -85,5 +86,5 @@ func (p *KunaProvider) extractRateFromResponse(resp *http.Response) (float32, er
 		return p.config.DefaultRate, ErrUnexpectedExchangeRateFormat
 	}
 
-	return float32(exchangeRate), nil
+	return types.Rate(exchangeRate), nil
 }

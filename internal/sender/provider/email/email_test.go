@@ -8,6 +8,7 @@ import (
 
 	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/types"
 )
 
 var (
@@ -17,34 +18,34 @@ var (
 
 func TestSendExchangeRate(t *testing.T) {
 	tests := []struct {
-		name           string
-		emailAddresses []string
-		exchangeRate   float32
-		dialer         smtp.TLSConnectionDialer
-		factory        smtp.SMTPClientFactory
-		expectedErr    error
+		name         string
+		emails       []string
+		exchangeRate types.Rate
+		dialer       smtp.TLSConnectionDialer
+		factory      smtp.SMTPClientFactory
+		expectedErr  error
 	}{
 		{
-			name:           "Successful SendExchangeRate",
-			emailAddresses: []string{"test@example.com"},
-			exchangeRate:   10.5,
-			dialer:         &smtp.StubDialer{},
-			factory:        &smtp.StubSMTPClientFactory{Client: &smtp.StubSMTPClient{}},
-			expectedErr:    nil,
+			name:         "Successful SendExchangeRate",
+			emails:       []string{"test@example.com"},
+			exchangeRate: 10.5,
+			dialer:       &smtp.StubDialer{},
+			factory:      &smtp.StubSMTPClientFactory{Client: &smtp.StubSMTPClient{}},
+			expectedErr:  nil,
 		},
 		{
-			name:           "Failed due to dialer error",
-			emailAddresses: []string{"test@example.com"},
-			exchangeRate:   10.5,
-			dialer:         &smtp.StubDialer{Err: errDialerError},
-			factory:        &smtp.StubSMTPClientFactory{Client: &smtp.StubSMTPClient{}},
-			expectedErr:    errDialerError,
+			name:         "Failed due to dialer error",
+			emails:       []string{"test@example.com"},
+			exchangeRate: 10.5,
+			dialer:       &smtp.StubDialer{Err: errDialerError},
+			factory:      &smtp.StubSMTPClientFactory{Client: &smtp.StubSMTPClient{}},
+			expectedErr:  errDialerError,
 		},
 		{
-			name:           "Failed due to factory error",
-			emailAddresses: []string{"test@example.com"},
-			exchangeRate:   10.5,
-			dialer:         &smtp.StubDialer{},
+			name:         "Failed due to factory error",
+			emails:       []string{"test@example.com"},
+			exchangeRate: 10.5,
+			dialer:       &smtp.StubDialer{},
 			factory: &smtp.StubSMTPClientFactory{
 				Client: &smtp.StubSMTPClient{},
 				Err:    errFactoryError,
@@ -78,7 +79,8 @@ func TestSendExchangeRate(t *testing.T) {
 				return
 			}
 
-			err = service.SendExchangeRate(tt.exchangeRate, tt.emailAddresses)
+			subscribers := convertEmailsToSubscribers(tt.emails)
+			err = service.SendExchangeRate(tt.exchangeRate, subscribers)
 
 			if tt.expectedErr != nil {
 				require.ErrorIs(
@@ -94,4 +96,14 @@ func TestSendExchangeRate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func convertEmailsToSubscribers(emails []string) []types.Subscriber {
+	subscribers := make([]types.Subscriber, len(emails))
+
+	for i, email := range emails {
+		subscribers[i] = types.Subscriber(email)
+	}
+
+	return subscribers
 }

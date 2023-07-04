@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"errors"
+	"gses2-app/pkg/types"
 	"log"
 	"os"
 	"strconv"
@@ -184,13 +185,13 @@ func parseSMTPPort(t *testing.T, strPort string) int {
 	return SMTPPort
 }
 
-func parseKunaAPIDefaultRate(t *testing.T, strRate string) float32 {
+func parseKunaAPIDefaultRate(t *testing.T, strRate string) types.Rate {
 	rate, err := strconv.ParseFloat(strRate, 32)
 	if err != nil {
 		t.Fatal("cannot convert default Kuna API rate")
 	}
 
-	return float32(rate)
+	return types.Rate(rate)
 }
 
 func initEnvVariables(newEnvVariables map[string]string) map[string]string {
