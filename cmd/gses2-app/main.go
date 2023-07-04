@@ -9,15 +9,14 @@ import (
 
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
+	"gses2-app/internal/rate/provider/kuna"
 	"gses2-app/internal/sender"
+	"gses2-app/internal/sender/provider/email"
 	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/storage"
-
-	rateProvider "gses2-app/internal/rate/provider/kuna"
-	emailSenderProvider "gses2-app/internal/sender/provider/email"
 )
 
 func main() {
@@ -56,7 +55,7 @@ func createServices(config *config.Config) (
 	}
 
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
-	exchangeRateProvider := rateProvider.NewKunaProvider(
+	exchangeRateProvider := kuna.NewKunaProvider(
 		config.KunaAPI, httpClient,
 	)
 	rateService := rate.NewService(exchangeRateProvider)
@@ -69,7 +68,7 @@ func createServices(config *config.Config) (
 func createSenderService(
 	config *config.Config,
 ) (*sender.Service, error) {
-	emailSenderProvider, err := emailSenderProvider.NewProvider(
+	emailSenderProvider, err := email.NewProvider(
 		config,
 		&smtp.TLSConnectionDialerImpl{},
 		&smtp.SMTPClientFactoryImpl{},
