@@ -25,13 +25,13 @@ func (m *StubHTTPClient) Get(url string) (*http.Response, error) {
 func TestKunaProviderExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
-		mockHTTPClient *StubHTTPClient
+		stubHTTPClient *StubHTTPClient
 		expectedRate   types.Rate
 		expectedError  error
 	}{
 		{
 			name: "Success",
-			mockHTTPClient: &StubHTTPClient{
+			stubHTTPClient: &StubHTTPClient{
 				Response: &http.Response{
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
@@ -45,7 +45,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		},
 		{
 			name: "HTTP request failure",
-			mockHTTPClient: &StubHTTPClient{
+			stubHTTPClient: &StubHTTPClient{
 				Response: nil,
 				Error:    errors.New("http request failure"),
 			},
@@ -53,7 +53,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		},
 		{
 			name: "Unexpected status code",
-			mockHTTPClient: &StubHTTPClient{
+			stubHTTPClient: &StubHTTPClient{
 				Response: &http.Response{
 					StatusCode: http.StatusForbidden,
 				},
@@ -62,7 +62,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		},
 		{
 			name: "Bad response body format",
-			mockHTTPClient: &StubHTTPClient{
+			stubHTTPClient: &StubHTTPClient{
 				Response: &http.Response{
 					StatusCode: http.StatusOK,
 					Body:       io.NopCloser(bytes.NewBufferString(`[[]]`)),
@@ -72,7 +72,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		},
 		{
 			name: "Bad response body format rate isn't a float64",
-			mockHTTPClient: &StubHTTPClient{
+			stubHTTPClient: &StubHTTPClient{
 				Response: &http.Response{
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
@@ -92,7 +92,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 			t.Parallel()
 
 			config := config.KunaAPIConfig{}
-			provider := NewKunaProvider(config, tt.mockHTTPClient)
+			provider := NewKunaProvider(config, tt.stubHTTPClient)
 			rate, err := provider.ExchangeRate()
 
 			if tt.expectedError != nil {

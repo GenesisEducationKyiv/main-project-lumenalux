@@ -13,13 +13,13 @@ import (
 func TestExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
-		mockProvider   *stub.StubProvider
+		stubProvider   *stub.StubProvider
 		expectedRate   types.Rate
 		expectingError bool
 	}{
 		{
 			name: "Success",
-			mockProvider: &stub.StubProvider{
+			stubProvider: &stub.StubProvider{
 				Rate:  1.23,
 				Error: nil,
 			},
@@ -28,7 +28,7 @@ func TestExchangeRate(t *testing.T) {
 		},
 		{
 			name: "Failure",
-			mockProvider: &stub.StubProvider{
+			stubProvider: &stub.StubProvider{
 				Rate:  0,
 				Error: errors.New("error fetching rate"),
 			},
@@ -41,7 +41,7 @@ func TestExchangeRate(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			service := NewService(tt.mockProvider)
+			service := NewService(tt.stubProvider)
 			rate, err := service.ExchangeRate()
 
 			require.Equal(
