@@ -6,6 +6,6 @@ type StubProvider struct {
 	Err error
 }
 
-func (tp *StubProvider) SendExchangeRate(rate types.Rate, subscribers []types.Subscriber) error {
+func (tp *StubProvider) SendExchangeRate(rate types.Rate, subscribers []types.User) error {
 	return tp.Err
 }

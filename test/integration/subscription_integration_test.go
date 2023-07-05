@@ -18,10 +18,10 @@ import (
 
 type SubscribtionTest struct {
 	Name           string
-	Subscribers    []types.Subscriber
-	Action         func(service *subscription.Service, emails []types.Subscriber) error
+	Subscribers    []types.User
+	Action         func(service *subscription.Service, emails []types.User) error
 	ExpectedError  error
-	ExpectedResult []types.Subscriber
+	ExpectedResult []types.User
 }
 
 func TestSubscriptionServiceIntegration(t *testing.T) {
@@ -37,44 +37,44 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 	tests := []SubscribtionTest{
 		{
 			Name:        "Subscribe a new email",
-			Subscribers: []types.Subscriber{types.Subscriber("test1@example.com")},
-			Action: func(service *subscription.Service, subscribers []types.Subscriber) error {
+			Subscribers: []types.User{types.User("test1@example.com")},
+			Action: func(service *subscription.Service, subscribers []types.User) error {
 				return service.Subscribe(subscribers[0])
 			},
 		},
 		{
 			Name:        "Check if an email is subscribed",
-			Subscribers: []types.Subscriber{types.Subscriber("test1@example.com")},
-			Action: func(service *subscription.Service, subscribers []types.Subscriber) error {
+			Subscribers: []types.User{types.User("test1@example.com")},
+			Action: func(service *subscription.Service, subscribers []types.User) error {
 				_, err := service.IsSubscribed(subscribers[0])
 				return err
 			},
-			ExpectedResult: []types.Subscriber{types.Subscriber("test1@example.com")},
+			ExpectedResult: []types.User{types.User("test1@example.com")},
 		},
 		{
 			Name:        "Subscribe an already subscribed email",
-			Subscribers: []types.Subscriber{types.Subscriber("test1@example.com")},
-			Action: func(service *subscription.Service, subscribers []types.Subscriber) error {
+			Subscribers: []types.User{types.User("test1@example.com")},
+			Action: func(service *subscription.Service, subscribers []types.User) error {
 				return service.Subscribe(subscribers[0])
 			},
 			ExpectedError: subscription.ErrAlreadySubscribed,
 		},
 		{
 			Name:        "Get all subscriptions",
-			Subscribers: []types.Subscriber{},
-			Action: func(service *subscription.Service, subscribers []types.Subscriber) error {
+			Subscribers: []types.User{},
+			Action: func(service *subscription.Service, subscribers []types.User) error {
 				_, err := service.Subscriptions()
 				return err
 			},
-			ExpectedResult: []types.Subscriber{types.Subscriber("test1@example.com")},
+			ExpectedResult: []types.User{types.User("test1@example.com")},
 		},
 		{
 			Name: "Subscribe multiple emails",
-			Subscribers: []types.Subscriber{
-				types.Subscriber("test2@example.com"),
-				types.Subscriber("test3@example.com"),
+			Subscribers: []types.User{
+				types.User("test2@example.com"),
+				types.User("test3@example.com"),
 			},
-			Action: func(service *subscription.Service, subscribers []types.Subscriber) error {
+			Action: func(service *subscription.Service, subscribers []types.User) error {
 				for _, subscriber := range subscribers {
 					if err := service.Subscribe(subscriber); err != nil {
 						return err
@@ -82,19 +82,19 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				}
 				return nil
 			},
-			ExpectedResult: []types.Subscriber{
-				types.Subscriber("test1@example.com"),
-				types.Subscriber("test2@example.com"),
-				types.Subscriber("test3@example.com"),
+			ExpectedResult: []types.User{
+				types.User("test1@example.com"),
+				types.User("test2@example.com"),
+				types.User("test3@example.com"),
 			},
 		},
 		{
 			Name: "Subscribe new and already subscribed emails",
-			Subscribers: []types.Subscriber{
-				types.Subscriber("test4@example.com"),
-				types.Subscriber("test1@example.com"),
+			Subscribers: []types.User{
+				types.User("test4@example.com"),
+				types.User("test1@example.com"),
 			},
-			Action: func(service *subscription.Service, subscribers []types.Subscriber) error {
+			Action: func(service *subscription.Service, subscribers []types.User) error {
 				for _, subscriber := range subscribers {
 					err := service.Subscribe(subscriber)
 					if err != nil && !errors.Is(err, subscription.ErrAlreadySubscribed) {
@@ -103,22 +103,22 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				}
 				return nil
 			},
-			ExpectedResult: []types.Subscriber{
-				types.Subscriber("test1@example.com"),
-				types.Subscriber("test2@example.com"),
-				types.Subscriber("test3@example.com"),
-				types.Subscriber("test4@example.com"),
+			ExpectedResult: []types.User{
+				types.User("test1@example.com"),
+				types.User("test2@example.com"),
+				types.User("test3@example.com"),
+				types.User("test4@example.com"),
 			},
 		},
 		{
 			Name: "Check if all emails are subscribed",
-			Subscribers: []types.Subscriber{
-				types.Subscriber("test1@example.com"),
-				types.Subscriber("test2@example.com"),
-				types.Subscriber("test3@example.com"),
-				types.Subscriber("test4@example.com"),
+			Subscribers: []types.User{
+				types.User("test1@example.com"),
+				types.User("test2@example.com"),
+				types.User("test3@example.com"),
+				types.User("test4@example.com"),
 			},
-			Action: func(service *subscription.Service, subscribers []types.Subscriber) error {
+			Action: func(service *subscription.Service, subscribers []types.User) error {
 				for _, subscriber := range subscribers {
 					subscribed, err := service.IsSubscribed(subscriber)
 					if err != nil || !subscribed {
@@ -130,11 +130,11 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				}
 				return nil
 			},
-			ExpectedResult: []types.Subscriber{
-				types.Subscriber("test1@example.com"),
-				types.Subscriber("test2@example.com"),
-				types.Subscriber("test3@example.com"),
-				types.Subscriber("test4@example.com"),
+			ExpectedResult: []types.User{
+				types.User("test1@example.com"),
+				types.User("test2@example.com"),
+				types.User("test3@example.com"),
+				types.User("test4@example.com"),
 			},
 		},
 	}
@@ -161,7 +161,7 @@ func checkError(t *testing.T, err error, expectedError error) {
 func checkExpectedResult(
 	t *testing.T,
 	service *subscription.Service,
-	expectedResult []types.Subscriber,
+	expectedResult []types.User,
 ) {
 	if expectedResult == nil {
 		return

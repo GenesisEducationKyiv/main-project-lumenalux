@@ -29,23 +29,23 @@ func (m *StubExchangeRateService) ExchangeRate() (types.Rate, error) {
 
 type StubEmailSubscriptionService struct {
 	subscribeErr     error
-	subscriptions    []types.Subscriber
+	subscriptions    []types.User
 	subscriptionsErr error
 	isSubscribedErr  error
 }
 
-func (m *StubEmailSubscriptionService) Subscribe(subscriber types.Subscriber) error {
+func (m *StubEmailSubscriptionService) Subscribe(subscriber types.User) error {
 	return m.subscribeErr
 }
 
-func (m *StubEmailSubscriptionService) Subscriptions() ([]types.Subscriber, error) {
+func (m *StubEmailSubscriptionService) Subscriptions() ([]types.User, error) {
 	if m.subscriptionsErr != nil {
 		return nil, m.subscriptionsErr
 	}
 	return m.subscriptions, nil
 }
 
-func (m *StubEmailSubscriptionService) IsSubscribed(subscriber types.Subscriber) (bool, error) {
+func (m *StubEmailSubscriptionService) IsSubscribed(subscriber types.User) (bool, error) {
 	return true, m.isSubscribedErr
 }
 
@@ -55,7 +55,7 @@ type StubEmailSenderService struct {
 
 func (m *StubEmailSenderService) SendExchangeRate(
 	rate types.Rate,
-	subscribers ...types.Subscriber,
+	subscribers ...types.User,
 ) error {
 	return m.sendErr
 }
@@ -251,11 +251,11 @@ func TestSendEmails(t *testing.T) {
 	}
 }
 
-func convertEmailsToSubscribers(emails []string) []types.Subscriber {
-	subscribers := make([]types.Subscriber, len(emails))
+func convertEmailsToSubscribers(emails []string) []types.User {
+	subscribers := make([]types.User, len(emails))
 
 	for i, email := range emails {
-		subscribers[i] = types.Subscriber(email)
+		subscribers[i] = types.User(email)
 	}
 
 	return subscribers

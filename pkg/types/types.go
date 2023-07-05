@@ -4,6 +4,9 @@ package types
 // It is expressed as a float32 value.
 type Rate float32
 
-// Subscriber represents an email address of a subscriber.
+// User represents an email address of a subscriber.
 // It is expressed as a string value.
-type Subscriber string
+type User struct {
+	ID    int
+	Email string
+}

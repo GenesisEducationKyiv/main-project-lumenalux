@@ -10,7 +10,7 @@ import (
 )
 
 type SenderService interface {
-	SendExchangeRate(rate types.Rate, subscribers ...types.Subscriber) error
+	SendExchangeRate(rate types.Rate, subscribers ...types.User) error
 }
 
 type RateService interface {
@@ -18,9 +18,9 @@ type RateService interface {
 }
 
 type SubscriptionService interface {
-	Subscribe(subscriber types.Subscriber) error
-	IsSubscribed(subscriber types.Subscriber) (bool, error)
-	Subscriptions() (subscribers []types.Subscriber, err error)
+	Subscribe(subscriber types.User) error
+	IsSubscribed(subscriber types.User) (bool, error)
+	Subscriptions() (subscribers []types.User, err error)
 }
 
 type AppController struct {
@@ -54,7 +54,7 @@ func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
-	subscriber := types.Subscriber(r.FormValue("email"))
+	subscriber := types.User(r.FormValue("email"))
 	err := ac.EmailSubscriptionService.Subscribe(subscriber)
 
 	if err != nil && errors.Is(err, subscription.ErrAlreadySubscribed) {

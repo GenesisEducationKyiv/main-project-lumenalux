@@ -31,7 +31,7 @@ func NewProvider(
 
 func (p *Provider) SendExchangeRate(
 	rate types.Rate,
-	subscribers []types.Subscriber,
+	subscribers []types.User,
 ) error {
 
 	emailAddresses := convertSubscribersToEmails(subscribers)
@@ -45,7 +45,7 @@ func (p *Provider) SendExchangeRate(
 	return send.SendEmail(p.connection, emailMessage)
 }
 
-func convertSubscribersToEmails(subscribers []types.Subscriber) []string {
+func convertSubscribersToEmails(subscribers []types.User) []string {
 	emails := make([]string, len(subscribers))
 
 	for i, subscriber := range subscribers {

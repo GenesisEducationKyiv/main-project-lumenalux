@@ -98,11 +98,11 @@ func TestSendExchangeRate(t *testing.T) {
 	}
 }
 
-func convertEmailsToSubscribers(emails []string) []types.Subscriber {
-	subscribers := make([]types.Subscriber, len(emails))
+func convertEmailsToSubscribers(emails []string) []types.User {
+	subscribers := make([]types.User, len(emails))
 
 	for i, email := range emails {
-		subscribers[i] = types.Subscriber(email)
+		subscribers[i] = types.User(email)
 	}
 
 	return subscribers

@@ -27,7 +27,7 @@ func TestSubscription(t *testing.T) {
 
 		stubStorage := &StubStorage{Records: [][]string{}}
 		service := NewService(stubStorage)
-		subscriber := types.Subscriber("test@example.com")
+		subscriber := types.User("test@example.com")
 
 		err := service.Subscribe(subscriber)
 		require.NoError(t, err)
@@ -55,7 +55,7 @@ func TestSubscription(t *testing.T) {
 
 		stubStorage := &StubStorage{Records: [][]string{}}
 		service := NewService(stubStorage)
-		subscriber := types.Subscriber("test@example.com")
+		subscriber := types.User("test@example.com")
 
 		err := service.Subscribe(subscriber)
 		require.NoError(t, err)
@@ -72,7 +72,7 @@ func TestSubscription(t *testing.T) {
 
 		stubStorage := &StubStorage{Records: [][]string{}}
 		service := NewService(stubStorage)
-		subscriber := types.Subscriber("test@example.com")
+		subscriber := types.User("test@example.com")
 
 		subscribed, err := service.IsSubscribed(subscriber)
 		require.NoError(t, err)
