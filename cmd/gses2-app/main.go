@@ -16,6 +16,7 @@ import (
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/repository/userrepo"
 	"gses2-app/pkg/storage"
 )
 
@@ -27,42 +28,31 @@ func main() {
 		os.Exit(0)
 	}
 
-	rateService, subscriptionService, senderService, err := createServices(&config)
+	senderService, err := createSenderService(&config)
+	if err != nil {
+		log.Printf("Connection error: %s", err)
+		os.Exit(0)
+	}
+
+	rateService := createRateService(&config)
+	subscriptionService := createSubscriptionService(&config)
+
 	appController := controller.NewAppController(
 		rateService,
 		subscriptionService,
 		senderService,
 	)
 
-	if err != nil {
-		log.Printf("Connection error: %s", err)
-		os.Exit(0)
-	}
-
 	mux := registerRoutes(appController)
 	startServer(config.HTTP.Port, mux)
 }
 
-func createServices(config *config.Config) (
-	*rate.Service,
-	*subscription.Service,
-	*sender.Service,
-	error,
-) {
-	senderService, err := createSenderService(config)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
+func createRateService(config *config.Config) *rate.Service {
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
 	exchangeRateProvider := kuna.NewKunaProvider(
 		config.KunaAPI, httpClient,
 	)
-	rateService := rate.NewService(exchangeRateProvider)
-
-	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
-
-	return rateService, emailSubscriptionService, senderService, nil
+	return rate.NewService(exchangeRateProvider)
 }
 
 func createSenderService(
@@ -79,6 +69,13 @@ func createSenderService(
 	}
 
 	return sender.NewService(emailSenderProvider), nil
+}
+
+func createSubscriptionService(config *config.Config) *subscription.Service {
+	storageCSV := storage.NewCSVStorage(config.Storage.Path)
+	userRepository := userrepo.NewUserRepository(storageCSV)
+
+	return subscription.NewService(userRepository)
 }
 
 func registerRoutes(appController *controller.AppController) *http.ServeMux {

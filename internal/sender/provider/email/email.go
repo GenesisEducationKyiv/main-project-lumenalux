@@ -34,7 +34,7 @@ func (p *Provider) SendExchangeRate(
 	subscribers []types.User,
 ) error {
 
-	emailAddresses := convertSubscribersToEmails(subscribers)
+	emailAddresses := convertUsersToEmails(subscribers)
 
 	templateData := message.TemplateData{Rate: fmt.Sprintf("%.2f", rate)}
 	emailMessage, err := message.NewEmailMessage(p.config.Email, emailAddresses, templateData)
@@ -45,11 +45,11 @@ func (p *Provider) SendExchangeRate(
 	return send.SendEmail(p.connection, emailMessage)
 }
 
-func convertSubscribersToEmails(subscribers []types.User) []string {
-	emails := make([]string, len(subscribers))
+func convertUsersToEmails(users []types.User) []string {
+	emails := make([]string, len(users))
 
-	for i, subscriber := range subscribers {
-		emails[i] = string(subscriber)
+	for i, user := range users {
+		emails[i] = user.Email
 	}
 
 	return emails

@@ -20,32 +20,19 @@ import (
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/repository/userrepo"
 
 	stubRateProvider "gses2-app/internal/rate/provider/stub"
 	emailSenderProvider "gses2-app/internal/sender/provider/email"
 	stubSendProvider "gses2-app/internal/sender/provider/stub"
 )
 
-type StubStorage struct {
-	err     error
-	records [][]string
-}
-
-func (s *StubStorage) Append(record ...string) error {
-	return s.err
-}
-
-func (s *StubStorage) AllRecords() (records [][]string, err error) {
-	return s.records, s.err
-}
-
 var (
 	errRateProviderAnavailable = errors.New("rate provider unavailable")
 	errSendMessage             = errors.New("failed to send a message")
-	errGetSubscribtions        = errors.New("cannot get subscribtions")
 )
 
-func TestAppController_Integration(t *testing.T) {
+func TestAppControllerIntegration(t *testing.T) {
 	config := initConfig(t)
 
 	defaultEmailSenderService := sender.NewService(
@@ -53,7 +40,9 @@ func TestAppController_Integration(t *testing.T) {
 	)
 
 	defaultRateService := rate.NewService(&stubRateProvider.StubProvider{Rate: 42})
-	defaultSubscriptionService := subscription.NewService(&StubStorage{})
+	defaultSubscriptionService := subscription.NewService(
+		&userrepo.StubUserRepository{},
+	)
 
 	tests := []struct {
 		name                string
@@ -92,7 +81,7 @@ func TestAppController_Integration(t *testing.T) {
 			requestBody:    bytes.NewBufferString("email=test@test.com"),
 			expectedStatus: http.StatusConflict,
 			subscriptionService: subscription.NewService(
-				&StubStorage{records: [][]string{{"test@test.com"}}},
+				&userrepo.StubUserRepository{Err: userrepo.ErrAlreadyAdded},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,
@@ -128,7 +117,7 @@ func TestAppController_Integration(t *testing.T) {
 			requestBody:    nil,
 			expectedStatus: http.StatusInternalServerError,
 			subscriptionService: subscription.NewService(
-				&StubStorage{err: errGetSubscribtions},
+				&userrepo.StubUserRepository{Err: userrepo.ErrCannotLoadUsers},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,

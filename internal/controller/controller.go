@@ -18,8 +18,7 @@ type RateService interface {
 }
 
 type SubscriptionService interface {
-	Subscribe(subscriber types.User) error
-	IsSubscribed(subscriber types.User) (bool, error)
+	Subscribe(subscriber *types.User) error
 	Subscriptions() (subscribers []types.User, err error)
 }
 
@@ -54,7 +53,7 @@ func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
-	subscriber := types.User(r.FormValue("email"))
+	subscriber := &types.User{Email: r.FormValue("email")}
 	err := ac.EmailSubscriptionService.Subscribe(subscriber)
 
 	if err != nil && errors.Is(err, subscription.ErrAlreadySubscribed) {

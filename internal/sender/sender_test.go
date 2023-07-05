@@ -7,13 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gses2-app/internal/sender/provider/stub"
+	"gses2-app/pkg/types"
 )
 
 var (
 	errProvider = errors.New("provider error")
 )
 
-func TestService_SendExchangeRate(t *testing.T) {
+func TestSendExchangeRate(t *testing.T) {
 	tests := []struct {
 		name        string
 		providerErr error
@@ -39,7 +40,7 @@ func TestService_SendExchangeRate(t *testing.T) {
 			provider := &stub.StubProvider{Err: tt.providerErr}
 			service := NewService(provider)
 
-			err := service.SendExchangeRate(1.23, "subscriber")
+			err := service.SendExchangeRate(1.23, types.User{Email: "subscriber"})
 
 			require.Equal(t, tt.expectedErr, err)
 		})

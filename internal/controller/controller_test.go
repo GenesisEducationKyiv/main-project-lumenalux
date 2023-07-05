@@ -34,7 +34,7 @@ type StubEmailSubscriptionService struct {
 	isSubscribedErr  error
 }
 
-func (m *StubEmailSubscriptionService) Subscribe(subscriber types.User) error {
+func (m *StubEmailSubscriptionService) Subscribe(subscriber *types.User) error {
 	return m.subscribeErr
 }
 
@@ -185,7 +185,7 @@ func TestSendEmails(t *testing.T) {
 				rate: 1.5,
 			},
 			subscriptionService: &StubEmailSubscriptionService{
-				subscriptions: convertEmailsToSubscribers(
+				subscriptions: convertEmailsToUsers(
 					[]string{"subscriber1@example.com", "subscriber2@example.com"},
 				),
 			},
@@ -251,12 +251,12 @@ func TestSendEmails(t *testing.T) {
 	}
 }
 
-func convertEmailsToSubscribers(emails []string) []types.User {
-	subscribers := make([]types.User, len(emails))
+func convertEmailsToUsers(emails []string) []types.User {
+	users := make([]types.User, len(emails))
 
 	for i, email := range emails {
-		subscribers[i] = types.User(email)
+		users[i] = types.User{Email: email}
 	}
 
-	return subscribers
+	return users
 }

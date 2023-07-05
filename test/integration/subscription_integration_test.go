@@ -1,6 +1,6 @@
 // Subscription integration contains integration tests for the subscription layer,
 // specifically testing the integration between the subscription service and
-// the storage
+// the user resposetory with storage
 
 package integration
 
@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"gses2-app/internal/subscription"
+	"gses2-app/pkg/repository/userrepo"
 	"gses2-app/pkg/storage"
 	"gses2-app/pkg/types"
 )
@@ -31,31 +32,23 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	csvStorage := storage.NewCSVStorage(tmpFile.Name())
-	service := subscription.NewService(csvStorage)
+	storageCSV := storage.NewCSVStorage(tmpFile.Name())
+	userRepository := userrepo.NewUserRepository(storageCSV)
+	service := subscription.NewService(userRepository)
 
 	tests := []SubscribtionTest{
 		{
 			Name:        "Subscribe a new email",
-			Subscribers: []types.User{types.User("test1@example.com")},
+			Subscribers: []types.User{{Email: "test1@example.com"}},
 			Action: func(service *subscription.Service, subscribers []types.User) error {
-				return service.Subscribe(subscribers[0])
+				return service.Subscribe(&subscribers[0])
 			},
-		},
-		{
-			Name:        "Check if an email is subscribed",
-			Subscribers: []types.User{types.User("test1@example.com")},
-			Action: func(service *subscription.Service, subscribers []types.User) error {
-				_, err := service.IsSubscribed(subscribers[0])
-				return err
-			},
-			ExpectedResult: []types.User{types.User("test1@example.com")},
 		},
 		{
 			Name:        "Subscribe an already subscribed email",
-			Subscribers: []types.User{types.User("test1@example.com")},
+			Subscribers: []types.User{{Email: "test1@example.com"}},
 			Action: func(service *subscription.Service, subscribers []types.User) error {
-				return service.Subscribe(subscribers[0])
+				return service.Subscribe(&subscribers[0])
 			},
 			ExpectedError: subscription.ErrAlreadySubscribed,
 		},
@@ -66,37 +59,37 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				_, err := service.Subscriptions()
 				return err
 			},
-			ExpectedResult: []types.User{types.User("test1@example.com")},
+			ExpectedResult: []types.User{{Email: "test1@example.com"}},
 		},
 		{
 			Name: "Subscribe multiple emails",
 			Subscribers: []types.User{
-				types.User("test2@example.com"),
-				types.User("test3@example.com"),
+				{Email: "test2@example.com"},
+				{Email: "test3@example.com"},
 			},
 			Action: func(service *subscription.Service, subscribers []types.User) error {
 				for _, subscriber := range subscribers {
-					if err := service.Subscribe(subscriber); err != nil {
+					if err := service.Subscribe(&subscriber); err != nil {
 						return err
 					}
 				}
 				return nil
 			},
 			ExpectedResult: []types.User{
-				types.User("test1@example.com"),
-				types.User("test2@example.com"),
-				types.User("test3@example.com"),
+				{Email: "test1@example.com"},
+				{Email: "test2@example.com"},
+				{Email: "test3@example.com"},
 			},
 		},
 		{
 			Name: "Subscribe new and already subscribed emails",
 			Subscribers: []types.User{
-				types.User("test4@example.com"),
-				types.User("test1@example.com"),
+				{Email: "test4@example.com"},
+				{Email: "test1@example.com"},
 			},
 			Action: func(service *subscription.Service, subscribers []types.User) error {
 				for _, subscriber := range subscribers {
-					err := service.Subscribe(subscriber)
+					err := service.Subscribe(&subscriber)
 					if err != nil && !errors.Is(err, subscription.ErrAlreadySubscribed) {
 						return err
 					}
@@ -104,37 +97,10 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				return nil
 			},
 			ExpectedResult: []types.User{
-				types.User("test1@example.com"),
-				types.User("test2@example.com"),
-				types.User("test3@example.com"),
-				types.User("test4@example.com"),
-			},
-		},
-		{
-			Name: "Check if all emails are subscribed",
-			Subscribers: []types.User{
-				types.User("test1@example.com"),
-				types.User("test2@example.com"),
-				types.User("test3@example.com"),
-				types.User("test4@example.com"),
-			},
-			Action: func(service *subscription.Service, subscribers []types.User) error {
-				for _, subscriber := range subscribers {
-					subscribed, err := service.IsSubscribed(subscriber)
-					if err != nil || !subscribed {
-						if err != nil {
-							return err
-						}
-						return errors.New("Email not subscribed")
-					}
-				}
-				return nil
-			},
-			ExpectedResult: []types.User{
-				types.User("test1@example.com"),
-				types.User("test2@example.com"),
-				types.User("test3@example.com"),
-				types.User("test4@example.com"),
+				{Email: "test1@example.com"},
+				{Email: "test2@example.com"},
+				{Email: "test3@example.com"},
+				{Email: "test4@example.com"},
 			},
 		},
 	}

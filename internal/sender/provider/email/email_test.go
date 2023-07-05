@@ -79,8 +79,8 @@ func TestSendExchangeRate(t *testing.T) {
 				return
 			}
 
-			subscribers := convertEmailsToSubscribers(tt.emails)
-			err = service.SendExchangeRate(tt.exchangeRate, subscribers)
+			users := convertEmailsToUsers(tt.emails)
+			err = service.SendExchangeRate(tt.exchangeRate, users)
 
 			if tt.expectedErr != nil {
 				require.ErrorIs(
@@ -98,12 +98,12 @@ func TestSendExchangeRate(t *testing.T) {
 	}
 }
 
-func convertEmailsToSubscribers(emails []string) []types.User {
-	subscribers := make([]types.User, len(emails))
+func convertEmailsToUsers(emails []string) []types.User {
+	users := make([]types.User, len(emails))
 
 	for i, email := range emails {
-		subscribers[i] = types.User(email)
+		users[i] = types.User{Email: email}
 	}
 
-	return subscribers
+	return users
 }
