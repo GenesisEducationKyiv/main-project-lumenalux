@@ -19,6 +19,7 @@ var (
 )
 
 const (
+	_providerName     = "KunaRateProvider"
 	_firstItemIndex   = 0
 	_minResponseItems = 9
 	_rateIndex        = 7
@@ -31,13 +32,23 @@ type HTTPClient interface {
 type KunaProvider struct {
 	config     config.KunaAPIConfig
 	httpClient HTTPClient
+	logFunc    func(providerName string, resp *http.Response)
 }
 
-func NewKunaProvider(config config.KunaAPIConfig, httpClient HTTPClient) *KunaProvider {
+func NewProvider(
+	config config.KunaAPIConfig,
+	httpClient HTTPClient,
+	logFunc func(providerName string, resp *http.Response),
+) *KunaProvider {
 	return &KunaProvider{
 		config:     config,
 		httpClient: httpClient,
+		logFunc:    logFunc,
 	}
+}
+
+func (p *KunaProvider) Name() string {
+	return _providerName
 }
 
 func (p *KunaProvider) ExchangeRate() (types.Rate, error) {
@@ -60,6 +71,7 @@ func (p *KunaProvider) requestAPI() (*http.Response, error) {
 		return nil, fmt.Errorf("%v: %d", ErrUnexpectedStatusSode, resp.StatusCode)
 	}
 
+	p.logFunc(_providerName, resp)
 	return resp, nil
 }
 

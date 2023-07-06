@@ -92,7 +92,8 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 			t.Parallel()
 
 			config := config.KunaAPIConfig{}
-			provider := NewKunaProvider(config, tt.stubHTTPClient)
+			logFunc := func(string, *http.Response) {}
+			provider := NewProvider(config, tt.stubHTTPClient, logFunc)
 			rate, err := provider.ExchangeRate()
 
 			if tt.expectedError != nil {
