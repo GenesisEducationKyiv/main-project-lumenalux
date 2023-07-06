@@ -10,3 +10,7 @@ type StubProvider struct {
 func (m *StubProvider) ExchangeRate() (types.Rate, error) {
 	return m.Rate, m.Error
 }
+
+func (m *StubProvider) Name() string {
+	return "StubRateProvider"
+}

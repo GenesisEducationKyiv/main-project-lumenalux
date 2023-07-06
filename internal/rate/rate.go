@@ -1,21 +1,34 @@
 package rate
 
-import "gses2-app/pkg/types"
+import (
+	"gses2-app/pkg/types"
+	"log"
+)
 
 type Provider interface {
 	ExchangeRate() (types.Rate, error)
+	Name() string
 }
 
 type Service struct {
-	provider Provider
+	providers []Provider
 }
 
-func NewService(provider Provider) *Service {
+func NewService(providers ...Provider) *Service {
 	return &Service{
-		provider: provider,
+		providers: providers,
 	}
 }
 
-func (s *Service) ExchangeRate() (types.Rate, error) {
-	return s.provider.ExchangeRate()
+func (s *Service) ExchangeRate() (rate types.Rate, err error) {
+	for _, provider := range s.providers {
+		rate, err = provider.ExchangeRate()
+		if err == nil {
+			return rate, nil
+		}
+
+		log.Printf("Error, %v: %v", provider.Name(), err)
+	}
+
+	return rate, err
 }
