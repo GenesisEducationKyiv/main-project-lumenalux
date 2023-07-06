@@ -9,6 +9,8 @@ import (
 
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
+	"gses2-app/internal/rate/provider/binance"
+	coingecko "gses2-app/internal/rate/provider/coingeko"
 	"gses2-app/internal/rate/provider/kuna"
 	"gses2-app/internal/sender"
 	"gses2-app/internal/sender/provider/email"
@@ -48,11 +50,30 @@ func main() {
 }
 
 func createRateService(config *config.Config) *rate.Service {
+
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
-	exchangeRateProvider := kuna.NewKunaProvider(
-		config.KunaAPI, httpClient,
+
+	BinanceRateProvider := binance.NewProvider(
+		config.BinanceAPI, httpClient, rateLogFunc,
 	)
-	return rate.NewService(exchangeRateProvider)
+
+	KunaRateProvider := kuna.NewProvider(
+		config.KunaAPI, httpClient, rateLogFunc,
+	)
+
+	CoingeckoRateProvider := coingecko.NewProvider(
+		config.CoingeckoAPI, httpClient, rateLogFunc,
+	)
+
+	return rate.NewService(
+		BinanceRateProvider,
+		CoingeckoRateProvider,
+		KunaRateProvider,
+	)
+}
+
+func rateLogFunc(providerName string, resp *http.Response) {
+	log.Printf("%v - Response: %v", providerName, resp)
 }
 
 func createSenderService(
