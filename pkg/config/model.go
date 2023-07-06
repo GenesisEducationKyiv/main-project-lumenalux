@@ -6,11 +6,13 @@ import (
 )
 
 type Config struct {
-	SMTP    SMTPConfig    `env:",prefix=GSES2_APP_SMTP_"`
-	Email   EmailConfig   `env:",prefix=GSES2_APP_EMAIL_"`
-	Storage StorageConfig `env:",prefix=GSES2_APP_STORAGE_"`
-	HTTP    HTTPConfig    `env:",prefix=GSES2_APP_HTTP_"`
-	KunaAPI KunaAPIConfig `env:",prefix=GSES2_APP_KUNA_API_"`
+	SMTP         SMTPConfig         `env:",prefix=GSES2_APP_SMTP_"`
+	Email        EmailConfig        `env:",prefix=GSES2_APP_EMAIL_"`
+	Storage      StorageConfig      `env:",prefix=GSES2_APP_STORAGE_"`
+	HTTP         HTTPConfig         `env:",prefix=GSES2_APP_HTTP_"`
+	BinanceAPI   BinanceAPIConfig   `env:",prefix=GSES2_APP_BINANCE_API_"`
+	CoingeckoAPI CoingeckoAPIConfig `env:",prefix=GSES2_APP_COINGECKO_API_"`
+	KunaAPI      KunaAPIConfig      `env:",prefix=GSES2_APP_KUNA_API_"`
 }
 
 type EmailConfig struct {
@@ -37,5 +39,15 @@ type HTTPConfig struct {
 
 type KunaAPIConfig struct {
 	URL         string     `env:"URL,default=https://api.kuna.io/v3/tickers?symbols=btcuah"`
+	DefaultRate types.Rate `env:"DEFAULT_RATE,default=0"`
+}
+
+type BinanceAPIConfig struct {
+	URL         string     `env:"URL,default=https://api.binance.com/api/v3/klines?symbol=BTCUAH&interval=1s&limit=1"`
+	DefaultRate types.Rate `env:"DEFAULT_RATE,default=0"`
+}
+
+type CoingeckoAPIConfig struct {
+	URL         string     `env:"URL,default=https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah"`
 	DefaultRate types.Rate `env:"DEFAULT_RATE,default=0"`
 }
