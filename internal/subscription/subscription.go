@@ -8,7 +8,7 @@ import (
 
 var (
 	ErrAlreadySubscribed = errors.New("email is already subscribed")
-	ErrUserRepository    = errors.New("user respository error")
+	ErrUserRepository    = errors.New("user repository error")
 )
 
 type UserRepository interface {
