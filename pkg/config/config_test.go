@@ -122,9 +122,11 @@ func TestLoad(t *testing.T) {
 }
 
 func initTestEnvironment(t *testing.T, envVars map[string]string) {
+	// Clean up environment to allow each test
+	// case to start with a clean environment
 	for key := range _defaultEnvVariables {
-		t.Setenv(key, "")
-		os.Unsetenv(key)
+		t.Setenv(key, "") // Set environment variable as null
+		os.Unsetenv(key)  // Remove environment variable completely
 	}
 
 	for key, value := range envVars {
