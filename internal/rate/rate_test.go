@@ -6,20 +6,28 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/internal/rate/provider/stub"
 	"gses2-app/pkg/types"
 )
+
+type StubProvider struct {
+	Rate  types.Rate
+	Error error
+}
+
+func (m *StubProvider) ExchangeRate() (types.Rate, error) {
+	return m.Rate, m.Error
+}
 
 func TestExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
-		stubProvider   *stub.StubProvider
+		stubProvider   *StubProvider
 		expectedRate   types.Rate
 		expectingError bool
 	}{
 		{
 			name: "Success",
-			stubProvider: &stub.StubProvider{
+			stubProvider: &StubProvider{
 				Rate:  1.23,
 				Error: nil,
 			},
@@ -28,7 +36,7 @@ func TestExchangeRate(t *testing.T) {
 		},
 		{
 			name: "Failure",
-			stubProvider: &stub.StubProvider{
+			stubProvider: &StubProvider{
 				Rate:  0,
 				Error: errors.New("error fetching rate"),
 			},

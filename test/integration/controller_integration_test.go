@@ -19,13 +19,35 @@ import (
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/types"
 
-	stubRateProvider "gses2-app/internal/rate/provider/stub"
 	emailSenderProvider "gses2-app/internal/sender/provider/email"
-	stubSendProvider "gses2-app/internal/sender/provider/stub"
 )
 
 const _configPrefix = "GSES2_APP"
+
+var (
+	errRateProviderAnavailable = errors.New("rate provider unavailable")
+	errSendMessage             = errors.New("failed to send a message")
+	errGetSubscribtions        = errors.New("cannot get subscribtions")
+)
+
+type StubRateProvider struct {
+	Rate  types.Rate
+	Error error
+}
+
+func (m *StubRateProvider) ExchangeRate() (types.Rate, error) {
+	return m.Rate, m.Error
+}
+
+type StubSenderProvider struct {
+	Err error
+}
+
+func (tp *StubSenderProvider) SendExchangeRate(rate types.Rate, subscribers []types.Subscriber) error {
+	return tp.Err
+}
 
 type StubStorage struct {
 	err     error
@@ -40,20 +62,14 @@ func (s *StubStorage) AllRecords() (records [][]string, err error) {
 	return s.records, s.err
 }
 
-var (
-	errRateProviderAnavailable = errors.New("rate provider unavailable")
-	errSendMessage             = errors.New("failed to send a message")
-	errGetSubscribtions        = errors.New("cannot get subscribtions")
-)
-
 func TestAppController_Integration(t *testing.T) {
 	config := initConfig(t)
 
 	defaultEmailSenderService := sender.NewService(
-		&stubSendProvider.StubProvider{},
+		&StubSenderProvider{},
 	)
 
-	defaultRateService := rate.NewService(&stubRateProvider.StubProvider{Rate: 42})
+	defaultRateService := rate.NewService(&StubRateProvider{Rate: 42})
 	defaultSubscriptionService := subscription.NewService(&StubStorage{})
 
 	tests := []struct {
@@ -117,7 +133,7 @@ func TestAppController_Integration(t *testing.T) {
 			subscriptionService: defaultSubscriptionService,
 			senderService:       defaultEmailSenderService,
 			rateService: rate.NewService(
-				&stubRateProvider.StubProvider{
+				&StubRateProvider{
 					Error: errRateProviderAnavailable,
 				},
 			),

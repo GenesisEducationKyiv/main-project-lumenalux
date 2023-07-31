@@ -6,8 +6,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/internal/sender/provider/stub"
+	"gses2-app/pkg/types"
 )
+
+type StubProvider struct {
+	Err error
+}
+
+func (tp *StubProvider) SendExchangeRate(rate types.Rate, subscribers []types.Subscriber) error {
+	return tp.Err
+}
 
 var (
 	errProvider = errors.New("provider error")
@@ -36,7 +44,7 @@ func TestService_SendExchangeRate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			provider := &stub.StubProvider{Err: tt.providerErr}
+			provider := &StubProvider{Err: tt.providerErr}
 			service := NewService(provider)
 
 			err := service.SendExchangeRate(1.23, "subscriber")
