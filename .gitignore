@@ -5,12 +5,12 @@
 *.test
 *.out
 
-/configs/config.yaml
-
 *.log
 
 /.idea
 *.swp
 .vscode/
 
-storage.csv
+.env
+storage/storage.csv
+gses2-app

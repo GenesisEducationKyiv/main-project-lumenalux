@@ -2,162 +2,206 @@ package config
 
 import (
 	"errors"
-	"io"
+	"log"
 	"os"
+	"strconv"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/maps"
+
+	"gses2-app/pkg/types"
+)
+
+const _configPrefix = "GSES2_APP"
+
+var (
+	_defaultEnvVariables = map[string]string{
+		"GSES2_APP_SMTP_HOST":            "www.default.com",
+		"GSES2_APP_SMTP_USER":            "default@user.com",
+		"GSES2_APP_SMTP_PASSWORD":        "defaultpassword",
+		"GSES2_APP_SMTP_PORT":            "465",
+		"GSES2_APP_EMAIL_FROM":           "no.reply@test.info.api",
+		"GSES2_APP_EMAIL_SUBJECT":        "BTC to UAH exchange rate",
+		"GSES2_APP_EMAIL_BODY":           "The BTC to UAH rate is {{.Rate}}",
+		"GSES2_APP_STORAGE_PATH":         "./storage/storage.csv",
+		"GSES2_APP_HTTP_PORT":            "8080",
+		"GSES2_APP_HTTP_TIMEOUT":         "10s",
+		"GSES2_APP_KUNAAPI_URL":          "https://www.example.com",
+		"GSES2_APP_KUNAAPI_DEFAULT_RATE": "0",
+	}
 )
 
 func TestLoad(t *testing.T) {
-	testData := []struct {
+	tests := []struct {
 		name           string
-		yamlName       string
-		yamlContent    string
-		expectedConfig *Config
+		envVars        map[string]string
+		updateExpected func(t *testing.T, c Config) Config
 		expectedErr    error
 	}{
 		{
-			name:     "Load SMTP config",
-			yamlName: "test_config.yaml",
-			yamlContent: `
-smtp:
-  host: smtp.example.com
-  port: 587
-  user: user@example.com
-  password: secret
-`,
-			expectedConfig: &Config{
-				SMTP: SMTPConfig{
-					Host:     "smtp.example.com",
-					Port:     587,
-					User:     "user@example.com",
-					Password: "secret",
-				},
+			name: "All required variables provided",
+			envVars: map[string]string{
+				"GSES2_APP_SMTP_HOST":     "smtp.example.com",
+				"GSES2_APP_SMTP_USER":     "user@example.com",
+				"GSES2_APP_SMTP_PASSWORD": "secret",
+			},
+			updateExpected: func(t *testing.T, c Config) Config {
+				c.SMTP.Host = "smtp.example.com"
+				c.SMTP.User = "user@example.com"
+				c.SMTP.Password = "secret"
+				return c
 			},
 		},
 		{
-			name:     "Load email config",
-			yamlName: "test_config.yaml",
-			yamlContent: `
-email:
-  from: user@example.com
-  subject: Test Subject
-  body: Test Body
-`,
-			expectedConfig: &Config{
-				Email: EmailConfig{
-					From:    "user@example.com",
-					Subject: "Test Subject",
-					Body:    "Test Body",
-				},
+			name:        "Missing required variables",
+			envVars:     map[string]string{},
+			expectedErr: ErrLoadEnvVariable,
+		},
+		{
+			name: "Override default variable",
+			envVars: initEnvVariables(map[string]string{
+				"GSES2_APP_EMAIL_FROM": "override@example.com",
+			}),
+			updateExpected: func(t *testing.T, c Config) Config {
+				c = addDefaultConfigVariables(t, c)
+				c.Email.From = "override@example.com"
+				return c
 			},
 		},
 		{
-			name:     "Load storage config",
-			yamlName: "test_config.yaml",
-			yamlContent: `
-storage:
-  path: /var/data
-`,
-			expectedConfig: &Config{
-				Storage: StorageConfig{
-					Path: "/var/data",
-				},
+			name: "Override multiple default variables",
+			envVars: initEnvVariables(map[string]string{
+				"GSES2_APP_EMAIL_FROM":   "override@example.com",
+				"GSES2_APP_SMTP_PORT":    "999",
+				"GSES2_APP_STORAGE_PATH": "/new/path",
+				"GSES2_APP_HTTP_TIMEOUT": "15s",
+				"GSES2_APP_KUNAAPI_URL":  "https://new.api.url",
+			}),
+			updateExpected: func(t *testing.T, c Config) Config {
+				c = addDefaultConfigVariables(t, c)
+				c.Email.From = "override@example.com"
+				c.SMTP.Port = 999
+				c.Storage.Path = "/new/path"
+				c.HTTP.Timeout = 15 * time.Second
+				c.KunaAPI.URL = "https://new.api.url"
+				return c
 			},
 		},
 		{
-			name:     "Load HTTP config",
-			yamlName: "test_config.yaml",
-			yamlContent: `
-http:
-  port: "8080"
-  timeout_in_seconds: 10
-`,
-			expectedConfig: &Config{
-				HTTP: HTTPConfig{
-					Port:    "8080",
-					Timeout: 10,
-				},
+			name: "Missing one required variable",
+			envVars: map[string]string{
+				"GSES2_APP_SMTP_HOST": "smtp.example.com",
+				"GSES2_APP_SMTP_USER": "user@example.com",
 			},
-		},
-		{
-			name:     "Load Kuna API config",
-			yamlName: "test_config.yaml",
-			yamlContent: `
-kuna_api:
-  url: https://api.example.com
-`,
-			expectedConfig: &Config{
-				KunaAPI: KunaAPIConfig{
-					URL: "https://api.example.com",
-				},
-			},
-		},
-		{
-			name:        "Non existent file",
-			yamlName:    "nonexistentfile.yaml",
-			expectedErr: ErrReadFile,
-		},
-		{
-			name:        "Invalid YAML",
-			yamlName:    "config_test",
-			yamlContent: `:\C`,
-			expectedErr: ErrUnmarshalYAML,
+			expectedErr: ErrLoadEnvVariable,
 		},
 	}
 
-	for _, td := range testData {
-		t.Run(td.name, func(t *testing.T) {
-			runTest(t, td)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			initTestEnvironment(t, tt.envVars)
+
+			config, err := Load(_configPrefix)
+
+			if tt.expectedErr != nil {
+				log.Println(err, tt.expectedErr)
+				if !errors.Is(err, tt.expectedErr) {
+					t.Fatalf("In test %v\nExpected:\n%v\nbut got:\n%v\n", t.Name(), tt.expectedErr, err)
+				}
+				require.ErrorIs(t, err, tt.expectedErr)
+				return
+			}
+
+			require.NoError(t, err)
+			expectedConfig := tt.updateExpected(t, defaultConfig())
+			require.Equal(t, expectedConfig, config)
 		})
 	}
 }
 
-func runTest(t *testing.T, td struct {
-	name           string
-	yamlName       string
-	yamlContent    string
-	expectedConfig *Config
-	expectedErr    error
-}) {
-	var fileName string
-
-	if td.expectedErr != nil && errors.Is(td.expectedErr, ErrReadFile) {
-		fileName = td.yamlName
-	} else {
-		fileName = prepareTempFile(t, td.yamlName, td.yamlContent)
-		defer os.Remove(fileName)
+func initTestEnvironment(t *testing.T, envVars map[string]string) {
+	// Clean up environment to allow each test
+	// case to start with a clean environment
+	for key := range _defaultEnvVariables {
+		t.Setenv(key, "") // Set environment variable as null
+		os.Unsetenv(key)  // Remove environment variable completely
 	}
 
-	config, err := Load(fileName)
-	compareResults(t, &config, err, td.expectedConfig, td.expectedErr)
+	for key, value := range envVars {
+		t.Setenv(key, value)
+	}
 }
 
-func prepareTempFile(t *testing.T, yamlName string, yamlContent string) string {
-	tempFile, err := os.CreateTemp("", yamlName)
-	if err != nil {
-		t.Fatalf("Failed to create temporary file: %v", err)
+func defaultConfig() Config {
+	return Config{
+		SMTP: SMTPConfig{
+			Port: 465,
+		},
+		Email: EmailConfig{
+			From:    "no.reply@currency.info.api",
+			Subject: "BTC to UAH exchange rate",
+			Body:    "The BTC to UAH exchange rate is {{.Rate}} UAH per BTC",
+		},
+		Storage: StorageConfig{
+			Path: "./storage/storage.csv",
+		},
+		HTTP: HTTPConfig{
+			Port:    "8080",
+			Timeout: 10 * time.Second,
+		},
+		KunaAPI: KunaAPIConfig{
+			URL:         "https://api.kuna.io/v3/tickers?symbols=btcuah",
+			DefaultRate: 0,
+		},
 	}
-
-	_, err = io.WriteString(tempFile, yamlContent)
-	if err != nil {
-		t.Fatalf("Failed to write test data to the temporary file: %v", err)
-	}
-
-	return tempFile.Name()
 }
 
-func compareResults(
-	t *testing.T,
-	config *Config,
-	err error,
-	expectedConfig *Config,
-	expectedErr error,
-) {
-	if !errors.Is(err, expectedErr) {
-		t.Fatalf("Expected error %v but got %v", expectedErr, err)
+func addDefaultConfigVariables(t *testing.T, c Config) Config {
+	c.SMTP.Host = _defaultEnvVariables["GSES2_APP_SMTP_HOST"]
+	c.SMTP.User = _defaultEnvVariables["GSES2_APP_SMTP_USER"]
+	c.SMTP.Password = _defaultEnvVariables["GSES2_APP_SMTP_PASSWORD"]
+	c.SMTP.Port = parseSMTPPort(t, _defaultEnvVariables["GSES2_APP_SMTP_PORT"])
+	c.Email.From = _defaultEnvVariables["GSES2_APP_EMAIL_FROM"]
+	c.Email.Subject = _defaultEnvVariables["GSES2_APP_EMAIL_SUBJECT"]
+	c.Email.Body = _defaultEnvVariables["GSES2_APP_EMAIL_BODY"]
+	c.Storage.Path = _defaultEnvVariables["GSES2_APP_STORAGE_PATH"]
+	c.HTTP.Port = _defaultEnvVariables["GSES2_APP_HTTP_PORT"]
+	c.HTTP.Timeout, _ = time.ParseDuration(_defaultEnvVariables["GSES2_APP_HTTP_TIMEOUT"])
+	c.KunaAPI.URL = _defaultEnvVariables["GSES2_APP_KUNAAPI_URL"]
+	c.KunaAPI.DefaultRate = parseKunaAPIDefaultRate(
+		t,
+		_defaultEnvVariables["GSES2_APP_KUNAAPI_DEFAULT_RATE"],
+	)
+
+	return c
+}
+
+func parseSMTPPort(t *testing.T, strPort string) int {
+	SMTPPort, err := strconv.Atoi(strPort)
+	if err != nil {
+		t.Fatal("cannot convert default SMTP port value")
 	}
 
-	if expectedConfig != nil && *config != *expectedConfig {
-		t.Errorf("Unexpected configuration. Got: %+v, Expected: %+v", *config, *expectedConfig)
+	return SMTPPort
+}
+
+func parseKunaAPIDefaultRate(t *testing.T, strRate string) types.Rate {
+	rate, err := strconv.ParseFloat(strRate, 32)
+	if err != nil {
+		t.Fatal("cannot convert default Kuna API rate")
 	}
+
+	return types.Rate(rate)
+}
+
+func initEnvVariables(newEnvVariables map[string]string) map[string]string {
+	envVariables := map[string]string{}
+	maps.Copy(envVariables, _defaultEnvVariables)
+	for k, v := range newEnvVariables {
+		envVariables[k] = v
+	}
+
+	return envVariables
 }

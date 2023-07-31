@@ -1,0 +1,46 @@
+version: "3"
+services:
+  gses2-app:
+    build:
+      context: ../../..
+      dockerfile: ./test/E2E/build/Dockerfile
+    volumes:
+      - storage_volume:/app/storage/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - smtp
+      - kuna_api
+    healthcheck:
+      test: nc -z smtp 1025 && nc -z kuna_api 8082 || exit 1
+      interval: 60s
+      timeout: 3s
+      retries: 20
+    networks:
+      - test_net
+    environment:
+      - GSES2_APP_SMTP_HOST=smtp
+      - GSES2_APP_SMTP_USER=test
+      - GSES2_APP_SMTP_PASSWORD=password
+      - GSES2_APP_SMTP_PORT=1025
+      - GSES2_APP_KUNA_API_URL=http://kuna_api:8082
+
+  smtp:
+    build:
+      context: ../fake/smtp
+      dockerfile: Dockerfile
+    networks:
+      - test_net
+
+  kuna_api:
+    build:
+      context: ../fake/kunaapi
+      dockerfile: Dockerfile
+    networks:
+      - test_net
+
+volumes:
+  storage_volume:
+
+networks:
+  test_net:

@@ -5,29 +5,33 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
-	"gses2-app/internal/controllers"
-	"gses2-app/internal/email"
+	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
+	"gses2-app/internal/rate/provider/kuna"
+	"gses2-app/internal/sender"
+	"gses2-app/internal/sender/provider/email"
+	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/storage"
 )
 
+const _configPrefix = "GSES2_APP"
+
 func main() {
-	config, err := config.Load("./configs/config.yaml")
+	config, err := config.Load(_configPrefix)
 	if err != nil {
 		log.Printf("Error, config wasn't loaded: %s", err)
 		os.Exit(0)
 	}
 
-	rateService, emailSubscriptionService, emailSenderService, err := createServices(&config)
-	controller := controllers.NewAppController(
+	rateService, subscriptionService, senderService, err := createServices(&config)
+	appController := controller.NewAppController(
 		rateService,
-		emailSubscriptionService,
-		emailSenderService,
+		subscriptionService,
+		senderService,
 	)
 
 	if err != nil {
@@ -35,37 +39,50 @@ func main() {
 		os.Exit(0)
 	}
 
-	mux := registerRoutes(controller)
+	mux := registerRoutes(appController)
 	startServer(config.HTTP.Port, mux)
 }
 
 func createServices(config *config.Config) (
 	*rate.Service,
 	*subscription.Service,
-	*email.SenderService,
+	*sender.Service,
 	error,
 ) {
-	httpClient := &http.Client{Timeout: config.HTTP.Timeout * time.Second}
-
-	rateService := rate.NewService(rate.NewKunaProvider(config.KunaAPI, httpClient))
-
-	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
-
-	emailSenderService, err := email.NewSenderService(
-		config,
-		&email.TLSConnectionDialerImpl{},
-		&email.SMTPClientFactoryImpl{},
-	)
-
+	senderService, err := createSenderService(config)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	return rateService, emailSubscriptionService, emailSenderService, err
+	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
+	exchangeRateProvider := kuna.NewKunaProvider(
+		config.KunaAPI, httpClient,
+	)
+	rateService := rate.NewService(exchangeRateProvider)
+
+	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
+
+	return rateService, emailSubscriptionService, senderService, nil
 }
 
-func registerRoutes(controller *controllers.AppController) *http.ServeMux {
-	router := transport.NewHTTPRouter(controller)
+func createSenderService(
+	config *config.Config,
+) (*sender.Service, error) {
+	emailSenderProvider, err := email.NewProvider(
+		config,
+		&smtp.TLSConnectionDialerImpl{},
+		&smtp.SMTPClientFactoryImpl{},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return sender.NewService(emailSenderProvider), nil
+}
+
+func registerRoutes(appController *controller.AppController) *http.ServeMux {
+	router := transport.NewHTTPRouter(appController)
 
 	mux := http.NewServeMux()
 	router.RegisterRoutes(mux)

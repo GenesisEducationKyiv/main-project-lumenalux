@@ -10,16 +10,44 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
-	"gses2-app/internal/controllers"
-	"gses2-app/internal/email"
+	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
+	"gses2-app/internal/sender"
+	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
+	"gses2-app/pkg/types"
+
+	emailSenderProvider "gses2-app/internal/sender/provider/email"
 )
+
+const _configPrefix = "GSES2_APP"
+
+var (
+	errRateProviderAnavailable = errors.New("rate provider unavailable")
+	errSendMessage             = errors.New("failed to send a message")
+	errGetSubscribtions        = errors.New("cannot get subscribtions")
+)
+
+type StubRateProvider struct {
+	Rate  types.Rate
+	Error error
+}
+
+func (m *StubRateProvider) ExchangeRate() (types.Rate, error) {
+	return m.Rate, m.Error
+}
+
+type StubSenderProvider struct {
+	Err error
+}
+
+func (tp *StubSenderProvider) SendExchangeRate(rate types.Rate, subscribers []types.Subscriber) error {
+	return tp.Err
+}
 
 type StubStorage struct {
 	err     error
@@ -34,24 +62,14 @@ func (s *StubStorage) AllRecords() (records [][]string, err error) {
 	return s.records, s.err
 }
 
-var (
-	errRateProviderAnavailable = errors.New("rate provider unavailable")
-	errSendMessage             = errors.New("failed to send a message")
-	errGetSubscribtions        = errors.New("cannot get subscribtions")
-)
-
 func TestAppController_Integration(t *testing.T) {
-	config, teardown := initConfig(t)
-	defer teardown()
+	config := initConfig(t)
 
-	defaultEmailSenderService := initSenderService(
-		t,
-		config,
-		&email.StubDialer{},
-		&email.StubSMTPClientFactory{Client: &email.StubSMTPClient{}},
+	defaultEmailSenderService := sender.NewService(
+		&StubSenderProvider{},
 	)
 
-	defaultRateService := rate.NewService(&rate.StubProvider{Rate: 42})
+	defaultRateService := rate.NewService(&StubRateProvider{Rate: 42})
 	defaultSubscriptionService := subscription.NewService(&StubStorage{})
 
 	tests := []struct {
@@ -60,7 +78,7 @@ func TestAppController_Integration(t *testing.T) {
 		requestURL          string
 		requestBody         io.Reader
 		expectedStatus      int
-		senderService       *email.SenderService
+		senderService       *sender.Service
 		subscriptionService *subscription.Service
 		rateService         *rate.Service
 	}{
@@ -115,7 +133,7 @@ func TestAppController_Integration(t *testing.T) {
 			subscriptionService: defaultSubscriptionService,
 			senderService:       defaultEmailSenderService,
 			rateService: rate.NewService(
-				&rate.StubProvider{
+				&StubRateProvider{
 					Error: errRateProviderAnavailable,
 				},
 			),
@@ -139,12 +157,12 @@ func TestAppController_Integration(t *testing.T) {
 			requestBody:         nil,
 			expectedStatus:      http.StatusInternalServerError,
 			subscriptionService: defaultSubscriptionService,
-			senderService: initSenderService(
+			senderService: initEmailSenderService(
 				t,
 				config,
-				&email.StubDialer{},
-				&email.StubSMTPClientFactory{
-					Client: &email.StubSMTPClient{MailErr: errSendMessage},
+				&smtp.StubDialer{},
+				&smtp.StubSMTPClientFactory{
+					Client: &smtp.StubSMTPClient{MailErr: errSendMessage},
 				},
 			),
 			rateService: defaultRateService,
@@ -152,13 +170,15 @@ func TestAppController_Integration(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			req, err := http.NewRequest(tt.requestMethod, tt.requestURL, tt.requestBody)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			controller := controllers.NewAppController(
+			appController := controller.NewAppController(
 				tt.rateService,
 				tt.subscriptionService,
 				tt.senderService,
@@ -170,7 +190,7 @@ func TestAppController_Integration(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 
-			router := transport.NewHTTPRouter(controller)
+			router := transport.NewHTTPRouter(appController)
 			mux := http.NewServeMux()
 			router.RegisterRoutes(mux)
 
@@ -183,58 +203,45 @@ func TestAppController_Integration(t *testing.T) {
 	}
 }
 
-func initConfig(t *testing.T) (*config.Config, func()) {
-	yaml := `
-smtp:
-  host: smpt-server.example.com
-  port: 465
-  user: <user>
-  password: <password>
-email:
-  from: no.reply@currency.info.api
-  subject: BTC to UAH exchange rate
-  body: The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
-storage:
-  path: ./storage/storage.csv
-http:
-  port: 8080
-  timeout_in_seconds: 10
-kuna_api:
-  url: https://www.example.com
-  default_rate: 0
-`
-
-	tempFile, err := os.CreateTemp("", "template_config_file.yaml")
-	if err != nil {
-		t.Fatalf("failed to create temporary file: %v", err)
+func initConfig(t *testing.T) *config.Config {
+	envVariables := map[string]string{
+		"GSES2_APP_SMTP_HOST":             "test.server.com",
+		"GSES2_APP_SMTP_USER":             "testuser",
+		"GSES2_APP_SMTP_PORT":             "465",
+		"GSES2_APP_SMTP_PASSWORD":         "testpassword",
+		"GSES2_APP_EMAIL_FROM":            "no.reply@test.info.api",
+		"GSES2_APP_EMAIL_SUBJECT":         "BTC to UAH exchange rate",
+		"GSES2_APP_EMAIL_BODY":            "The BTC to UAH rate is {{.Rate}}",
+		"GSES2_APP_STORAGE_PATH":          "./storage/storage.csv",
+		"GSES2_APP_HTTP_PORT":             "8080",
+		"GSES2_APP_HTTP_TIMEOUT":          "10s",
+		"GSES2_APP_KUNA_API_URL":          "https://www.example.com",
+		"GSES2_APP_KUNA_API_DEFAULT_RATE": "0",
 	}
 
-	_, err = io.WriteString(tempFile, yaml)
-	if err != nil {
-		t.Fatalf("Failed to write test data to the temporary file: %v", err)
+	for key, value := range envVariables {
+		t.Setenv(key, value)
 	}
 
-	config, err := config.Load(tempFile.Name())
+	config, err := config.Load(_configPrefix)
 	if err != nil {
 		t.Fatalf("error loading config: %v", err)
 	}
 
-	return &config, func() {
-		os.Remove(tempFile.Name())
-	}
+	return &config
 }
 
-func initSenderService(
+func initEmailSenderService(
 	t *testing.T,
 	config *config.Config,
-	dialer email.TLSConnectionDialer,
-	factory email.SMTPClientFactory,
-) *email.SenderService {
-	service, err := email.NewSenderService(config, dialer, factory)
+	dialer smtp.TLSConnectionDialer,
+	factory smtp.SMTPClientFactory,
+) *sender.Service {
+	provider, err := emailSenderProvider.NewProvider(config, dialer, factory)
 
 	if err != nil {
-		t.Fatalf("error creating email sender service: %v", err)
+		t.Fatalf("error creating email sender provider: %v", err)
 	}
 
-	return service
+	return sender.NewService(provider)
 }

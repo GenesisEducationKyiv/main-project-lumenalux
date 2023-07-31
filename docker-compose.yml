@@ -3,13 +3,14 @@ services:
   gses2-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./build/package/Dockerfile
     volumes:
       - storage_volume:/app/storage/
-      - ./configs:/app/configs
     ports:
       - "8080:8080"
       - "465:465"
+    env_file:
+      - .env
     restart: on-failure
 
 volumes:
