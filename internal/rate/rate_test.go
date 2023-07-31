@@ -49,12 +49,7 @@ func TestExchangeRate(t *testing.T) {
 				"Expected rate %v, got %v", tt.expectedRate, rate,
 			)
 
-			if tt.expectingError {
-				require.Error(t, err, "Expected an error but got nil")
-				return
-			}
-
-			require.NoError(t, err, "Didn't expect an error but got: %v", err)
+			require.Equal(t, tt.expectingError, err != nil)
 		})
 	}
 
