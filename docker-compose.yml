@@ -10,7 +10,7 @@ services:
       - "8080:8080"
       - "465:465"
     env_file:
-      - ./build/package/.env
+      - .env
     restart: on-failure
 
 volumes:

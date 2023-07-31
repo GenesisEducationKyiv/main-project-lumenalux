@@ -11,6 +11,6 @@
 *.swp
 .vscode/
 
+.env
 storage/storage.csv
-build/package/.env
 gses2-app
