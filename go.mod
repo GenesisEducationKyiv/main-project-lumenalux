@@ -5,9 +5,9 @@ go 1.20
 require (
 	github.com/google/go-cmp v0.5.9
 	github.com/mhale/smtpd v0.8.0
-	github.com/sethvargo/go-envconfig v0.9.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
+	github.com/kelseyhightower/envconfig v1.4.0
 )
 
 require (

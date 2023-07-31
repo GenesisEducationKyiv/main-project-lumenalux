@@ -6,7 +6,6 @@ package integration
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -25,6 +24,8 @@ import (
 	emailSenderProvider "gses2-app/internal/sender/provider/email"
 	stubSendProvider "gses2-app/internal/sender/provider/stub"
 )
+
+const _configPrefix = "GSES2_APP"
 
 type StubStorage struct {
 	err     error
@@ -206,8 +207,7 @@ func initConfig(t *testing.T) *config.Config {
 		t.Setenv(key, value)
 	}
 
-	ctx := context.Background()
-	config, err := config.Load(ctx)
+	config, err := config.Load(_configPrefix)
 	if err != nil {
 		t.Fatalf("error loading config: %v", err)
 	}

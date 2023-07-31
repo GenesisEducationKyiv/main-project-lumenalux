@@ -1,9 +1,7 @@
 package config
 
 import (
-	"context"
 	"errors"
-	"gses2-app/pkg/types"
 	"log"
 	"os"
 	"strconv"
@@ -12,22 +10,26 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/maps"
+
+	"gses2-app/pkg/types"
 )
+
+const _configPrefix = "GSES2_APP"
 
 var (
 	_defaultEnvVariables = map[string]string{
-		"GSES2_APP_SMTP_HOST":             "www.default.com",
-		"GSES2_APP_SMTP_USER":             "default@user.com",
-		"GSES2_APP_SMTP_PASSWORD":         "defaultpassword",
-		"GSES2_APP_SMTP_PORT":             "465",
-		"GSES2_APP_EMAIL_FROM":            "no.reply@test.info.api",
-		"GSES2_APP_EMAIL_SUBJECT":         "BTC to UAH exchange rate",
-		"GSES2_APP_EMAIL_BODY":            "The BTC to UAH rate is {{.Rate}}",
-		"GSES2_APP_STORAGE_PATH":          "./storage/storage.csv",
-		"GSES2_APP_HTTP_PORT":             "8080",
-		"GSES2_APP_HTTP_TIMEOUT":          "10s",
-		"GSES2_APP_KUNA_API_URL":          "https://www.example.com",
-		"GSES2_APP_KUNA_API_DEFAULT_RATE": "0",
+		"GSES2_APP_SMTP_HOST":            "www.default.com",
+		"GSES2_APP_SMTP_USER":            "default@user.com",
+		"GSES2_APP_SMTP_PASSWORD":        "defaultpassword",
+		"GSES2_APP_SMTP_PORT":            "465",
+		"GSES2_APP_EMAIL_FROM":           "no.reply@test.info.api",
+		"GSES2_APP_EMAIL_SUBJECT":        "BTC to UAH exchange rate",
+		"GSES2_APP_EMAIL_BODY":           "The BTC to UAH rate is {{.Rate}}",
+		"GSES2_APP_STORAGE_PATH":         "./storage/storage.csv",
+		"GSES2_APP_HTTP_PORT":            "8080",
+		"GSES2_APP_HTTP_TIMEOUT":         "10s",
+		"GSES2_APP_KUNAAPI_URL":          "https://www.example.com",
+		"GSES2_APP_KUNAAPI_DEFAULT_RATE": "0",
 	}
 )
 
@@ -75,7 +77,7 @@ func TestLoad(t *testing.T) {
 				"GSES2_APP_SMTP_PORT":    "999",
 				"GSES2_APP_STORAGE_PATH": "/new/path",
 				"GSES2_APP_HTTP_TIMEOUT": "15s",
-				"GSES2_APP_KUNA_API_URL": "https://new.api.url",
+				"GSES2_APP_KUNAAPI_URL":  "https://new.api.url",
 			}),
 			updateExpected: func(t *testing.T, c Config) Config {
 				c = addDefaultConfigVariables(t, c)
@@ -101,8 +103,7 @@ func TestLoad(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			initTestEnvironment(t, tt.envVars)
 
-			ctx := context.Background()
-			config, err := Load(ctx)
+			config, err := Load(_configPrefix)
 
 			if tt.expectedErr != nil {
 				log.Println(err, tt.expectedErr)
@@ -166,10 +167,10 @@ func addDefaultConfigVariables(t *testing.T, c Config) Config {
 	c.Storage.Path = _defaultEnvVariables["GSES2_APP_STORAGE_PATH"]
 	c.HTTP.Port = _defaultEnvVariables["GSES2_APP_HTTP_PORT"]
 	c.HTTP.Timeout, _ = time.ParseDuration(_defaultEnvVariables["GSES2_APP_HTTP_TIMEOUT"])
-	c.KunaAPI.URL = _defaultEnvVariables["GSES2_APP_KUNA_API_URL"]
+	c.KunaAPI.URL = _defaultEnvVariables["GSES2_APP_KUNAAPI_URL"]
 	c.KunaAPI.DefaultRate = parseKunaAPIDefaultRate(
 		t,
-		_defaultEnvVariables["GSES2_APP_KUNA_API_DEFAULT_RATE"],
+		_defaultEnvVariables["GSES2_APP_KUNAAPI_DEFAULT_RATE"],
 	)
 
 	return c
