@@ -79,6 +79,7 @@ func TestAppControllerIntegration(t *testing.T) {
 	)
 
 	defaultRateService := rate.NewService(&StubRateProvider{Rate: 42})
+  
 	defaultSubscriptionService := subscription.NewService(
 		&userrepo.StubUserRepository{},
 	)

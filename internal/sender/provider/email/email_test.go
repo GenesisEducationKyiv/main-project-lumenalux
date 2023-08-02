@@ -62,18 +62,7 @@ func TestSendExchangeRate(t *testing.T) {
 			config := &config.Config{}
 			service, err := NewProvider(config, tt.dialer, tt.factory)
 
-			if tt.expectedErr != nil {
-				require.ErrorIs(
-					t,
-					err,
-					tt.expectedErr,
-					"NewSenderService() error = %v, expectedErr %v",
-					err,
-					tt.expectedErr,
-				)
-			} else {
-				require.NoError(t, err, "NewSenderService() unexpected error = %v", err)
-			}
+			require.Equal(t, tt.expectedErr, err)
 
 			if tt.expectedErr != nil {
 				return
@@ -82,18 +71,7 @@ func TestSendExchangeRate(t *testing.T) {
 			users := convertEmailsToUsers(tt.emails)
 			err = service.SendExchangeRate(tt.exchangeRate, users)
 
-			if tt.expectedErr != nil {
-				require.ErrorIs(
-					t,
-					err,
-					tt.expectedErr,
-					"SendExchangeRate() error = %v, expectedErr %v",
-					err,
-					tt.expectedErr,
-				)
-			} else {
-				require.NoError(t, err, "SendExchangeRate() unexpected error = %v", err)
-			}
+			require.NoError(t, err, "SendExchangeRate() unexpected error = %v", err)
 		})
 	}
 }
