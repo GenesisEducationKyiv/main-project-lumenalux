@@ -37,8 +37,6 @@ var (
 	}
 )
 
-const _configPrefix = "GSES2_APP"
-
 func TestLoad(t *testing.T) {
 	tests := []struct {
 		name           string
