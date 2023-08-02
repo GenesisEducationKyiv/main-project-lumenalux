@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,9 +21,10 @@ import (
 	"gses2-app/pkg/storage"
 )
 
+const _configPrefix = "GSES2_APP"
+
 func main() {
-	ctx := context.Background()
-	config, err := config.Load(ctx)
+	config, err := config.Load(_configPrefix)
 	if err != nil {
 		log.Printf("Error, config wasn't loaded: %s", err)
 		os.Exit(0)

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"errors"
 	"gses2-app/pkg/types"
 	"log"
@@ -16,24 +15,26 @@ import (
 
 var (
 	_defaultEnvVariables = map[string]string{
-		"GSES2_APP_SMTP_HOST":                  "www.default.com",
-		"GSES2_APP_SMTP_USER":                  "default@user.com",
-		"GSES2_APP_SMTP_PASSWORD":              "defaultpassword",
-		"GSES2_APP_SMTP_PORT":                  "465",
-		"GSES2_APP_EMAIL_FROM":                 "no.reply@test.info.api",
-		"GSES2_APP_EMAIL_SUBJECT":              "BTC to UAH exchange rate",
-		"GSES2_APP_EMAIL_BODY":                 "The BTC to UAH rate is {{.Rate}}",
-		"GSES2_APP_STORAGE_PATH":               "./storage/storage.csv",
-		"GSES2_APP_HTTP_PORT":                  "8080",
-		"GSES2_APP_HTTP_TIMEOUT":               "10s",
-		"GSES2_APP_KUNA_API_URL":               "https://www.example.com",
-		"GSES2_APP_KUNA_API_DEFAULT_RATE":      "0",
-		"GSES2_APP_BINANCE_API_URL":            "https://www.example.com",
-		"GSES2_APP_BINANCE_API_DEFAULT_RATE":   "0",
-		"GSES2_APP_COINGECKO_API_URL":          "https://www.example.com",
-		"GSES2_APP_COINGECKO_API_DEFAULT_RATE": "0",
+		"GSES2_APP_SMTP_HOST":                 "www.default.com",
+		"GSES2_APP_SMTP_USER":                 "default@user.com",
+		"GSES2_APP_SMTP_PASSWORD":             "defaultpassword",
+		"GSES2_APP_SMTP_PORT":                 "465",
+		"GSES2_APP_EMAIL_FROM":                "no.reply@test.info.api",
+		"GSES2_APP_EMAIL_SUBJECT":             "BTC to UAH exchange rate",
+		"GSES2_APP_EMAIL_BODY":                "The BTC to UAH rate is {{.Rate}}",
+		"GSES2_APP_STORAGE_PATH":              "./storage/storage.csv",
+		"GSES2_APP_HTTP_PORT":                 "8080",
+		"GSES2_APP_HTTP_TIMEOUT":              "10s",
+		"GSES2_APP_KUNAAPI_URL":               "https://www.example.com",
+		"GSES2_APP_KUNAAPI_DEFAULT_RATE":      "0",
+		"GSES2_APP_BINANCEAPI_URL":            "https://www.example.com",
+		"GSES2_APP_BINANCEAPI_DEFAULT_RATE":   "0",
+		"GSES2_APP_COINGECKOAPI_URL":          "https://www.example.com",
+		"GSES2_APP_COINGECKOAPI_DEFAULT_RATE": "0",
 	}
 )
+
+const _configPrefix = "GSES2_APP"
 
 func TestLoad(t *testing.T) {
 	tests := []struct {
@@ -79,7 +80,7 @@ func TestLoad(t *testing.T) {
 				"GSES2_APP_SMTP_PORT":    "999",
 				"GSES2_APP_STORAGE_PATH": "/new/path",
 				"GSES2_APP_HTTP_TIMEOUT": "15s",
-				"GSES2_APP_KUNA_API_URL": "https://new.api.url",
+				"GSES2_APP_KUNAAPI_URL":  "https://new.api.url",
 			}),
 			updateExpected: func(t *testing.T, c Config) Config {
 				c = addDefaultConfigVariables(t, c)
@@ -105,8 +106,7 @@ func TestLoad(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			initTestEnvironment(t, tt.envVars)
 
-			ctx := context.Background()
-			config, err := Load(ctx)
+			config, err := Load(_configPrefix)
 
 			if tt.expectedErr != nil {
 				log.Println(err, tt.expectedErr)
@@ -152,16 +152,16 @@ func defaultConfig() Config {
 			Port:    "8080",
 			Timeout: 10 * time.Second,
 		},
+		KunaAPI: KunaAPIConfig{
+			URL:         "https://api.kuna.io/v3/tickers?symbols=btcuah",
+			DefaultRate: 0,
+		},
 		BinanceAPI: BinanceAPIConfig{
 			URL:         "https://api.binance.com/api/v3/klines?symbol=BTCUAH&interval=1s&limit=1",
 			DefaultRate: 0,
 		},
 		CoingeckoAPI: CoingeckoAPIConfig{
 			URL:         "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah",
-			DefaultRate: 0,
-		},
-		KunaAPI: KunaAPIConfig{
-			URL:         "https://api.kuna.io/v3/tickers?symbols=btcuah",
 			DefaultRate: 0,
 		},
 	}
@@ -181,22 +181,22 @@ func addDefaultConfigVariables(t *testing.T, c Config) Config {
 		_defaultEnvVariables["GSES2_APP_HTTP_TIMEOUT"],
 	)
 
-	c.BinanceAPI.URL = _defaultEnvVariables["GSES2_APP_BINANCE_API_URL"]
+	c.BinanceAPI.URL = _defaultEnvVariables["GSES2_APP_BINANCEAPI_URL"]
 	c.BinanceAPI.DefaultRate = parseProviderAPIDefaultRate(
 		t,
-		_defaultEnvVariables["GSES2_APP_BINANCE_API_DEFAULT_RATE"],
+		_defaultEnvVariables["GSES2_APP_BINANCEAPI_DEFAULT_RATE"],
 	)
 
-	c.CoingeckoAPI.URL = _defaultEnvVariables["GSES2_APP_COINGECKO_API_URL"]
+	c.CoingeckoAPI.URL = _defaultEnvVariables["GSES2_APP_COINGECKOAPI_URL"]
 	c.CoingeckoAPI.DefaultRate = parseProviderAPIDefaultRate(
 		t,
-		_defaultEnvVariables["GSES2_APP_COINGECKO_API_DEFAULT_RATE"],
+		_defaultEnvVariables["GSES2_APP_COINGECKOAPI_DEFAULT_RATE"],
 	)
 
-	c.KunaAPI.URL = _defaultEnvVariables["GSES2_APP_KUNA_API_URL"]
+	c.KunaAPI.URL = _defaultEnvVariables["GSES2_APP_KUNAAPI_URL"]
 	c.KunaAPI.DefaultRate = parseProviderAPIDefaultRate(
 		t,
-		_defaultEnvVariables["GSES2_APP_KUNA_API_DEFAULT_RATE"],
+		_defaultEnvVariables["GSES2_APP_KUNAAPI_DEFAULT_RATE"],
 	)
 
 	return c
@@ -214,7 +214,7 @@ func parseSMTPPort(t *testing.T, strPort string) int {
 func parseProviderAPIDefaultRate(t *testing.T, strRate string) types.Rate {
 	rate, err := strconv.ParseFloat(strRate, 32)
 	if err != nil {
-		t.Fatal("cannot convert default Kuna API rate")
+		t.Fatalf("cannot convert default Kuna API rate: %v", err)
 	}
 
 	return types.Rate(rate)

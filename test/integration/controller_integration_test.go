@@ -6,7 +6,6 @@ package integration
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -21,25 +20,65 @@ import (
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/repository/userrepo"
+	"gses2-app/pkg/types"
 
-	stubRateProvider "gses2-app/internal/rate/provider/stub"
 	emailSenderProvider "gses2-app/internal/sender/provider/email"
-	stubSendProvider "gses2-app/internal/sender/provider/stub"
 )
+
+const _configPrefix = "GSES2_APP"
+
+type StubSenderProvider struct {
+	Err error
+}
+
+func (tp *StubSenderProvider) SendExchangeRate(
+	rate types.Rate,
+	subscribers []types.User,
+) error {
+	return tp.Err
+}
+
+type StubStorage struct {
+	err     error
+	records [][]string
+}
+
+func (s *StubStorage) Append(record ...string) error {
+	return s.err
+}
+
+func (s *StubStorage) AllRecords() (records [][]string, err error) {
+	return s.records, s.err
+}
+
+type StubRateProvider struct {
+	Rate         types.Rate
+	Error        error
+	ProviderName string
+}
+
+func (m *StubRateProvider) ExchangeRate() (types.Rate, error) {
+	return m.Rate, m.Error
+}
+
+func (m *StubRateProvider) Name() string {
+	return m.ProviderName
+}
 
 var (
 	errRateProviderAnavailable = errors.New("rate provider unavailable")
 	errSendMessage             = errors.New("failed to send a message")
+	errGetSubscribtions        = errors.New("cannot get subscribtions")
 )
 
 func TestAppControllerIntegration(t *testing.T) {
 	config := initConfig(t)
 
 	defaultEmailSenderService := sender.NewService(
-		&stubSendProvider.StubProvider{},
+		&StubSenderProvider{},
 	)
 
-	defaultRateService := rate.NewService(&stubRateProvider.StubProvider{Rate: 42})
+	defaultRateService := rate.NewService(&StubRateProvider{Rate: 42})
 	defaultSubscriptionService := subscription.NewService(
 		&userrepo.StubUserRepository{},
 	)
@@ -105,7 +144,7 @@ func TestAppControllerIntegration(t *testing.T) {
 			subscriptionService: defaultSubscriptionService,
 			senderService:       defaultEmailSenderService,
 			rateService: rate.NewService(
-				&stubRateProvider.StubProvider{
+				&StubRateProvider{
 					Error: errRateProviderAnavailable,
 				},
 			),
@@ -195,8 +234,7 @@ func initConfig(t *testing.T) *config.Config {
 		t.Setenv(key, value)
 	}
 
-	ctx := context.Background()
-	config, err := config.Load(ctx)
+	config, err := config.Load(_configPrefix)
 	if err != nil {
 		t.Fatalf("error loading config: %v", err)
 	}

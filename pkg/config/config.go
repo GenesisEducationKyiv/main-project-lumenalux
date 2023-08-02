@@ -1,18 +1,17 @@
 package config
 
 import (
-	"context"
 	"errors"
 
-	"github.com/sethvargo/go-envconfig"
+	"github.com/kelseyhightower/envconfig"
 )
 
 var (
 	ErrLoadEnvVariable = errors.New("failed to load env variables")
 )
 
-func Load(ctx context.Context) (configuration Config, err error) {
-	if err := envconfig.Process(ctx, &configuration); err != nil {
+func Load(prefix string) (configuration Config, err error) {
+	if err := envconfig.Process(prefix, &configuration); err != nil {
 		return configuration, ErrLoadEnvVariable
 	}
 
