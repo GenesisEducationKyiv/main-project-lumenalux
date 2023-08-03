@@ -7,7 +7,7 @@ import (
 
 	"gses2-app/internal/rate"
 	"gses2-app/internal/subscription"
-	"gses2-app/pkg/user/repository"
+	"gses2-app/internal/user/repository"
 )
 
 type SenderService interface {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"gses2-app/internal/config"
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/rate/provider/binance"
@@ -14,11 +15,10 @@ import (
 	"gses2-app/internal/sender"
 	"gses2-app/internal/sender/provider/email"
 	"gses2-app/internal/sender/transport/smtp"
+	"gses2-app/internal/storage"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
-	"gses2-app/pkg/config"
-	"gses2-app/pkg/storage"
-	"gses2-app/pkg/user/repository"
+	"gses2-app/internal/user/repository"
 )
 
 const _configPrefix = "GSES2_APP"

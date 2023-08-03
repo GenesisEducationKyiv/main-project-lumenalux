@@ -2,15 +2,16 @@ package controller
 
 import (
 	"errors"
-	"gses2-app/internal/rate"
-	"gses2-app/internal/subscription"
-	"gses2-app/pkg/user/repository"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"gses2-app/internal/rate"
+	"gses2-app/internal/subscription"
+	"gses2-app/internal/user/repository"
 )
 
 var (

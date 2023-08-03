@@ -3,9 +3,9 @@ package subscription
 import (
 	"testing"
 
-	"gses2-app/pkg/user/repository"
-
 	"github.com/stretchr/testify/require"
+
+	"gses2-app/internal/user/repository"
 )
 
 type StubUserRepository struct {

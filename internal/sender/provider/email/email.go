@@ -7,7 +7,7 @@ import (
 	"gses2-app/internal/sender/provider/email/message"
 	"gses2-app/internal/sender/provider/email/send"
 	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/pkg/user/repository"
+	"gses2-app/internal/user/repository"
 )
 
 type EmailSenderConfig struct {

@@ -2,12 +2,6 @@ package config
 
 import (
 	"errors"
-	"gses2-app/internal/rate/provider/binance"
-	"gses2-app/internal/rate/provider/coingecko"
-	"gses2-app/internal/rate/provider/kuna"
-	"gses2-app/internal/sender/provider/email/message"
-	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/pkg/storage"
 	"log"
 	"os"
 	"strconv"
@@ -16,6 +10,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/maps"
+
+	"gses2-app/internal/rate/provider/binance"
+	"gses2-app/internal/rate/provider/coingecko"
+	"gses2-app/internal/rate/provider/kuna"
+	"gses2-app/internal/sender/provider/email/message"
+	"gses2-app/internal/sender/transport/smtp"
+	"gses2-app/internal/storage"
 )
 
 const _configPrefix = "GSES2_APP"

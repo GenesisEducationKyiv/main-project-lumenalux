@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gses2-app/internal/rate"
-	"gses2-app/pkg/user/repository"
+	"gses2-app/internal/user/repository"
 )
 
 type StubProvider struct {

@@ -11,9 +11,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"gses2-app/internal/storage"
 	"gses2-app/internal/subscription"
-	"gses2-app/pkg/storage"
-	"gses2-app/pkg/user/repository"
+	"gses2-app/internal/user/repository"
 )
 
 type SubscriptionTest struct {

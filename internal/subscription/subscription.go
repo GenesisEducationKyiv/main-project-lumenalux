@@ -2,7 +2,8 @@ package subscription
 
 import (
 	"errors"
-	"gses2-app/pkg/user/repository"
+
+	"gses2-app/internal/user/repository"
 )
 
 var (
