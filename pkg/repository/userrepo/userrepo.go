@@ -29,12 +29,12 @@ func NewUserRepository(storage Storage) *UserRepository {
 func (ur *UserRepository) Add(user *types.User) error {
 	_, err := ur.FindByEmail(user.Email)
 
-	finded := !errors.Is(err, ErrCannotFindByEmail)
-	if finded {
+	isUserFound := !errors.Is(err, ErrCannotFindByEmail)
+	if isUserFound {
 		return ErrAlreadyAdded
 	}
 
-	if err != nil && finded {
+	if err != nil && isUserFound {
 		return err
 	}
 
