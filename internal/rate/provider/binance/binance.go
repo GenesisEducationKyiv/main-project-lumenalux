@@ -69,17 +69,17 @@ func (p *BinanceProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
 	}
 
 	if len(data) == 0 || len(data[_firstItemIndex]) < _minResponseItems {
-		return p.config.DefaultRate, ErrUnexpectedResponseFormat
+		return 0, ErrUnexpectedResponseFormat
 	}
 
 	exchangeRate, ok := data[_firstItemIndex][_rateIndex].(string)
 	if !ok {
-		return p.config.DefaultRate, ErrUnexpectedExchangeRateFormat
+		return 0, ErrUnexpectedExchangeRateFormat
 	}
 
 	rate, err := strconv.ParseFloat(exchangeRate, 64)
 	if err != nil {
-		return p.config.DefaultRate, errors.Join(err, ErrUnexpectedExchangeRateFormat)
+		return 0, errors.Join(err, ErrUnexpectedExchangeRateFormat)
 	}
 
 	return types.Rate(rate), nil

@@ -58,22 +58,22 @@ func (p *KunaProvider) Name() string {
 func (p *KunaProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return p.config.DefaultRate, err
+		return 0, err
 	}
 
 	var data [][]interface{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return p.config.DefaultRate, err
+		return 0, err
 	}
 
 	if len(data) == 0 || len(data[_firstItemIndex]) < _minResponseItems {
-		return p.config.DefaultRate, ErrUnexpectedResponseFormat
+		return 0, ErrUnexpectedResponseFormat
 	}
 
 	exchangeRate, ok := data[_firstItemIndex][_rateIndex].(float64)
 	if !ok {
-		return p.config.DefaultRate, ErrUnexpectedExchangeRateFormat
+		return 0, ErrUnexpectedExchangeRateFormat
 	}
 
 	return types.Rate(exchangeRate), nil

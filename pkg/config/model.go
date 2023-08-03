@@ -1,7 +1,6 @@
 package config
 
 import (
-	"gses2-app/pkg/types"
 	"time"
 )
 
@@ -38,16 +37,13 @@ type HTTPConfig struct {
 }
 
 type KunaAPIConfig struct {
-	URL         string     `default:"https://api.kuna.io/v3/tickers?symbols=btcuah"`
-	DefaultRate types.Rate `default:"0"`
+	URL string `default:"https://api.kuna.io/v3/tickers?symbols=btcuah"`
 }
 
 type BinanceAPIConfig struct {
-	URL         string     `default:"https://api.binance.com/api/v3/klines?symbol=BTCUAH&interval=1s&limit=1"`
-	DefaultRate types.Rate `default:"0"`
+	URL string `default:"https://api.binance.com/api/v3/klines?symbol=BTCUAH&interval=1s&limit=1"`
 }
 
 type CoingeckoAPIConfig struct {
-	URL         string     `default:"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah"`
-	DefaultRate types.Rate `default:"0"`
+	URL string `default:"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah"`
 }

@@ -61,13 +61,13 @@ func (p *CoingeckoProvider) Name() string {
 func (p *CoingeckoProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return p.config.DefaultRate, err
+		return 0, err
 	}
 
 	var data Response
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return p.config.DefaultRate, errors.Join(err, ErrUnexpectedResponseFormat)
+		return 0, errors.Join(err, ErrUnexpectedResponseFormat)
 	}
 
 	return types.Rate(data.Bitcoin.UAH), nil
