@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"gses2-app/internal/rate/provider"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
@@ -46,9 +47,9 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 			name: "HTTP request failure",
 			stubHTTPClient: &StubHTTPClient{
 				Response: nil,
-				Error:    ErrHTTPRequestFailure,
+				Error:    provider.ErrHTTPRequestFailure,
 			},
-			expectedError: ErrHTTPRequestFailure,
+			expectedError: provider.ErrHTTPRequestFailure,
 		},
 		{
 			name: "Unexpected status code",
@@ -57,7 +58,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusForbidden,
 				},
 			},
-			expectedError: ErrUnexpectedStatusCode,
+			expectedError: provider.ErrUnexpectedStatusCode,
 		},
 		{
 			name: "Bad response body format",

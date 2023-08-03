@@ -2,13 +2,13 @@ package kuna
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"gses2-app/internal/rate/provider"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
@@ -47,9 +47,9 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 			name: "HTTP request failure",
 			stubHTTPClient: &StubHTTPClient{
 				Response: nil,
-				Error:    errors.New("http request failure"),
+				Error:    provider.ErrHTTPRequestFailure,
 			},
-			expectedError: ErrHTTPRequestFailure,
+			expectedError: provider.ErrHTTPRequestFailure,
 		},
 		{
 			name: "Unexpected status code",
@@ -58,7 +58,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusForbidden,
 				},
 			},
-			expectedError: ErrUnexpectedStatusCode,
+			expectedError: provider.ErrUnexpectedStatusCode,
 		},
 		{
 			name: "Bad response body format",

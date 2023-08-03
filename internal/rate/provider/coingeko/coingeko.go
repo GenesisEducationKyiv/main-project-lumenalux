@@ -3,16 +3,20 @@ package coingecko
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
+	"gses2-app/internal/rate/provider"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
 
 // Represents data type for JSON response
-type response map[string]map[string]float64
+type Response struct {
+	Bitcoin struct {
+		UAH float64 `json:"uah"`
+	} `json:"bitcoin"`
+}
 
 var (
 	ErrHTTPRequestFailure       = errors.New("http request failure")
@@ -22,8 +26,6 @@ var (
 
 const (
 	_providerName = "CoingeckoRateProvider"
-	_currencyFrom = "bitcoin"
-	_currencyTo   = "uah"
 )
 
 type HTTPClient interface {
@@ -31,69 +33,42 @@ type HTTPClient interface {
 }
 
 type CoingeckoProvider struct {
-	config     config.CoingeckoAPIConfig
-	httpClient HTTPClient
-	logFunc    func(providerName string, resp *http.Response)
+	config config.CoingeckoAPIConfig
 }
 
 func NewProvider(
 	config config.CoingeckoAPIConfig,
 	httpClient HTTPClient,
 	logFunc func(providerName string, resp *http.Response),
-) *CoingeckoProvider {
-	return &CoingeckoProvider{
-		config:     config,
-		httpClient: httpClient,
-		logFunc:    logFunc,
-	}
+) *provider.AbstractProvider {
+	return provider.NewProvider(
+		&CoingeckoProvider{
+			config: config,
+		},
+		httpClient,
+		logFunc,
+	)
+}
+
+func (p *CoingeckoProvider) URL() string {
+	return p.config.URL
 }
 
 func (p *CoingeckoProvider) Name() string {
 	return _providerName
 }
 
-func (p *CoingeckoProvider) ExchangeRate() (types.Rate, error) {
-	resp, err := p.requestAPI()
-	if err != nil {
-		return 0, err
-	}
-
-	return p.extractRateFromResponse(resp)
-}
-
-func (p *CoingeckoProvider) requestAPI() (*http.Response, error) {
-
-	resp, err := p.httpClient.Get(p.config.URL)
-	if err != nil {
-		return nil, errors.Join(err, ErrHTTPRequestFailure)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatusCode, resp.StatusCode)
-	}
-
-	p.logFunc(_providerName, resp)
-	return resp, nil
-}
-
-func (p *CoingeckoProvider) extractRateFromResponse(resp *http.Response) (types.Rate, error) {
-	defer resp.Body.Close()
-
+func (p *CoingeckoProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return p.config.DefaultRate, err
 	}
 
-	var data response
+	var data Response
 	err = json.Unmarshal(body, &data)
 	if err != nil {
 		return p.config.DefaultRate, errors.Join(err, ErrUnexpectedResponseFormat)
 	}
 
-	exchangeRate, ok := data[_currencyFrom][_currencyTo]
-	if !ok {
-		return p.config.DefaultRate, ErrUnexpectedResponseFormat
-	}
-
-	return types.Rate(exchangeRate), nil
+	return types.Rate(data.Bitcoin.UAH), nil
 }

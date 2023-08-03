@@ -3,11 +3,11 @@ package binance
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 
+	"gses2-app/internal/rate/provider"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
@@ -31,53 +31,32 @@ type HTTPClient interface {
 }
 
 type BinanceProvider struct {
-	config     config.BinanceAPIConfig
-	httpClient HTTPClient
-	logFunc    func(providerName string, resp *http.Response)
+	config config.BinanceAPIConfig
 }
 
 func NewProvider(
 	config config.BinanceAPIConfig,
 	httpClient HTTPClient,
 	logFunc func(providerName string, resp *http.Response),
-) *BinanceProvider {
-	return &BinanceProvider{
-		config:     config,
-		httpClient: httpClient,
-		logFunc:    logFunc,
-	}
+) *provider.AbstractProvider {
+	return provider.NewProvider(
+		&BinanceProvider{
+			config: config,
+		},
+		httpClient,
+		logFunc,
+	)
+}
+
+func (p *BinanceProvider) URL() string {
+	return p.config.URL
 }
 
 func (p *BinanceProvider) Name() string {
 	return _providerName
 }
 
-func (p *BinanceProvider) ExchangeRate() (types.Rate, error) {
-	resp, err := p.requestAPI()
-	if err != nil {
-		return 0, err
-	}
-
-	return p.extractRateFromResponse(resp)
-}
-
-func (p *BinanceProvider) requestAPI() (*http.Response, error) {
-	resp, err := p.httpClient.Get(p.config.URL)
-	if err != nil {
-		return nil, ErrHTTPRequestFailure
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatusCode, resp.StatusCode)
-	}
-
-	p.logFunc(_providerName, resp)
-	return resp, nil
-}
-
-func (p *BinanceProvider) extractRateFromResponse(resp *http.Response) (types.Rate, error) {
-	defer resp.Body.Close()
-
+func (p *BinanceProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return p.config.DefaultRate, err
@@ -100,7 +79,7 @@ func (p *BinanceProvider) extractRateFromResponse(resp *http.Response) (types.Ra
 
 	rate, err := strconv.ParseFloat(exchangeRate, 64)
 	if err != nil {
-		return p.config.DefaultRate, ErrUnexpectedExchangeRateFormat
+		return p.config.DefaultRate, errors.Join(err, ErrUnexpectedExchangeRateFormat)
 	}
 
 	return types.Rate(rate), nil

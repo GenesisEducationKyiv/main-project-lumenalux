@@ -3,10 +3,10 @@ package kuna
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
+	"gses2-app/internal/rate/provider"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
@@ -30,54 +30,32 @@ type HTTPClient interface {
 }
 
 type KunaProvider struct {
-	config     config.KunaAPIConfig
-	httpClient HTTPClient
-	logFunc    func(providerName string, resp *http.Response)
+	config config.KunaAPIConfig
 }
 
 func NewProvider(
 	config config.KunaAPIConfig,
 	httpClient HTTPClient,
 	logFunc func(providerName string, resp *http.Response),
-) *KunaProvider {
-	return &KunaProvider{
-		config:     config,
-		httpClient: httpClient,
-		logFunc:    logFunc,
-	}
+) *provider.AbstractProvider {
+	return provider.NewProvider(
+		&KunaProvider{
+			config: config,
+		},
+		httpClient,
+		logFunc,
+	)
+}
+
+func (p *KunaProvider) URL() string {
+	return p.config.URL
 }
 
 func (p *KunaProvider) Name() string {
 	return _providerName
 }
 
-func (p *KunaProvider) ExchangeRate() (types.Rate, error) {
-	resp, err := p.requestAPI()
-	if err != nil {
-		return 0, err
-	}
-
-	return p.extractRateFromResponse(resp)
-}
-
-func (p *KunaProvider) requestAPI() (*http.Response, error) {
-
-	resp, err := p.httpClient.Get(p.config.URL)
-	if err != nil {
-		return nil, errors.Join(err, ErrHTTPRequestFailure)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatusCode, resp.StatusCode)
-	}
-
-	p.logFunc(_providerName, resp)
-	return resp, nil
-}
-
-func (p *KunaProvider) extractRateFromResponse(resp *http.Response) (types.Rate, error) {
-	defer resp.Body.Close()
-
+func (p *KunaProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return p.config.DefaultRate, err
