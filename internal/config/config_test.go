@@ -14,7 +14,7 @@ import (
 	"gses2-app/internal/rate/provider/binance"
 	"gses2-app/internal/rate/provider/coingecko"
 	"gses2-app/internal/rate/provider/kuna"
-	"gses2-app/internal/sender/provider/email/message"
+	"gses2-app/internal/sender/provider/email/send"
 	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/internal/storage"
 )
@@ -145,7 +145,7 @@ func defaultConfig() Config {
 		SMTP: smtp.SMTPConfig{
 			Port: 465,
 		},
-		Email: message.EmailConfig{
+		Email: send.EmailConfig{
 			From:    "no.reply@currency.info.api",
 			Subject: "BTC to UAH exchange rate",
 			Body:    "The BTC to UAH exchange rate is {{.Rate}} UAH per BTC",

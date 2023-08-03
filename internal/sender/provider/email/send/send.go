@@ -2,7 +2,6 @@ package send
 
 import (
 	"errors"
-	"gses2-app/internal/sender/provider/email/message"
 	"io"
 )
 
@@ -49,7 +48,7 @@ func writeAndClose(client SenderSMTPClient, message []byte) error {
 	return writer.Close()
 }
 
-func SendEmail(client SenderSMTPClient, email *message.EmailMessage) error {
+func SendEmail(client SenderSMTPClient, email *EmailMessage) error {
 	err := setMail(client, email.From)
 	if err != nil {
 		return err

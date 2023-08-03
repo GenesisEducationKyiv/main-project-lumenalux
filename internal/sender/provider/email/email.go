@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"gses2-app/internal/rate"
-	"gses2-app/internal/sender/provider/email/message"
 	"gses2-app/internal/sender/provider/email/send"
 	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/internal/user/repository"
@@ -12,7 +11,7 @@ import (
 
 type EmailSenderConfig struct {
 	SMTP  smtp.SMTPConfig
-	Email message.EmailConfig
+	Email send.EmailConfig
 }
 
 type Provider struct {
@@ -41,8 +40,8 @@ func (p *Provider) SendExchangeRate(
 
 	emailAddresses := convertUsersToEmails(subscribers)
 
-	templateData := message.TemplateData{Rate: fmt.Sprintf("%.2f", rate)}
-	emailMessage, err := message.NewEmailMessage(p.config.Email, emailAddresses, templateData)
+	templateData := send.TemplateData{Rate: fmt.Sprintf("%.2f", rate)}
+	emailMessage, err := send.NewEmailMessage(p.config.Email, emailAddresses, templateData)
 	if err != nil {
 		return err
 	}

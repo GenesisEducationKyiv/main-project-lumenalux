@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"gses2-app/internal/sender/provider/email/message"
 )
 
 type StubSMTPClient struct {
@@ -56,7 +54,7 @@ func (m *StubSMTPClient) Quit() error {
 type testCase struct {
 	name             string
 	client           *StubSMTPClient
-	email            *message.EmailMessage
+	email            *EmailMessage
 	expectedErr      error
 	expectDataCalled bool
 }
@@ -74,7 +72,7 @@ func TestSendEmail(t *testing.T) {
 			client: &StubSMTPClient{
 				writeShouldReturn: nil,
 			},
-			email: &message.EmailMessage{
+			email: &EmailMessage{
 				From:    "test_from@example.com",
 				To:      []string{"test_to@example.com"},
 				Subject: "Test Subject",
@@ -88,7 +86,7 @@ func TestSendEmail(t *testing.T) {
 			client: &StubSMTPClient{
 				writeShouldReturn: errWrite,
 			},
-			email: &message.EmailMessage{
+			email: &EmailMessage{
 				From:    "test_from@example.com",
 				To:      []string{"test_to@example.com"},
 				Subject: "Test Subject",
@@ -102,7 +100,7 @@ func TestSendEmail(t *testing.T) {
 			client: &StubSMTPClient{
 				mailShouldReturn: errSetMail,
 			},
-			email: &message.EmailMessage{
+			email: &EmailMessage{
 				From:    "test_from@example.com",
 				To:      []string{"test_to@example.com"},
 				Subject: "Test Subject",
@@ -116,7 +114,7 @@ func TestSendEmail(t *testing.T) {
 			client: &StubSMTPClient{
 				rcptShouldReturn: errSetRecipients,
 			},
-			email: &message.EmailMessage{
+			email: &EmailMessage{
 				From:    "test_from@example.com",
 				To:      []string{"test_to@example.com"},
 				Subject: "Test Subject",
