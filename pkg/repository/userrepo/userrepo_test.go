@@ -9,11 +9,11 @@ import (
 )
 
 type StubStorage struct {
-	data [][]string
+	data []map[string]string
 	err  error
 }
 
-func (s *StubStorage) Append(record ...string) error {
+func (s *StubStorage) Append(record map[string]string) error {
 	if s.err != nil {
 		return s.err
 	}
@@ -21,7 +21,7 @@ func (s *StubStorage) Append(record ...string) error {
 	return nil
 }
 
-func (s *StubStorage) AllRecords() ([][]string, error) {
+func (s *StubStorage) AllRecords() ([]map[string]string, error) {
 	if s.err != nil {
 		return nil, s.err
 	}
@@ -33,19 +33,19 @@ func TestAdd(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		existingData [][]string
+		existingData []map[string]string
 		emailToAdd   string
 		expectedErr  error
 	}{
 		{
 			name:         "Add new user successfully",
-			existingData: [][]string{{"existingEmail"}},
+			existingData: []map[string]string{{"email": "existingEmail"}},
 			emailToAdd:   "newEmail",
 			expectedErr:  nil,
 		},
 		{
 			name:         "Add an existing user",
-			existingData: [][]string{{"existingEmail"}},
+			existingData: []map[string]string{{"email": "existingEmail"}},
 			emailToAdd:   "existingEmail",
 			expectedErr:  ErrAlreadyAdded,
 		},
@@ -71,19 +71,19 @@ func TestFindByEmail(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		existingData [][]string
+		existingData []map[string]string
 		emailToFind  string
 		expectedErr  error
 	}{
 		{
 			name:         "Find user successfully",
-			existingData: [][]string{{"existingEmail"}},
+			existingData: []map[string]string{{"email": "existingEmail"}},
 			emailToFind:  "existingEmail",
 			expectedErr:  nil,
 		},
 		{
 			name:         "User not found",
-			existingData: [][]string{{"existingEmail"}},
+			existingData: []map[string]string{{"email": "existingEmail"}},
 			emailToFind:  "nonExistingEmail",
 			expectedErr:  ErrCannotFindByEmail,
 		},
@@ -109,14 +109,16 @@ func TestAll(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		existingData  [][]string
+		existingData  []map[string]string
 		storageError  error
 		expectedErr   error
 		expectedCount int
 	}{
 		{
-			name:          "Retrieve all users successfully",
-			existingData:  [][]string{{"user1"}, {"user2"}},
+			name: "Retrieve all users successfully",
+			existingData: []map[string]string{
+				{"email": "user1"}, {"email": "user2"},
+			},
 			storageError:  nil,
 			expectedErr:   nil,
 			expectedCount: 2,

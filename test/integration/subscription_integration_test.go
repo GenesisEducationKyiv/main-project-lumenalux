@@ -1,6 +1,6 @@
 // Subscription integration contains integration tests for the subscription layer,
 // specifically testing the integration between the subscription service and
-// the user resposetory with storage
+// the user repository with storage
 
 package integration
 
@@ -17,7 +17,7 @@ import (
 	"gses2-app/pkg/types"
 )
 
-type SubscribtionTest struct {
+type SubscriptionTest struct {
 	Name           string
 	Subscribers    []types.User
 	Action         func(service *subscription.Service, emails []types.User) error
@@ -36,7 +36,7 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 	userRepository := userrepo.NewUserRepository(storageCSV)
 	service := subscription.NewService(userRepository)
 
-	tests := []SubscribtionTest{
+	tests := []SubscriptionTest{
 		{
 			Name:        "Subscribe a new email",
 			Subscribers: []types.User{{Email: "test1@example.com"}},
@@ -112,7 +112,7 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 	}
 }
 
-func runTest(t *testing.T, test SubscribtionTest, service *subscription.Service) {
+func runTest(t *testing.T, test SubscriptionTest, service *subscription.Service) {
 	err := test.Action(service, test.Subscribers)
 	checkError(t, err, test.ExpectedError)
 	checkExpectedResult(t, service, test.ExpectedResult)

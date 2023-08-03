@@ -5,6 +5,8 @@ import (
 	"gses2-app/pkg/types"
 )
 
+const _emailKey = "email"
+
 var (
 	ErrAlreadyAdded      = errors.New("user is already added")
 	ErrCannotFindByEmail = errors.New("cannot find user by email")
@@ -12,8 +14,8 @@ var (
 )
 
 type Storage interface {
-	Append(record ...string) error
-	AllRecords() (records [][]string, err error)
+	Append(record map[string]string) error
+	AllRecords() (records []map[string]string, err error)
 }
 
 type UserRepository struct {
@@ -38,7 +40,7 @@ func (ur *UserRepository) Add(user *types.User) error {
 		return err
 	}
 
-	return ur.storage.Append(user.Email)
+	return ur.storage.Append(map[string]string{_emailKey: user.Email})
 }
 
 func (ur *UserRepository) FindByEmail(email string) (*types.User, error) {
@@ -48,7 +50,7 @@ func (ur *UserRepository) FindByEmail(email string) (*types.User, error) {
 	}
 
 	for _, e := range records {
-		if e[0] == email {
+		if e[_emailKey] == email {
 			return &types.User{Email: email}, nil
 		}
 	}
@@ -64,7 +66,7 @@ func (ur *UserRepository) All() ([]types.User, error) {
 
 	users := make([]types.User, len(records))
 	for i, record := range records {
-		users[i].Email = record[0]
+		users[i].Email = record[_emailKey]
 	}
 
 	return users, nil
