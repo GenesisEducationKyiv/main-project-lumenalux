@@ -39,14 +39,12 @@ type CoingeckoProvider struct {
 func NewProvider(
 	config config.CoingeckoAPIConfig,
 	httpClient HTTPClient,
-	logFunc func(providerName string, resp *http.Response),
 ) *provider.AbstractProvider {
 	return provider.NewProvider(
 		&CoingeckoProvider{
 			config: config,
 		},
 		httpClient,
-		logFunc,
 	)
 }
 

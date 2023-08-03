@@ -27,13 +27,13 @@ func main() {
 	config, err := config.Load(_configPrefix)
 	if err != nil {
 		log.Printf("Error, config wasn't loaded: %s", err)
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	senderService, err := createSenderService(&config)
 	if err != nil {
 		log.Printf("Connection error: %s", err)
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	rateService := createRateService(&config)
@@ -54,15 +54,15 @@ func createRateService(config *config.Config) *rate.Service {
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
 
 	BinanceRateProvider := binance.NewProvider(
-		config.BinanceAPI, httpClient, rateLogFunc,
+		config.BinanceAPI, httpClient,
 	)
 
 	KunaRateProvider := kuna.NewProvider(
-		config.KunaAPI, httpClient, rateLogFunc,
+		config.KunaAPI, httpClient,
 	)
 
 	CoingeckoRateProvider := coingeko.NewProvider(
-		config.CoingeckoAPI, httpClient, rateLogFunc,
+		config.CoingeckoAPI, httpClient,
 	)
 
 	return rate.NewService(
@@ -70,10 +70,6 @@ func createRateService(config *config.Config) *rate.Service {
 		CoingeckoRateProvider,
 		KunaRateProvider,
 	)
-}
-
-func rateLogFunc(providerName string, resp *http.Response) {
-	log.Printf("%v - Response: %v", providerName, resp)
 }
 
 func createSenderService(

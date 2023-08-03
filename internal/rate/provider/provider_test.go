@@ -89,8 +89,7 @@ func TestExchangeRate(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			logFunc := func(providerName string, resp *http.Response) {}
-			abstractProvider := NewProvider(tt.stubProvider, tt.stubHTTPClient, logFunc)
+			abstractProvider := NewProvider(tt.stubProvider, tt.stubHTTPClient)
 			rate, err := abstractProvider.ExchangeRate()
 
 			require.ErrorIs(t, err, tt.expectedError)

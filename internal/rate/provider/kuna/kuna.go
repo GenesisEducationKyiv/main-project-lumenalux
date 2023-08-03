@@ -36,14 +36,12 @@ type KunaProvider struct {
 func NewProvider(
 	config config.KunaAPIConfig,
 	httpClient HTTPClient,
-	logFunc func(providerName string, resp *http.Response),
 ) *provider.AbstractProvider {
 	return provider.NewProvider(
 		&KunaProvider{
 			config: config,
 		},
 		httpClient,
-		logFunc,
 	)
 }
 

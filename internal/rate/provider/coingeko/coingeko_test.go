@@ -92,8 +92,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 			t.Parallel()
 
 			config := config.CoingeckoAPIConfig{}
-			logFunc := func(string, *http.Response) {}
-			provider := NewProvider(config, tt.stubHTTPClient, logFunc)
+			provider := NewProvider(config, tt.stubHTTPClient)
 			rate, err := provider.ExchangeRate()
 
 			require.ErrorIs(t, err, tt.expectedError)

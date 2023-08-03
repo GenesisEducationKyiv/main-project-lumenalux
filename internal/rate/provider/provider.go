@@ -3,6 +3,7 @@ package provider
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"gses2-app/pkg/types"
@@ -26,18 +27,15 @@ type Provider interface {
 type AbstractProvider struct {
 	actualProvider Provider
 	httpClient     HTTPClient
-	logFunc        func(providerName string, resp *http.Response)
 }
 
 func NewProvider(
 	actualProvider Provider,
 	httpClient HTTPClient,
-	logFunc func(providerName string, resp *http.Response),
 ) *AbstractProvider {
 	return &AbstractProvider{
 		actualProvider: actualProvider,
 		httpClient:     httpClient,
-		logFunc:        logFunc,
 	}
 }
 
@@ -64,7 +62,7 @@ func (ap *AbstractProvider) requestAPI() (*http.Response, error) {
 		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatusCode, resp.StatusCode)
 	}
 
-	ap.logFunc(ap.actualProvider.Name(), resp)
+	log.Printf("%v - Response: %v", ap.actualProvider.Name(), resp)
 	return resp, nil
 }
 

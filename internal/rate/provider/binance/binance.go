@@ -37,14 +37,12 @@ type BinanceProvider struct {
 func NewProvider(
 	config config.BinanceAPIConfig,
 	httpClient HTTPClient,
-	logFunc func(providerName string, resp *http.Response),
 ) *provider.AbstractProvider {
 	return provider.NewProvider(
 		&BinanceProvider{
 			config: config,
 		},
 		httpClient,
-		logFunc,
 	)
 }
 
