@@ -19,7 +19,7 @@ import (
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
-	"gses2-app/pkg/repository/userrepo"
+	"gses2-app/pkg/user/repository"
 
 	"gses2-app/internal/sender/provider/email"
 )
@@ -32,7 +32,7 @@ type StubSenderProvider struct {
 
 func (tp *StubSenderProvider) SendExchangeRate(
 	rate rate.Rate,
-	subscribers []userrepo.User,
+	subscribers []repository.User,
 ) error {
 	return tp.Err
 }
@@ -65,20 +65,20 @@ func (m *StubRateProvider) Name() string {
 }
 
 type StubUserRepository struct {
-	Users []userrepo.User
+	Users []repository.User
 	Err   error
 }
 
-func (s *StubUserRepository) Add(user *userrepo.User) error {
+func (s *StubUserRepository) Add(user *repository.User) error {
 	s.Users = append(s.Users, *user)
 	return s.Err
 }
 
-func (s *StubUserRepository) FindByEmail(email string) (*userrepo.User, error) {
+func (s *StubUserRepository) FindByEmail(email string) (*repository.User, error) {
 	return &s.Users[0], s.Err
 }
 
-func (s *StubUserRepository) All() ([]userrepo.User, error) {
+func (s *StubUserRepository) All() ([]repository.User, error) {
 	return s.Users, s.Err
 }
 
@@ -137,7 +137,7 @@ func TestAppControllerIntegration(t *testing.T) {
 			requestBody:    bytes.NewBufferString("email=test@test.com"),
 			expectedStatus: http.StatusConflict,
 			subscriptionService: subscription.NewService(
-				&StubUserRepository{Err: userrepo.ErrAlreadyAdded},
+				&StubUserRepository{Err: repository.ErrAlreadyAdded},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,
@@ -173,7 +173,7 @@ func TestAppControllerIntegration(t *testing.T) {
 			requestBody:    nil,
 			expectedStatus: http.StatusInternalServerError,
 			subscriptionService: subscription.NewService(
-				&StubUserRepository{Err: userrepo.ErrCannotLoadUsers},
+				&StubUserRepository{Err: repository.ErrCannotLoadUsers},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,

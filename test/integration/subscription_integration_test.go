@@ -12,16 +12,16 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"gses2-app/internal/subscription"
-	"gses2-app/pkg/repository/userrepo"
 	"gses2-app/pkg/storage"
+	"gses2-app/pkg/user/repository"
 )
 
 type SubscriptionTest struct {
 	Name           string
-	Subscribers    []userrepo.User
-	Action         func(service *subscription.Service, emails []userrepo.User) error
+	Subscribers    []repository.User
+	Action         func(service *subscription.Service, emails []repository.User) error
 	ExpectedError  error
-	ExpectedResult []userrepo.User
+	ExpectedResult []repository.User
 }
 
 func TestSubscriptionServiceIntegration(t *testing.T) {
@@ -32,41 +32,41 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 	defer os.Remove(tmpFile.Name())
 
 	storageCSV := storage.NewCSVStorage(tmpFile.Name())
-	userRepository := userrepo.NewUserRepository(storageCSV)
+	userRepository := repository.NewUserRepository(storageCSV)
 	service := subscription.NewService(userRepository)
 
 	tests := []SubscriptionTest{
 		{
 			Name:        "Subscribe a new email",
-			Subscribers: []userrepo.User{{Email: "test1@example.com"}},
-			Action: func(service *subscription.Service, subscribers []userrepo.User) error {
+			Subscribers: []repository.User{{Email: "test1@example.com"}},
+			Action: func(service *subscription.Service, subscribers []repository.User) error {
 				return service.Subscribe(&subscribers[0])
 			},
 		},
 		{
 			Name:        "Subscribe an already subscribed email",
-			Subscribers: []userrepo.User{{Email: "test1@example.com"}},
-			Action: func(service *subscription.Service, subscribers []userrepo.User) error {
+			Subscribers: []repository.User{{Email: "test1@example.com"}},
+			Action: func(service *subscription.Service, subscribers []repository.User) error {
 				return service.Subscribe(&subscribers[0])
 			},
 			ExpectedError: subscription.ErrAlreadySubscribed,
 		},
 		{
 			Name:        "Get all subscriptions",
-			Subscribers: []userrepo.User{},
-			Action: func(service *subscription.Service, subscribers []userrepo.User) error {
+			Subscribers: []repository.User{},
+			Action: func(service *subscription.Service, subscribers []repository.User) error {
 				_, err := service.Subscriptions()
 				return err
 			},
-			ExpectedResult: []userrepo.User{{Email: "test1@example.com"}},
+			ExpectedResult: []repository.User{{Email: "test1@example.com"}},
 		},
 		{
 			Name: "Subscribe multiple emails",
-			Subscribers: []userrepo.User{
+			Subscribers: []repository.User{
 				{Email: "test2@example.com"},
 				{Email: "test3@example.com"},
 			},
-			Action: func(service *subscription.Service, subscribers []userrepo.User) error {
+			Action: func(service *subscription.Service, subscribers []repository.User) error {
 				for _, subscriber := range subscribers {
 					if err := service.Subscribe(&subscriber); err != nil {
 						return err
@@ -74,7 +74,7 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				}
 				return nil
 			},
-			ExpectedResult: []userrepo.User{
+			ExpectedResult: []repository.User{
 				{Email: "test1@example.com"},
 				{Email: "test2@example.com"},
 				{Email: "test3@example.com"},
@@ -82,11 +82,11 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 		},
 		{
 			Name: "Subscribe new and already subscribed emails",
-			Subscribers: []userrepo.User{
+			Subscribers: []repository.User{
 				{Email: "test4@example.com"},
 				{Email: "test1@example.com"},
 			},
-			Action: func(service *subscription.Service, subscribers []userrepo.User) error {
+			Action: func(service *subscription.Service, subscribers []repository.User) error {
 				for _, subscriber := range subscribers {
 					err := service.Subscribe(&subscriber)
 					if err != nil && !errors.Is(err, subscription.ErrAlreadySubscribed) {
@@ -95,7 +95,7 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				}
 				return nil
 			},
-			ExpectedResult: []userrepo.User{
+			ExpectedResult: []repository.User{
 				{Email: "test1@example.com"},
 				{Email: "test2@example.com"},
 				{Email: "test3@example.com"},
@@ -126,7 +126,7 @@ func checkError(t *testing.T, err error, expectedError error) {
 func checkExpectedResult(
 	t *testing.T,
 	service *subscription.Service,
-	expectedResult []userrepo.User,
+	expectedResult []repository.User,
 ) {
 	if expectedResult == nil {
 		return

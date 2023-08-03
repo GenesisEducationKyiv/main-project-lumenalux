@@ -17,8 +17,8 @@ import (
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
-	"gses2-app/pkg/repository/userrepo"
 	"gses2-app/pkg/storage"
+	"gses2-app/pkg/user/repository"
 )
 
 const _configPrefix = "GSES2_APP"
@@ -93,7 +93,7 @@ func createSenderService(
 
 func createSubscriptionService(config *config.Config) *subscription.Service {
 	storageCSV := storage.NewCSVStorage(config.Storage.Path)
-	userRepository := userrepo.NewUserRepository(storageCSV)
+	userRepository := repository.NewUserRepository(storageCSV)
 
 	return subscription.NewService(userRepository)
 }

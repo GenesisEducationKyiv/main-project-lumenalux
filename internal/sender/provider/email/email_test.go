@@ -8,7 +8,7 @@ import (
 
 	"gses2-app/internal/rate"
 	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/pkg/repository/userrepo"
+	"gses2-app/pkg/user/repository"
 )
 
 var (
@@ -76,11 +76,11 @@ func TestSendExchangeRate(t *testing.T) {
 	}
 }
 
-func convertEmailsToUsers(emails []string) []userrepo.User {
-	users := make([]userrepo.User, len(emails))
+func convertEmailsToUsers(emails []string) []repository.User {
+	users := make([]repository.User, len(emails))
 
 	for i, email := range emails {
-		users[i] = userrepo.User{Email: email}
+		users[i] = repository.User{Email: email}
 	}
 
 	return users

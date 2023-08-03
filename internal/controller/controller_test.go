@@ -4,7 +4,7 @@ import (
 	"errors"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/subscription"
-	"gses2-app/pkg/repository/userrepo"
+	"gses2-app/pkg/user/repository"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -30,23 +30,23 @@ func (m *StubExchangeRateService) ExchangeRate() (rate.Rate, error) {
 
 type StubEmailSubscriptionService struct {
 	subscribeErr     error
-	subscriptions    []userrepo.User
+	subscriptions    []repository.User
 	subscriptionsErr error
 	isSubscribedErr  error
 }
 
-func (m *StubEmailSubscriptionService) Subscribe(subscriber *userrepo.User) error {
+func (m *StubEmailSubscriptionService) Subscribe(subscriber *repository.User) error {
 	return m.subscribeErr
 }
 
-func (m *StubEmailSubscriptionService) Subscriptions() ([]userrepo.User, error) {
+func (m *StubEmailSubscriptionService) Subscriptions() ([]repository.User, error) {
 	if m.subscriptionsErr != nil {
 		return nil, m.subscriptionsErr
 	}
 	return m.subscriptions, nil
 }
 
-func (m *StubEmailSubscriptionService) IsSubscribed(subscriber userrepo.User) (bool, error) {
+func (m *StubEmailSubscriptionService) IsSubscribed(subscriber repository.User) (bool, error) {
 	return true, m.isSubscribedErr
 }
 
@@ -56,7 +56,7 @@ type StubEmailSenderService struct {
 
 func (m *StubEmailSenderService) SendExchangeRate(
 	rate rate.Rate,
-	subscribers ...userrepo.User,
+	subscribers ...repository.User,
 ) error {
 	return m.sendErr
 }
@@ -252,11 +252,11 @@ func TestSendEmails(t *testing.T) {
 	}
 }
 
-func convertEmailsToUsers(emails []string) []userrepo.User {
-	users := make([]userrepo.User, len(emails))
+func convertEmailsToUsers(emails []string) []repository.User {
+	users := make([]repository.User, len(emails))
 
 	for i, email := range emails {
-		users[i] = userrepo.User{Email: email}
+		users[i] = repository.User{Email: email}
 	}
 
 	return users

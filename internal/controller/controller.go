@@ -7,11 +7,11 @@ import (
 
 	"gses2-app/internal/rate"
 	"gses2-app/internal/subscription"
-	"gses2-app/pkg/repository/userrepo"
+	"gses2-app/pkg/user/repository"
 )
 
 type SenderService interface {
-	SendExchangeRate(rate rate.Rate, subscribers ...userrepo.User) error
+	SendExchangeRate(rate rate.Rate, subscribers ...repository.User) error
 }
 
 type RateService interface {
@@ -19,8 +19,8 @@ type RateService interface {
 }
 
 type SubscriptionService interface {
-	Subscribe(subscriber *userrepo.User) error
-	Subscriptions() (subscribers []userrepo.User, err error)
+	Subscribe(subscriber *repository.User) error
+	Subscriptions() (subscribers []repository.User, err error)
 }
 
 type AppController struct {
@@ -54,7 +54,7 @@ func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) {
-	subscriber := &userrepo.User{Email: r.FormValue("email")}
+	subscriber := &repository.User{Email: r.FormValue("email")}
 	err := ac.EmailSubscriptionService.Subscribe(subscriber)
 
 	if errors.Is(err, subscription.ErrAlreadySubscribed) {
