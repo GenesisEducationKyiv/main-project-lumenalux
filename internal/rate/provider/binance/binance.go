@@ -59,13 +59,13 @@ func (p *BinanceProvider) Name() string {
 func (p *BinanceProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return p.config.DefaultRate, err
+		return 0, err
 	}
 
 	var data [][]interface{}
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return p.config.DefaultRate, err
+		return 0, err
 	}
 
 	if len(data) == 0 || len(data[_firstItemIndex]) < _minResponseItems {
