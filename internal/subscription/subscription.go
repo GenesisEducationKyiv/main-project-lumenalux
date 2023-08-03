@@ -2,69 +2,41 @@ package subscription
 
 import (
 	"errors"
-	"gses2-app/pkg/types"
+
+	"gses2-app/internal/user/repository"
 )
 
-type Storage interface {
-	Append(record ...string) error
-	AllRecords() (records [][]string, err error)
+var (
+	ErrAlreadySubscribed = errors.New("email is already subscribed")
+	ErrUserRepository    = errors.New("user repository error")
+)
+
+type UserRepository interface {
+	Add(user *repository.User) error
+	All() ([]repository.User, error)
 }
 
 type Service struct {
-	Storage Storage
+	userRepository UserRepository
 }
 
-func NewService(storage Storage) *Service {
-	return &Service{Storage: storage}
+func NewService(userRepository UserRepository) *Service {
+	return &Service{userRepository: userRepository}
 }
 
-var ErrAlreadySubscribed = errors.New("email is already subscribed")
-
-func (s *Service) Subscribe(subscriber types.Subscriber) error {
-	subscribed, err := s.IsSubscribed(subscriber)
-	if err != nil {
-		return err
-	}
-	if subscribed {
+func (s *Service) Subscribe(user *repository.User) error {
+	err := s.userRepository.Add(user)
+	if errors.Is(err, repository.ErrAlreadyAdded) {
 		return ErrAlreadySubscribed
 	}
 
-	return s.Storage.Append(string(subscriber))
-}
-
-func (s *Service) IsSubscribed(subscriber types.Subscriber) (bool, error) {
-	subscribers, err := s.allSubscribers()
 	if err != nil {
-		return false, err
+		return errors.Join(err, ErrUserRepository)
 	}
 
-	for _, s := range subscribers {
-		if s == subscriber {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return nil
 }
 
-func (s *Service) Subscriptions() ([]types.Subscriber, error) {
-	return s.allSubscribers()
-}
-
-func (s *Service) allSubscribers() ([]types.Subscriber, error) {
-	records, err := s.Storage.AllRecords()
-	if err != nil {
-		return nil, err
-	}
-
-	return s.convertRecordsToSubscribers(records), nil
-}
-
-func (s *Service) convertRecordsToSubscribers(records [][]string) []types.Subscriber {
-	subscribers := make([]types.Subscriber, len(records))
-	for i, record := range records {
-		subscribers[i] = types.Subscriber(record[0])
-	}
-
-	return subscribers
+func (s *Service) Subscriptions() ([]repository.User, error) {
+	return s.userRepository.All()
 }

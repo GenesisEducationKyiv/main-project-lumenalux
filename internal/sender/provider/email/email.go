@@ -3,20 +3,25 @@ package email
 import (
 	"fmt"
 
+	"gses2-app/internal/rate"
 	"gses2-app/internal/sender/provider/email/message"
 	"gses2-app/internal/sender/provider/email/send"
 	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/pkg/config"
-	"gses2-app/pkg/types"
+	"gses2-app/internal/user/repository"
 )
 
+type EmailSenderConfig struct {
+	SMTP  smtp.SMTPConfig
+	Email message.EmailConfig
+}
+
 type Provider struct {
-	config     *config.Config
+	config     *EmailSenderConfig
 	connection smtp.SMTPConnectionClient
 }
 
 func NewProvider(
-	config *config.Config,
+	config *EmailSenderConfig,
 	dialer smtp.TLSConnectionDialer,
 	factory smtp.SMTPClientFactory,
 ) (*Provider, error) {
@@ -30,11 +35,11 @@ func NewProvider(
 }
 
 func (p *Provider) SendExchangeRate(
-	rate types.Rate,
-	subscribers []types.Subscriber,
+	rate rate.Rate,
+	subscribers []repository.User,
 ) error {
 
-	emailAddresses := convertSubscribersToEmails(subscribers)
+	emailAddresses := convertUsersToEmails(subscribers)
 
 	templateData := message.TemplateData{Rate: fmt.Sprintf("%.2f", rate)}
 	emailMessage, err := message.NewEmailMessage(p.config.Email, emailAddresses, templateData)
@@ -45,11 +50,11 @@ func (p *Provider) SendExchangeRate(
 	return send.SendEmail(p.connection, emailMessage)
 }
 
-func convertSubscribersToEmails(subscribers []types.Subscriber) []string {
-	emails := make([]string, len(subscribers))
+func convertUsersToEmails(users []repository.User) []string {
+	emails := make([]string, len(users))
 
-	for i, subscriber := range subscribers {
-		emails[i] = string(subscriber)
+	for i, user := range users {
+		emails[i] = user.Email
 	}
 
 	return emails

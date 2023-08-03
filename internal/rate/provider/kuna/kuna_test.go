@@ -2,15 +2,14 @@ package kuna
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/pkg/config"
-	"gses2-app/pkg/types"
+	"gses2-app/internal/rate"
+	"gses2-app/internal/rate/provider"
 )
 
 type StubHTTPClient struct {
@@ -26,7 +25,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		stubHTTPClient *StubHTTPClient
-		expectedRate   types.Rate
+		expectedRate   rate.Rate
 		expectedError  error
 	}{
 		{
@@ -47,9 +46,9 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 			name: "HTTP request failure",
 			stubHTTPClient: &StubHTTPClient{
 				Response: nil,
-				Error:    errors.New("http request failure"),
+				Error:    provider.ErrHTTPRequestFailure,
 			},
-			expectedError: ErrHTTPRequestFailure,
+			expectedError: provider.ErrHTTPRequestFailure,
 		},
 		{
 			name: "Unexpected status code",
@@ -58,7 +57,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusForbidden,
 				},
 			},
-			expectedError: ErrUnexpectedStatusSode,
+			expectedError: provider.ErrUnexpectedStatusCode,
 		},
 		{
 			name: "Bad response body format",
@@ -91,20 +90,11 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			config := config.KunaAPIConfig{}
-			provider := NewKunaProvider(config, tt.stubHTTPClient)
+			config := KunaAPIConfig{}
+			provider := NewProvider(config, tt.stubHTTPClient)
 			rate, err := provider.ExchangeRate()
 
-			if tt.expectedError != nil {
-				require.Error(t, err, "Expected an error but got nil")
-				require.Contains(
-					t, err.Error(), tt.expectedError.Error(),
-					"Expected error message to contain %v, got %v", tt.expectedError, err,
-				)
-			} else {
-				require.NoError(t, err, "Didn't expect an error but got: %v", err)
-			}
-
+			require.ErrorIs(t, err, tt.expectedError)
 			require.Equal(t, tt.expectedRate, rate, "Expected rate %v, got %v", tt.expectedRate, rate)
 		})
 	}

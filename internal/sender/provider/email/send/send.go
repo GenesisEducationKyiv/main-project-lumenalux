@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	errNoRecepients = errors.New("no recepiets")
+	errNoRecipients = errors.New("no recipients")
 )
 
 type SenderSMTPClient interface {
@@ -23,7 +23,7 @@ func setMail(client SenderSMTPClient, from string) error {
 
 func setRecipients(client SenderSMTPClient, to []string) error {
 	if len(to) == 0 {
-		return errNoRecepients
+		return errNoRecipients
 	}
 
 	for _, recipient := range to {
@@ -56,7 +56,7 @@ func SendEmail(client SenderSMTPClient, email *message.EmailMessage) error {
 	}
 
 	err = setRecipients(client, email.To)
-	if errors.Is(err, errNoRecepients) {
+	if errors.Is(err, errNoRecipients) {
 		return nil
 	}
 

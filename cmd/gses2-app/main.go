@@ -6,16 +6,19 @@ import (
 	"net/http"
 	"os"
 
+	"gses2-app/internal/config"
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
+	"gses2-app/internal/rate/provider/binance"
+	"gses2-app/internal/rate/provider/coingecko"
 	"gses2-app/internal/rate/provider/kuna"
 	"gses2-app/internal/sender"
 	"gses2-app/internal/sender/provider/email"
 	"gses2-app/internal/sender/transport/smtp"
+	"gses2-app/internal/storage"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
-	"gses2-app/pkg/config"
-	"gses2-app/pkg/storage"
+	"gses2-app/internal/user/repository"
 )
 
 const _configPrefix = "GSES2_APP"
@@ -24,52 +27,59 @@ func main() {
 	config, err := config.Load(_configPrefix)
 	if err != nil {
 		log.Printf("Error, config wasn't loaded: %s", err)
-		os.Exit(0)
+		os.Exit(1)
 	}
 
-	rateService, subscriptionService, senderService, err := createServices(&config)
+	senderService, err := createSenderService(&config)
+	if err != nil {
+		log.Printf("Connection error: %s", err)
+		os.Exit(1)
+	}
+
+	rateService := createRateService(&config)
+	subscriptionService := createSubscriptionService(&config)
+
 	appController := controller.NewAppController(
 		rateService,
 		subscriptionService,
 		senderService,
 	)
 
-	if err != nil {
-		log.Printf("Connection error: %s", err)
-		os.Exit(0)
-	}
-
 	mux := registerRoutes(appController)
 	startServer(config.HTTP.Port, mux)
 }
 
-func createServices(config *config.Config) (
-	*rate.Service,
-	*subscription.Service,
-	*sender.Service,
-	error,
-) {
-	senderService, err := createSenderService(config)
-	if err != nil {
-		return nil, nil, nil, err
-	}
+func createRateService(config *config.Config) *rate.Service {
 
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
-	exchangeRateProvider := kuna.NewKunaProvider(
+
+	BinanceRateProvider := binance.NewProvider(
+		config.BinanceAPI, httpClient,
+	)
+
+	KunaRateProvider := kuna.NewProvider(
 		config.KunaAPI, httpClient,
 	)
-	rateService := rate.NewService(exchangeRateProvider)
 
-	emailSubscriptionService := subscription.NewService(storage.NewCSVStorage(config.Storage.Path))
+	CoingeckoRateProvider := coingecko.NewProvider(
+		config.CoingeckoAPI, httpClient,
+	)
 
-	return rateService, emailSubscriptionService, senderService, nil
+	return rate.NewService(
+		BinanceRateProvider,
+		CoingeckoRateProvider,
+		KunaRateProvider,
+	)
 }
 
 func createSenderService(
 	config *config.Config,
 ) (*sender.Service, error) {
 	emailSenderProvider, err := email.NewProvider(
-		config,
+		&email.EmailSenderConfig{
+			SMTP:  config.SMTP,
+			Email: config.Email,
+		},
 		&smtp.TLSConnectionDialerImpl{},
 		&smtp.SMTPClientFactoryImpl{},
 	)
@@ -79,6 +89,13 @@ func createSenderService(
 	}
 
 	return sender.NewService(emailSenderProvider), nil
+}
+
+func createSubscriptionService(config *config.Config) *subscription.Service {
+	storageCSV := storage.NewCSVStorage(config.Storage.Path)
+	userRepository := repository.NewUserRepository(storageCSV)
+
+	return subscription.NewService(userRepository)
 }
 
 func registerRoutes(appController *controller.AppController) *http.ServeMux {

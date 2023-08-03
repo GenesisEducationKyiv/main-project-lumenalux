@@ -7,9 +7,14 @@ import (
 	"net"
 	"net/smtp"
 	"strconv"
-
-	"gses2-app/pkg/config"
 )
+
+type SMTPConfig struct {
+	Host     string `required:"true"`
+	Port     int    `default:"465"`
+	User     string `required:"true"`
+	Password string `required:"true"`
+}
 
 type TLSConnectionDialer interface {
 	Dial(network, addr string, config *tls.Config) (*tls.Conn, error)
@@ -52,7 +57,7 @@ type SMTPClient struct {
 }
 
 func NewSMTPClient(
-	config config.SMTPConfig,
+	config SMTPConfig,
 	dialer TLSConnectionDialer,
 	factory SMTPClientFactory,
 ) *SMTPClient {
