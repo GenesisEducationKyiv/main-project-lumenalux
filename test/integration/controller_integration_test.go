@@ -20,7 +20,6 @@ import (
 	"gses2-app/internal/transport"
 	"gses2-app/pkg/config"
 	"gses2-app/pkg/repository/userrepo"
-	"gses2-app/pkg/types"
 
 	"gses2-app/internal/sender/provider/email"
 )
@@ -32,8 +31,8 @@ type StubSenderProvider struct {
 }
 
 func (tp *StubSenderProvider) SendExchangeRate(
-	rate types.Rate,
-	subscribers []types.User,
+	rate rate.Rate,
+	subscribers []userrepo.User,
 ) error {
 	return tp.Err
 }
@@ -52,12 +51,12 @@ func (s *StubStorage) AllRecords() (records [][]string, err error) {
 }
 
 type StubRateProvider struct {
-	Rate         types.Rate
+	Rate         rate.Rate
 	Error        error
 	ProviderName string
 }
 
-func (m *StubRateProvider) ExchangeRate() (types.Rate, error) {
+func (m *StubRateProvider) ExchangeRate() (rate.Rate, error) {
 	return m.Rate, m.Error
 }
 
@@ -66,20 +65,20 @@ func (m *StubRateProvider) Name() string {
 }
 
 type StubUserRepository struct {
-	Users []types.User
+	Users []userrepo.User
 	Err   error
 }
 
-func (s *StubUserRepository) Add(user *types.User) error {
+func (s *StubUserRepository) Add(user *userrepo.User) error {
 	s.Users = append(s.Users, *user)
 	return s.Err
 }
 
-func (s *StubUserRepository) FindByEmail(email string) (*types.User, error) {
+func (s *StubUserRepository) FindByEmail(email string) (*userrepo.User, error) {
 	return &s.Users[0], s.Err
 }
 
-func (s *StubUserRepository) All() ([]types.User, error) {
+func (s *StubUserRepository) All() ([]userrepo.User, error) {
 	return s.Users, s.Err
 }
 

@@ -3,7 +3,6 @@ package subscription
 import (
 	"errors"
 	"gses2-app/pkg/repository/userrepo"
-	"gses2-app/pkg/types"
 )
 
 var (
@@ -12,8 +11,8 @@ var (
 )
 
 type UserRepository interface {
-	Add(user *types.User) error
-	All() ([]types.User, error)
+	Add(user *userrepo.User) error
+	All() ([]userrepo.User, error)
 }
 
 type Service struct {
@@ -24,7 +23,7 @@ func NewService(userRepository UserRepository) *Service {
 	return &Service{userRepository: userRepository}
 }
 
-func (s *Service) Subscribe(user *types.User) error {
+func (s *Service) Subscribe(user *userrepo.User) error {
 	err := s.userRepository.Add(user)
 	if errors.Is(err, userrepo.ErrAlreadyAdded) {
 		return ErrAlreadySubscribed
@@ -37,6 +36,6 @@ func (s *Service) Subscribe(user *types.User) error {
 	return nil
 }
 
-func (s *Service) Subscriptions() ([]types.User, error) {
+func (s *Service) Subscriptions() ([]userrepo.User, error) {
 	return s.userRepository.All()
 }

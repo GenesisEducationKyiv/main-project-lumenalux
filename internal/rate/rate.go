@@ -1,12 +1,15 @@
 package rate
 
 import (
-	"gses2-app/pkg/types"
 	"log"
 )
 
+// Rate represents the exchange rate between two currencies.
+// It is expressed as a float32 value.
+type Rate float32
+
 type Provider interface {
-	ExchangeRate() (types.Rate, error)
+	ExchangeRate() (Rate, error)
 	Name() string
 }
 
@@ -20,7 +23,7 @@ func NewService(providers ...Provider) *Service {
 	}
 }
 
-func (s *Service) ExchangeRate() (rate types.Rate, err error) {
+func (s *Service) ExchangeRate() (rate Rate, err error) {
 	for _, provider := range s.providers {
 		rate, err = provider.ExchangeRate()
 		if err == nil {

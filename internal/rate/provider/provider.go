@@ -3,10 +3,9 @@ package provider
 import (
 	"errors"
 	"fmt"
+	"gses2-app/internal/rate"
 	"log"
 	"net/http"
-
-	"gses2-app/pkg/types"
 )
 
 var (
@@ -21,7 +20,7 @@ type HTTPClient interface {
 type Provider interface {
 	URL() string
 	Name() string
-	ExtractRate(resp *http.Response) (types.Rate, error)
+	ExtractRate(resp *http.Response) (rate.Rate, error)
 }
 
 type AbstractProvider struct {
@@ -43,7 +42,7 @@ func (ap *AbstractProvider) Name() string {
 	return ap.actualProvider.Name()
 }
 
-func (ap *AbstractProvider) ExchangeRate() (types.Rate, error) {
+func (ap *AbstractProvider) ExchangeRate() (rate.Rate, error) {
 	resp, err := ap.requestAPI()
 	if err != nil {
 		return 0, err
@@ -66,7 +65,7 @@ func (ap *AbstractProvider) requestAPI() (*http.Response, error) {
 	return resp, nil
 }
 
-func (ap *AbstractProvider) extractRateFromResponse(resp *http.Response) (types.Rate, error) {
+func (ap *AbstractProvider) extractRateFromResponse(resp *http.Response) (rate.Rate, error) {
 	defer resp.Body.Close()
 	return ap.actualProvider.ExtractRate(resp)
 }

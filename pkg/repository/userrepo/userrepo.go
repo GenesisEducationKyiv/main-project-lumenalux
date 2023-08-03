@@ -2,7 +2,6 @@ package userrepo
 
 import (
 	"errors"
-	"gses2-app/pkg/types"
 )
 
 const _emailKey = "email"
@@ -12,6 +11,11 @@ var (
 	ErrCannotFindByEmail = errors.New("cannot find user by email")
 	ErrCannotLoadUsers   = errors.New("cannot load users")
 )
+
+// Represents a User entity
+type User struct {
+	Email string
+}
 
 type Storage interface {
 	Append(record map[string]string) error
@@ -28,7 +32,7 @@ func NewUserRepository(storage Storage) *UserRepository {
 	}
 }
 
-func (ur *UserRepository) Add(user *types.User) error {
+func (ur *UserRepository) Add(user *User) error {
 	_, err := ur.FindByEmail(user.Email)
 
 	isUserFound := !errors.Is(err, ErrCannotFindByEmail)
@@ -43,28 +47,28 @@ func (ur *UserRepository) Add(user *types.User) error {
 	return ur.storage.Append(map[string]string{_emailKey: user.Email})
 }
 
-func (ur *UserRepository) FindByEmail(email string) (*types.User, error) {
+func (ur *UserRepository) FindByEmail(email string) (*User, error) {
 	records, err := ur.storage.AllRecords()
 	if err != nil {
-		return &types.User{}, err
+		return &User{}, err
 	}
 
 	for _, e := range records {
 		if e[_emailKey] == email {
-			return &types.User{Email: email}, nil
+			return &User{Email: email}, nil
 		}
 	}
 
-	return &types.User{}, ErrCannotFindByEmail
+	return &User{}, ErrCannotFindByEmail
 }
 
-func (ur *UserRepository) All() ([]types.User, error) {
+func (ur *UserRepository) All() ([]User, error) {
 	records, err := ur.storage.AllRecords()
 	if err != nil {
 		return nil, errors.Join(err, ErrCannotLoadUsers)
 	}
 
-	users := make([]types.User, len(records))
+	users := make([]User, len(records))
 	for i, record := range records {
 		users[i].Email = record[_emailKey]
 	}

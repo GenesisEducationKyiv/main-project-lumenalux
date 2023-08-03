@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"gses2-app/pkg/types"
 )
 
 type StubStorage struct {
@@ -59,7 +57,7 @@ func TestAdd(t *testing.T) {
 			stubStorage := &StubStorage{data: tt.existingData}
 			userRepository := NewUserRepository(stubStorage)
 
-			err := userRepository.Add(&types.User{Email: tt.emailToAdd})
+			err := userRepository.Add(&User{Email: tt.emailToAdd})
 
 			require.Equal(t, tt.expectedErr, err)
 		})

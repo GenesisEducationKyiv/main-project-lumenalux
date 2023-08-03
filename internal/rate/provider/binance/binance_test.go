@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"gses2-app/internal/rate"
 	"gses2-app/internal/rate/provider"
-	"gses2-app/pkg/types"
 )
 
 type StubHTTPClient struct {
@@ -25,7 +25,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		stubHTTPClient *StubHTTPClient
-		expectedRate   types.Rate
+		expectedRate   rate.Rate
 		expectedError  error
 	}{
 		{

@@ -2,8 +2,9 @@ package controller
 
 import (
 	"errors"
+	"gses2-app/internal/rate"
 	"gses2-app/internal/subscription"
-	"gses2-app/pkg/types"
+	"gses2-app/pkg/repository/userrepo"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,33 +20,33 @@ var (
 )
 
 type StubExchangeRateService struct {
-	rate types.Rate
+	rate rate.Rate
 	err  error
 }
 
-func (m *StubExchangeRateService) ExchangeRate() (types.Rate, error) {
+func (m *StubExchangeRateService) ExchangeRate() (rate.Rate, error) {
 	return m.rate, m.err
 }
 
 type StubEmailSubscriptionService struct {
 	subscribeErr     error
-	subscriptions    []types.User
+	subscriptions    []userrepo.User
 	subscriptionsErr error
 	isSubscribedErr  error
 }
 
-func (m *StubEmailSubscriptionService) Subscribe(subscriber *types.User) error {
+func (m *StubEmailSubscriptionService) Subscribe(subscriber *userrepo.User) error {
 	return m.subscribeErr
 }
 
-func (m *StubEmailSubscriptionService) Subscriptions() ([]types.User, error) {
+func (m *StubEmailSubscriptionService) Subscriptions() ([]userrepo.User, error) {
 	if m.subscriptionsErr != nil {
 		return nil, m.subscriptionsErr
 	}
 	return m.subscriptions, nil
 }
 
-func (m *StubEmailSubscriptionService) IsSubscribed(subscriber types.User) (bool, error) {
+func (m *StubEmailSubscriptionService) IsSubscribed(subscriber userrepo.User) (bool, error) {
 	return true, m.isSubscribedErr
 }
 
@@ -54,8 +55,8 @@ type StubEmailSenderService struct {
 }
 
 func (m *StubEmailSenderService) SendExchangeRate(
-	rate types.Rate,
-	subscribers ...types.User,
+	rate rate.Rate,
+	subscribers ...userrepo.User,
 ) error {
 	return m.sendErr
 }
@@ -251,11 +252,11 @@ func TestSendEmails(t *testing.T) {
 	}
 }
 
-func convertEmailsToUsers(emails []string) []types.User {
-	users := make([]types.User, len(emails))
+func convertEmailsToUsers(emails []string) []userrepo.User {
+	users := make([]userrepo.User, len(emails))
 
 	for i, email := range emails {
-		users[i] = types.User{Email: email}
+		users[i] = userrepo.User{Email: email}
 	}
 
 	return users

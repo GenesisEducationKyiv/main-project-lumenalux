@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	"gses2-app/internal/rate"
 	"gses2-app/internal/rate/provider"
-	"gses2-app/pkg/types"
 )
 
 var (
@@ -56,7 +56,7 @@ func (p *KunaProvider) Name() string {
 	return _providerName
 }
 
-func (p *KunaProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
+func (p *KunaProvider) ExtractRate(resp *http.Response) (rate.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return 0, err
@@ -77,5 +77,5 @@ func (p *KunaProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
 		return 0, ErrUnexpectedExchangeRateFormat
 	}
 
-	return types.Rate(exchangeRate), nil
+	return rate.Rate(exchangeRate), nil
 }

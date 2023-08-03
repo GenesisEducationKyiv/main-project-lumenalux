@@ -3,10 +3,11 @@ package email
 import (
 	"fmt"
 
+	"gses2-app/internal/rate"
 	"gses2-app/internal/sender/provider/email/message"
 	"gses2-app/internal/sender/provider/email/send"
 	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/pkg/types"
+	"gses2-app/pkg/repository/userrepo"
 )
 
 type EmailSenderConfig struct {
@@ -34,8 +35,8 @@ func NewProvider(
 }
 
 func (p *Provider) SendExchangeRate(
-	rate types.Rate,
-	subscribers []types.User,
+	rate rate.Rate,
+	subscribers []userrepo.User,
 ) error {
 
 	emailAddresses := convertUsersToEmails(subscribers)
@@ -49,7 +50,7 @@ func (p *Provider) SendExchangeRate(
 	return send.SendEmail(p.connection, emailMessage)
 }
 
-func convertUsersToEmails(users []types.User) []string {
+func convertUsersToEmails(users []userrepo.User) []string {
 	emails := make([]string, len(users))
 
 	for i, user := range users {

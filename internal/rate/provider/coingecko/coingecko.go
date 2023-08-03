@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	"gses2-app/internal/rate"
 	"gses2-app/internal/rate/provider"
-	"gses2-app/pkg/types"
 )
 
 // Represents data type for JSON response
@@ -59,7 +59,7 @@ func (p *CoingeckoProvider) Name() string {
 	return _providerName
 }
 
-func (p *CoingeckoProvider) ExtractRate(resp *http.Response) (types.Rate, error) {
+func (p *CoingeckoProvider) ExtractRate(resp *http.Response) (rate.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return 0, err
@@ -71,5 +71,5 @@ func (p *CoingeckoProvider) ExtractRate(resp *http.Response) (types.Rate, error)
 		return 0, errors.Join(err, ErrUnexpectedResponseFormat)
 	}
 
-	return types.Rate(data.Bitcoin.UAH), nil
+	return rate.Rate(data.Bitcoin.UAH), nil
 }

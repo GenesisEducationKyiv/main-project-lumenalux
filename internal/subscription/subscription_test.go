@@ -2,27 +2,26 @@ package subscription
 
 import (
 	"gses2-app/pkg/repository/userrepo"
-	"gses2-app/pkg/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 type StubUserRepository struct {
-	Users []types.User
+	Users []userrepo.User
 	Err   error
 }
 
-func (s *StubUserRepository) Add(user *types.User) error {
+func (s *StubUserRepository) Add(user *userrepo.User) error {
 	s.Users = append(s.Users, *user)
 	return s.Err
 }
 
-func (s *StubUserRepository) FindByEmail(email string) (*types.User, error) {
+func (s *StubUserRepository) FindByEmail(email string) (*userrepo.User, error) {
 	return &s.Users[0], s.Err
 }
 
-func (s *StubUserRepository) All() ([]types.User, error) {
+func (s *StubUserRepository) All() ([]userrepo.User, error) {
 	return s.Users, s.Err
 }
 
@@ -30,7 +29,7 @@ func TestSubscription(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		t.Parallel()
 
-		subscriber := &types.User{Email: "test@example.com"}
+		subscriber := &userrepo.User{Email: "test@example.com"}
 		userRepository := &StubUserRepository{}
 		service := NewService(userRepository)
 
@@ -55,11 +54,11 @@ func TestSubscription(t *testing.T) {
 		t.Parallel()
 
 		userRepository := &StubUserRepository{
-			Users: []types.User{},
+			Users: []userrepo.User{},
 			Err:   userrepo.ErrAlreadyAdded,
 		}
 		service := NewService(userRepository)
-		subscriber := &types.User{Email: "test@example.com"}
+		subscriber := &userrepo.User{Email: "test@example.com"}
 
 		err := service.Subscribe(subscriber)
 		require.ErrorIs(
