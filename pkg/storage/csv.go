@@ -32,7 +32,7 @@ func (s *CSVStorage) AllRecords() ([]map[string]string, error) {
 		return nil, err
 	}
 
-	var maps []map[string]string
+	maps := make([]map[string]string, 0, len(records))
 
 	for _, record := range records {
 		rowMap := make(map[string]string, len(_headers))
@@ -55,7 +55,7 @@ func (s *CSVStorage) Append(record map[string]string) error {
 	w := csv.NewWriter(f)
 
 	// Build a slice of values based on the order of the keys
-	var values []string
+	values := make([]string, 0, len(_headers))
 	for _, key := range _headers {
 		values = append(values, record[key])
 	}

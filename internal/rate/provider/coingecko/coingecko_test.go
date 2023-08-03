@@ -98,5 +98,4 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 			require.Equal(t, tt.expectedRate, rate, "Expected rate %v, got %v", tt.expectedRate, rate)
 		})
 	}
-
 }
