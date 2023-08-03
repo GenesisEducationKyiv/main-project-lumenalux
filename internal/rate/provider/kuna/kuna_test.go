@@ -58,7 +58,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusForbidden,
 				},
 			},
-			expectedError: ErrUnexpectedStatusSode,
+			expectedError: ErrUnexpectedStatusCode,
 		},
 		{
 			name: "Bad response body format",
@@ -96,16 +96,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 			provider := NewProvider(config, tt.stubHTTPClient, logFunc)
 			rate, err := provider.ExchangeRate()
 
-			if tt.expectedError != nil {
-				require.Error(t, err, "Expected an error but got nil")
-				require.Contains(
-					t, err.Error(), tt.expectedError.Error(),
-					"Expected error message to contain %v, got %v", tt.expectedError, err,
-				)
-			} else {
-				require.NoError(t, err, "Didn't expect an error but got: %v", err)
-			}
-
+			require.ErrorIs(t, err, tt.expectedError)
 			require.Equal(t, tt.expectedRate, rate, "Expected rate %v, got %v", tt.expectedRate, rate)
 		})
 	}

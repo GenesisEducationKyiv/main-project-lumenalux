@@ -16,7 +16,7 @@ type response map[string]map[string]float64
 
 var (
 	ErrHTTPRequestFailure       = errors.New("http request failure")
-	ErrUnexpectedStatusSode     = errors.New("unexpected status code")
+	ErrUnexpectedStatusCode     = errors.New("unexpected status code")
 	ErrUnexpectedResponseFormat = errors.New("unexpected response format")
 )
 
@@ -65,11 +65,11 @@ func (p *CoingeckoProvider) requestAPI() (*http.Response, error) {
 
 	resp, err := p.httpClient.Get(p.config.URL)
 	if err != nil {
-		return nil, ErrHTTPRequestFailure
+		return nil, errors.Join(err, ErrHTTPRequestFailure)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%v: %d", ErrUnexpectedStatusSode, resp.StatusCode)
+		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatusCode, resp.StatusCode)
 	}
 
 	p.logFunc(_providerName, resp)

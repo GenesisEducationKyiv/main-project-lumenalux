@@ -13,7 +13,7 @@ import (
 
 var (
 	ErrHTTPRequestFailure           = errors.New("http request failure")
-	ErrUnexpectedStatusSode         = errors.New("unexpected status code")
+	ErrUnexpectedStatusCode         = errors.New("unexpected status code")
 	ErrUnexpectedResponseFormat     = errors.New("unexpected response format")
 	ErrUnexpectedExchangeRateFormat = errors.New("unexpected exchange rate format")
 )
@@ -64,11 +64,11 @@ func (p *KunaProvider) requestAPI() (*http.Response, error) {
 
 	resp, err := p.httpClient.Get(p.config.URL)
 	if err != nil {
-		return nil, ErrHTTPRequestFailure
+		return nil, errors.Join(err, ErrHTTPRequestFailure)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%v: %d", ErrUnexpectedStatusSode, resp.StatusCode)
+		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatusCode, resp.StatusCode)
 	}
 
 	p.logFunc(_providerName, resp)
