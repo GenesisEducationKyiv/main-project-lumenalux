@@ -8,12 +8,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type StubUserRepository struct {
+	Users []types.User
+	Err   error
+}
+
+func (s *StubUserRepository) Add(user *types.User) error {
+	s.Users = append(s.Users, *user)
+	return s.Err
+}
+
+func (s *StubUserRepository) FindByEmail(email string) (*types.User, error) {
+	return &s.Users[0], s.Err
+}
+
+func (s *StubUserRepository) All() ([]types.User, error) {
+	return s.Users, s.Err
+}
+
 func TestSubscription(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		t.Parallel()
 
 		subscriber := &types.User{Email: "test@example.com"}
-		userRepository := &userrepo.StubUserRepository{}
+		userRepository := &StubUserRepository{}
 		service := NewService(userRepository)
 
 		err := service.Subscribe(subscriber)
@@ -36,7 +54,7 @@ func TestSubscription(t *testing.T) {
 	t.Run("Already subscribed", func(t *testing.T) {
 		t.Parallel()
 
-		userRepository := &userrepo.StubUserRepository{
+		userRepository := &StubUserRepository{
 			Users: []types.User{},
 			Err:   userrepo.ErrAlreadyAdded,
 		}
