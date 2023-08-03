@@ -47,7 +47,7 @@ func (ac *AppController) GetRate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if json.NewEncoder(w).Encode(exchangeRate) != nil {
+	if err = json.NewEncoder(w).Encode(exchangeRate); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -56,7 +56,7 @@ func (ac *AppController) SubscribeEmail(w http.ResponseWriter, r *http.Request) 
 	subscriber := &types.User{Email: r.FormValue("email")}
 	err := ac.EmailSubscriptionService.Subscribe(subscriber)
 
-	if err != nil && errors.Is(err, subscription.ErrAlreadySubscribed) {
+	if errors.Is(err, subscription.ErrAlreadySubscribed) {
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
