@@ -65,10 +65,27 @@ func (m *StubRateProvider) Name() string {
 	return m.ProviderName
 }
 
+type StubUserRepository struct {
+	Users []types.User
+	Err   error
+}
+
+func (s *StubUserRepository) Add(user *types.User) error {
+	s.Users = append(s.Users, *user)
+	return s.Err
+}
+
+func (s *StubUserRepository) FindByEmail(email string) (*types.User, error) {
+	return &s.Users[0], s.Err
+}
+
+func (s *StubUserRepository) All() ([]types.User, error) {
+	return s.Users, s.Err
+}
+
 var (
 	errRateProviderAnavailable = errors.New("rate provider unavailable")
 	errSendMessage             = errors.New("failed to send a message")
-	errGetSubscribtions        = errors.New("cannot get subscribtions")
 )
 
 func TestAppControllerIntegration(t *testing.T) {
@@ -79,9 +96,9 @@ func TestAppControllerIntegration(t *testing.T) {
 	)
 
 	defaultRateService := rate.NewService(&StubRateProvider{Rate: 42})
-  
+
 	defaultSubscriptionService := subscription.NewService(
-		&userrepo.StubUserRepository{},
+		&StubUserRepository{},
 	)
 
 	tests := []struct {
@@ -121,7 +138,7 @@ func TestAppControllerIntegration(t *testing.T) {
 			requestBody:    bytes.NewBufferString("email=test@test.com"),
 			expectedStatus: http.StatusConflict,
 			subscriptionService: subscription.NewService(
-				&userrepo.StubUserRepository{Err: userrepo.ErrAlreadyAdded},
+				&StubUserRepository{Err: userrepo.ErrAlreadyAdded},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,
@@ -157,7 +174,7 @@ func TestAppControllerIntegration(t *testing.T) {
 			requestBody:    nil,
 			expectedStatus: http.StatusInternalServerError,
 			subscriptionService: subscription.NewService(
-				&userrepo.StubUserRepository{Err: userrepo.ErrCannotLoadUsers},
+				&StubUserRepository{Err: userrepo.ErrCannotLoadUsers},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,
