@@ -12,40 +12,27 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gses2-app/internal/config"
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/sender"
+	"gses2-app/internal/sender/provider/email"
 	"gses2-app/internal/sender/transport/smtp"
 	"gses2-app/internal/subscription"
 	"gses2-app/internal/transport"
-	"gses2-app/pkg/config"
-	"gses2-app/pkg/types"
-
-	emailSenderProvider "gses2-app/internal/sender/provider/email"
+	"gses2-app/internal/user/repository"
 )
 
 const _configPrefix = "GSES2_APP"
-
-var (
-	errRateProviderAnavailable = errors.New("rate provider unavailable")
-	errSendMessage             = errors.New("failed to send a message")
-	errGetSubscribtions        = errors.New("cannot get subscribtions")
-)
-
-type StubRateProvider struct {
-	Rate  types.Rate
-	Error error
-}
-
-func (m *StubRateProvider) ExchangeRate() (types.Rate, error) {
-	return m.Rate, m.Error
-}
 
 type StubSenderProvider struct {
 	Err error
 }
 
-func (tp *StubSenderProvider) SendExchangeRate(rate types.Rate, subscribers []types.Subscriber) error {
+func (tp *StubSenderProvider) SendExchangeRate(
+	rate rate.Rate,
+	subscribers []repository.User,
+) error {
 	return tp.Err
 }
 
@@ -62,7 +49,44 @@ func (s *StubStorage) AllRecords() (records [][]string, err error) {
 	return s.records, s.err
 }
 
-func TestAppController_Integration(t *testing.T) {
+type StubRateProvider struct {
+	Rate         rate.Rate
+	Error        error
+	ProviderName string
+}
+
+func (m *StubRateProvider) ExchangeRate() (rate.Rate, error) {
+	return m.Rate, m.Error
+}
+
+func (m *StubRateProvider) Name() string {
+	return m.ProviderName
+}
+
+type StubUserRepository struct {
+	Users []repository.User
+	Err   error
+}
+
+func (s *StubUserRepository) Add(user *repository.User) error {
+	s.Users = append(s.Users, *user)
+	return s.Err
+}
+
+func (s *StubUserRepository) FindByEmail(email string) (*repository.User, error) {
+	return &s.Users[0], s.Err
+}
+
+func (s *StubUserRepository) All() ([]repository.User, error) {
+	return s.Users, s.Err
+}
+
+var (
+	errRateProviderAnavailable = errors.New("rate provider unavailable")
+	errSendMessage             = errors.New("failed to send a message")
+)
+
+func TestAppControllerIntegration(t *testing.T) {
 	config := initConfig(t)
 
 	defaultEmailSenderService := sender.NewService(
@@ -70,7 +94,10 @@ func TestAppController_Integration(t *testing.T) {
 	)
 
 	defaultRateService := rate.NewService(&StubRateProvider{Rate: 42})
-	defaultSubscriptionService := subscription.NewService(&StubStorage{})
+
+	defaultSubscriptionService := subscription.NewService(
+		&StubUserRepository{},
+	)
 
 	tests := []struct {
 		name                string
@@ -109,7 +136,7 @@ func TestAppController_Integration(t *testing.T) {
 			requestBody:    bytes.NewBufferString("email=test@test.com"),
 			expectedStatus: http.StatusConflict,
 			subscriptionService: subscription.NewService(
-				&StubStorage{records: [][]string{{"test@test.com"}}},
+				&StubUserRepository{Err: repository.ErrAlreadyAdded},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,
@@ -145,7 +172,7 @@ func TestAppController_Integration(t *testing.T) {
 			requestBody:    nil,
 			expectedStatus: http.StatusInternalServerError,
 			subscriptionService: subscription.NewService(
-				&StubStorage{err: errGetSubscribtions},
+				&StubUserRepository{Err: repository.ErrCannotLoadUsers},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,
@@ -237,7 +264,14 @@ func initEmailSenderService(
 	dialer smtp.TLSConnectionDialer,
 	factory smtp.SMTPClientFactory,
 ) *sender.Service {
-	provider, err := emailSenderProvider.NewProvider(config, dialer, factory)
+	provider, err := email.NewProvider(
+		&email.EmailSenderConfig{
+			SMTP:  config.SMTP,
+			Email: config.Email,
+		},
+		dialer,
+		factory,
+	)
 
 	if err != nil {
 		t.Fatalf("error creating email sender provider: %v", err)

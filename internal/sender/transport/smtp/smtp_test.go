@@ -3,8 +3,6 @@ package smtp
 import (
 	"errors"
 	"testing"
-
-	"gses2-app/pkg/config"
 )
 
 var (
@@ -17,14 +15,14 @@ func TestConnect(t *testing.T) {
 		name        string
 		dialer      TLSConnectionDialer
 		factory     SMTPClientFactory
-		config      config.SMTPConfig
+		config      SMTPConfig
 		expectedErr error
 	}{
 		{
 			name:    "Successful Connection",
 			dialer:  &StubDialer{},
 			factory: &StubSMTPClientFactory{Client: &StubSMTPClient{}},
-			config: config.SMTPConfig{
+			config: SMTPConfig{
 				Host:     "smtp.example.com",
 				Port:     587,
 				User:     "user@example.com",
@@ -36,7 +34,7 @@ func TestConnect(t *testing.T) {
 			name:    "Fail to create connection",
 			dialer:  &StubDialer{Err: errConnectionFailed},
 			factory: &StubSMTPClientFactory{Client: &StubSMTPClient{}},
-			config: config.SMTPConfig{
+			config: SMTPConfig{
 				Host:     "smtp.example.com",
 				Port:     587,
 				User:     "user@example.com",
@@ -50,7 +48,7 @@ func TestConnect(t *testing.T) {
 			factory: &StubSMTPClientFactory{
 				Client: &StubSMTPClient{}, Err: errSMTPClientFailed,
 			},
-			config: config.SMTPConfig{
+			config: SMTPConfig{
 				Host:     "smtp.example.com",
 				Port:     587,
 				User:     "user@example.com",

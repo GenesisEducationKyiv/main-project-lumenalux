@@ -11,25 +11,31 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/maps"
 
-	"gses2-app/pkg/types"
+	"gses2-app/internal/rate/provider/binance"
+	"gses2-app/internal/rate/provider/coingecko"
+	"gses2-app/internal/rate/provider/kuna"
+	"gses2-app/internal/sender/provider/email/message"
+	"gses2-app/internal/sender/transport/smtp"
+	"gses2-app/internal/storage"
 )
 
 const _configPrefix = "GSES2_APP"
 
 var (
 	_defaultEnvVariables = map[string]string{
-		"GSES2_APP_SMTP_HOST":            "www.default.com",
-		"GSES2_APP_SMTP_USER":            "default@user.com",
-		"GSES2_APP_SMTP_PASSWORD":        "defaultpassword",
-		"GSES2_APP_SMTP_PORT":            "465",
-		"GSES2_APP_EMAIL_FROM":           "no.reply@test.info.api",
-		"GSES2_APP_EMAIL_SUBJECT":        "BTC to UAH exchange rate",
-		"GSES2_APP_EMAIL_BODY":           "The BTC to UAH rate is {{.Rate}}",
-		"GSES2_APP_STORAGE_PATH":         "./storage/storage.csv",
-		"GSES2_APP_HTTP_PORT":            "8080",
-		"GSES2_APP_HTTP_TIMEOUT":         "10s",
-		"GSES2_APP_KUNAAPI_URL":          "https://www.example.com",
-		"GSES2_APP_KUNAAPI_DEFAULT_RATE": "0",
+		"GSES2_APP_SMTP_HOST":        "www.default.com",
+		"GSES2_APP_SMTP_USER":        "default@user.com",
+		"GSES2_APP_SMTP_PASSWORD":    "defaultpassword",
+		"GSES2_APP_SMTP_PORT":        "465",
+		"GSES2_APP_EMAIL_FROM":       "no.reply@test.info.api",
+		"GSES2_APP_EMAIL_SUBJECT":    "BTC to UAH exchange rate",
+		"GSES2_APP_EMAIL_BODY":       "The BTC to UAH rate is {{.Rate}}",
+		"GSES2_APP_STORAGE_PATH":     "./storage/storage.csv",
+		"GSES2_APP_HTTP_PORT":        "8080",
+		"GSES2_APP_HTTP_TIMEOUT":     "10s",
+		"GSES2_APP_KUNAAPI_URL":      "https://www.example.com",
+		"GSES2_APP_BINANCEAPI_URL":   "https://www.example.com",
+		"GSES2_APP_COINGECKOAPI_URL": "https://www.example.com",
 	}
 )
 
@@ -136,24 +142,29 @@ func initTestEnvironment(t *testing.T, envVars map[string]string) {
 
 func defaultConfig() Config {
 	return Config{
-		SMTP: SMTPConfig{
+		SMTP: smtp.SMTPConfig{
 			Port: 465,
 		},
-		Email: EmailConfig{
+		Email: message.EmailConfig{
 			From:    "no.reply@currency.info.api",
 			Subject: "BTC to UAH exchange rate",
 			Body:    "The BTC to UAH exchange rate is {{.Rate}} UAH per BTC",
 		},
-		Storage: StorageConfig{
+		Storage: storage.StorageConfig{
 			Path: "./storage/storage.csv",
 		},
 		HTTP: HTTPConfig{
 			Port:    "8080",
 			Timeout: 10 * time.Second,
 		},
-		KunaAPI: KunaAPIConfig{
-			URL:         "https://api.kuna.io/v3/tickers?symbols=btcuah",
-			DefaultRate: 0,
+		KunaAPI: kuna.KunaAPIConfig{
+			URL: "https://api.kuna.io/v3/tickers?symbols=btcuah",
+		},
+		BinanceAPI: binance.BinanceAPIConfig{
+			URL: "https://api.binance.com/api/v3/klines?symbol=BTCUAH&interval=1s&limit=1",
+		},
+		CoingeckoAPI: coingecko.CoingeckoAPIConfig{
+			URL: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah",
 		},
 	}
 }
@@ -168,12 +179,15 @@ func addDefaultConfigVariables(t *testing.T, c Config) Config {
 	c.Email.Body = _defaultEnvVariables["GSES2_APP_EMAIL_BODY"]
 	c.Storage.Path = _defaultEnvVariables["GSES2_APP_STORAGE_PATH"]
 	c.HTTP.Port = _defaultEnvVariables["GSES2_APP_HTTP_PORT"]
-	c.HTTP.Timeout, _ = time.ParseDuration(_defaultEnvVariables["GSES2_APP_HTTP_TIMEOUT"])
-	c.KunaAPI.URL = _defaultEnvVariables["GSES2_APP_KUNAAPI_URL"]
-	c.KunaAPI.DefaultRate = parseKunaAPIDefaultRate(
-		t,
-		_defaultEnvVariables["GSES2_APP_KUNAAPI_DEFAULT_RATE"],
+	c.HTTP.Timeout, _ = time.ParseDuration(
+		_defaultEnvVariables["GSES2_APP_HTTP_TIMEOUT"],
 	)
+
+	c.BinanceAPI.URL = _defaultEnvVariables["GSES2_APP_BINANCEAPI_URL"]
+
+	c.CoingeckoAPI.URL = _defaultEnvVariables["GSES2_APP_COINGECKOAPI_URL"]
+
+	c.KunaAPI.URL = _defaultEnvVariables["GSES2_APP_KUNAAPI_URL"]
 
 	return c
 }
@@ -185,15 +199,6 @@ func parseSMTPPort(t *testing.T, strPort string) int {
 	}
 
 	return SMTPPort
-}
-
-func parseKunaAPIDefaultRate(t *testing.T, strRate string) types.Rate {
-	rate, err := strconv.ParseFloat(strRate, 32)
-	if err != nil {
-		t.Fatal("cannot convert default Kuna API rate")
-	}
-
-	return types.Rate(rate)
 }
 
 func initEnvVariables(newEnvVariables map[string]string) map[string]string {

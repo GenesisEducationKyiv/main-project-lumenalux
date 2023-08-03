@@ -5,24 +5,27 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"gses2-app/pkg/types"
 )
 
 type StubProvider struct {
-	Rate  types.Rate
-	Error error
+	Rate         Rate
+	Error        error
+	ProviderName string
 }
 
-func (m *StubProvider) ExchangeRate() (types.Rate, error) {
+func (m *StubProvider) ExchangeRate() (Rate, error) {
 	return m.Rate, m.Error
+}
+
+func (m *StubProvider) Name() string {
+	return m.ProviderName
 }
 
 func TestExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		stubProvider   *StubProvider
-		expectedRate   types.Rate
+		expectedRate   Rate
 		expectingError bool
 	}{
 		{

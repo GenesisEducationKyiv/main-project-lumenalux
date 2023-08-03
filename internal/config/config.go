@@ -12,7 +12,7 @@ var (
 
 func Load(prefix string) (configuration Config, err error) {
 	if err := envconfig.Process(prefix, &configuration); err != nil {
-		return configuration, ErrLoadEnvVariable
+		return configuration, errors.Join(err, ErrLoadEnvVariable)
 	}
 
 	return configuration, nil
