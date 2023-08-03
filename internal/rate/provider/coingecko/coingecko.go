@@ -1,4 +1,4 @@
-package coingeko
+package coingecko
 
 import (
 	"encoding/json"
@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"gses2-app/internal/rate/provider"
-	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
 
@@ -28,16 +27,20 @@ const (
 	_providerName = "CoingeckoRateProvider"
 )
 
+type CoingeckoAPIConfig struct {
+	URL string `default:"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah"`
+}
+
 type HTTPClient interface {
 	Get(url string) (*http.Response, error)
 }
 
 type CoingeckoProvider struct {
-	config config.CoingeckoAPIConfig
+	config CoingeckoAPIConfig
 }
 
 func NewProvider(
-	config config.CoingeckoAPIConfig,
+	config CoingeckoAPIConfig,
 	httpClient HTTPClient,
 ) *provider.AbstractProvider {
 	return provider.NewProvider(

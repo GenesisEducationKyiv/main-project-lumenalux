@@ -1,49 +1,26 @@
 package config
 
 import (
+	"gses2-app/internal/rate/provider/binance"
+	"gses2-app/internal/rate/provider/coingecko"
+	"gses2-app/internal/rate/provider/kuna"
+	"gses2-app/internal/sender/provider/email/message"
+	"gses2-app/internal/sender/transport/smtp"
+	"gses2-app/pkg/storage"
 	"time"
 )
 
 type Config struct {
-	SMTP         SMTPConfig
-	Email        EmailConfig
-	Storage      StorageConfig
+	SMTP         smtp.SMTPConfig
+	Email        message.EmailConfig
+	Storage      storage.StorageConfig
 	HTTP         HTTPConfig
-	KunaAPI      KunaAPIConfig
-	BinanceAPI   BinanceAPIConfig
-	CoingeckoAPI CoingeckoAPIConfig
-}
-
-type EmailConfig struct {
-	From    string `default:"no.reply@currency.info.api"`
-	Subject string `default:"BTC to UAH exchange rate"`
-	Body    string `default:"The BTC to UAH exchange rate is {{.Rate}} UAH per BTC"`
-}
-
-type SMTPConfig struct {
-	Host     string `required:"true"`
-	Port     int    `default:"465"`
-	User     string `required:"true"`
-	Password string `required:"true"`
-}
-
-type StorageConfig struct {
-	Path string `default:"./storage/storage.csv"`
+	KunaAPI      kuna.KunaAPIConfig
+	BinanceAPI   binance.BinanceAPIConfig
+	CoingeckoAPI coingecko.CoingeckoAPIConfig
 }
 
 type HTTPConfig struct {
 	Port    string        `default:"8080"`
 	Timeout time.Duration `default:"10s"`
-}
-
-type KunaAPIConfig struct {
-	URL string `default:"https://api.kuna.io/v3/tickers?symbols=btcuah"`
-}
-
-type BinanceAPIConfig struct {
-	URL string `default:"https://api.binance.com/api/v3/klines?symbol=BTCUAH&interval=1s&limit=1"`
-}
-
-type CoingeckoAPIConfig struct {
-	URL string `default:"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah"`
 }

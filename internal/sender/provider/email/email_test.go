@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
 
@@ -59,7 +58,7 @@ func TestSendExchangeRate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			config := &config.Config{}
+			config := &EmailSenderConfig{}
 			service, err := NewProvider(config, tt.dialer, tt.factory)
 
 			require.Equal(t, tt.expectedErr, err)

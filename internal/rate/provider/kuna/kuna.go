@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"gses2-app/internal/rate/provider"
-	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
 
@@ -25,16 +24,20 @@ const (
 	_rateIndex        = 7
 )
 
+type KunaAPIConfig struct {
+	URL string `default:"https://api.kuna.io/v3/tickers?symbols=btcuah"`
+}
+
 type HTTPClient interface {
 	Get(url string) (*http.Response, error)
 }
 
 type KunaProvider struct {
-	config config.KunaAPIConfig
+	config KunaAPIConfig
 }
 
 func NewProvider(
-	config config.KunaAPIConfig,
+	config KunaAPIConfig,
 	httpClient HTTPClient,
 ) *provider.AbstractProvider {
 	return provider.NewProvider(

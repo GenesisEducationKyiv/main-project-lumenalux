@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"gses2-app/internal/rate/provider"
-	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
 
@@ -91,7 +90,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			config := config.BinanceAPIConfig{}
+			config := BinanceAPIConfig{}
 			provider := NewProvider(config, tt.stubHTTPClient)
 			rate, err := provider.ExchangeRate()
 

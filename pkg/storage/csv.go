@@ -7,6 +7,10 @@ import (
 
 var _headers = []string{"email"} // The order of the columns keys
 
+type StorageConfig struct {
+	Path string `default:"./storage/storage.csv"`
+}
+
 type CSVStorage struct {
 	FilePath string
 }

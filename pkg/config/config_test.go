@@ -2,6 +2,12 @@ package config
 
 import (
 	"errors"
+	"gses2-app/internal/rate/provider/binance"
+	"gses2-app/internal/rate/provider/coingecko"
+	"gses2-app/internal/rate/provider/kuna"
+	"gses2-app/internal/sender/provider/email/message"
+	"gses2-app/internal/sender/transport/smtp"
+	"gses2-app/pkg/storage"
 	"log"
 	"os"
 	"strconv"
@@ -135,28 +141,28 @@ func initTestEnvironment(t *testing.T, envVars map[string]string) {
 
 func defaultConfig() Config {
 	return Config{
-		SMTP: SMTPConfig{
+		SMTP: smtp.SMTPConfig{
 			Port: 465,
 		},
-		Email: EmailConfig{
+		Email: message.EmailConfig{
 			From:    "no.reply@currency.info.api",
 			Subject: "BTC to UAH exchange rate",
 			Body:    "The BTC to UAH exchange rate is {{.Rate}} UAH per BTC",
 		},
-		Storage: StorageConfig{
+		Storage: storage.StorageConfig{
 			Path: "./storage/storage.csv",
 		},
 		HTTP: HTTPConfig{
 			Port:    "8080",
 			Timeout: 10 * time.Second,
 		},
-		KunaAPI: KunaAPIConfig{
+		KunaAPI: kuna.KunaAPIConfig{
 			URL: "https://api.kuna.io/v3/tickers?symbols=btcuah",
 		},
-		BinanceAPI: BinanceAPIConfig{
+		BinanceAPI: binance.BinanceAPIConfig{
 			URL: "https://api.binance.com/api/v3/klines?symbol=BTCUAH&interval=1s&limit=1",
 		},
-		CoingeckoAPI: CoingeckoAPIConfig{
+		CoingeckoAPI: coingecko.CoingeckoAPIConfig{
 			URL: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah",
 		},
 	}

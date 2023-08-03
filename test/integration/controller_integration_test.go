@@ -22,7 +22,7 @@ import (
 	"gses2-app/pkg/repository/userrepo"
 	"gses2-app/pkg/types"
 
-	emailSenderProvider "gses2-app/internal/sender/provider/email"
+	"gses2-app/internal/sender/provider/email"
 )
 
 const _configPrefix = "GSES2_APP"
@@ -266,7 +266,14 @@ func initEmailSenderService(
 	dialer smtp.TLSConnectionDialer,
 	factory smtp.SMTPClientFactory,
 ) *sender.Service {
-	provider, err := emailSenderProvider.NewProvider(config, dialer, factory)
+	provider, err := email.NewProvider(
+		&email.EmailSenderConfig{
+			SMTP:  config.SMTP,
+			Email: config.Email,
+		},
+		dialer,
+		factory,
+	)
 
 	if err != nil {
 		t.Fatalf("error creating email sender provider: %v", err)

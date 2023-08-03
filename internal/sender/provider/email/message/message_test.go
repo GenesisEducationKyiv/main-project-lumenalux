@@ -3,15 +3,13 @@ package message
 import (
 	"testing"
 
-	"gses2-app/pkg/config"
-
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewEmailMessage(t *testing.T) {
 	tests := []struct {
 		name         string
-		emailConfig  config.EmailConfig
+		emailConfig  EmailConfig
 		to           []string
 		templateData TemplateData
 		expected     *EmailMessage
@@ -19,7 +17,7 @@ func TestNewEmailMessage(t *testing.T) {
 	}{
 		{
 			name: "Create email message",
-			emailConfig: config.EmailConfig{
+			emailConfig: EmailConfig{
 				From:    "test_from@example.com",
 				Subject: "Test Subject",
 				Body:    "The current exchange rate is {{.Rate}}.",
@@ -38,7 +36,7 @@ func TestNewEmailMessage(t *testing.T) {
 		},
 		{
 			name: "Bad template",
-			emailConfig: config.EmailConfig{
+			emailConfig: EmailConfig{
 				From:    "test_from@example.com",
 				Subject: "Test Subject",
 				Body:    "The current exchange rate is {{.Rate",

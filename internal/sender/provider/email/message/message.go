@@ -5,8 +5,6 @@ import (
 	"errors"
 	"strings"
 	"text/template"
-
-	"gses2-app/pkg/config"
 )
 
 const _emailTemplate = `From: {{.From}}
@@ -20,6 +18,12 @@ var (
 	errExecuteTemplate = errors.New("cannot execute email")
 )
 
+type EmailConfig struct {
+	From    string `default:"no.reply@currency.info.api"`
+	Subject string `default:"BTC to UAH exchange rate"`
+	Body    string `default:"The BTC to UAH exchange rate is {{.Rate}} UAH per BTC"`
+}
+
 type TemplateData struct {
 	Rate string
 }
@@ -32,7 +36,7 @@ type EmailMessage struct {
 }
 
 func NewEmailMessage(
-	config config.EmailConfig,
+	config EmailConfig,
 	to []string,
 	data TemplateData,
 ) (*EmailMessage, error) {

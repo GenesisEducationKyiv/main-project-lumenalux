@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"gses2-app/internal/rate/provider"
-	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
 
@@ -30,12 +29,16 @@ type HTTPClient interface {
 	Get(url string) (*http.Response, error)
 }
 
+type BinanceAPIConfig struct {
+	URL string `default:"https://api.binance.com/api/v3/klines?symbol=BTCUAH&interval=1s&limit=1"`
+}
+
 type BinanceProvider struct {
-	config config.BinanceAPIConfig
+	config BinanceAPIConfig
 }
 
 func NewProvider(
-	config config.BinanceAPIConfig,
+	config BinanceAPIConfig,
 	httpClient HTTPClient,
 ) *provider.AbstractProvider {
 	return provider.NewProvider(

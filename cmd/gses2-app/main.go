@@ -9,7 +9,7 @@ import (
 	"gses2-app/internal/controller"
 	"gses2-app/internal/rate"
 	"gses2-app/internal/rate/provider/binance"
-	"gses2-app/internal/rate/provider/coingeko"
+	"gses2-app/internal/rate/provider/coingecko"
 	"gses2-app/internal/rate/provider/kuna"
 	"gses2-app/internal/sender"
 	"gses2-app/internal/sender/provider/email"
@@ -61,7 +61,7 @@ func createRateService(config *config.Config) *rate.Service {
 		config.KunaAPI, httpClient,
 	)
 
-	CoingeckoRateProvider := coingeko.NewProvider(
+	CoingeckoRateProvider := coingecko.NewProvider(
 		config.CoingeckoAPI, httpClient,
 	)
 
@@ -76,7 +76,10 @@ func createSenderService(
 	config *config.Config,
 ) (*sender.Service, error) {
 	emailSenderProvider, err := email.NewProvider(
-		config,
+		&email.EmailSenderConfig{
+			SMTP:  config.SMTP,
+			Email: config.Email,
+		},
 		&smtp.TLSConnectionDialerImpl{},
 		&smtp.SMTPClientFactoryImpl{},
 	)

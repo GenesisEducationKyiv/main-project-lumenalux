@@ -6,17 +6,21 @@ import (
 	"gses2-app/internal/sender/provider/email/message"
 	"gses2-app/internal/sender/provider/email/send"
 	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/pkg/config"
 	"gses2-app/pkg/types"
 )
 
+type EmailSenderConfig struct {
+	SMTP  smtp.SMTPConfig
+	Email message.EmailConfig
+}
+
 type Provider struct {
-	config     *config.Config
+	config     *EmailSenderConfig
 	connection smtp.SMTPConnectionClient
 }
 
 func NewProvider(
-	config *config.Config,
+	config *EmailSenderConfig,
 	dialer smtp.TLSConnectionDialer,
 	factory smtp.SMTPClientFactory,
 ) (*Provider, error) {
