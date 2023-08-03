@@ -18,7 +18,6 @@ var (
 	ErrHTTPRequestFailure       = errors.New("http request failure")
 	ErrUnexpectedStatusCode     = errors.New("unexpected status code")
 	ErrUnexpectedResponseFormat = errors.New("unexpected response format")
-	ErrCanNotCloseResponseBody  = errors.New("can not close response body")
 )
 
 const (
@@ -71,10 +70,6 @@ func (p *CoingeckoProvider) requestAPI() (*http.Response, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("%w: %d", ErrUnexpectedStatusCode, resp.StatusCode)
-	}
-
-	if err = resp.Body.Close(); err != nil {
-		return nil, errors.Join(err, ErrCanNotCloseResponseBody)
 	}
 
 	p.logFunc(_providerName, resp)
