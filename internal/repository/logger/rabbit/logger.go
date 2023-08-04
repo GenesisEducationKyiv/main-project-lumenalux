@@ -3,6 +3,7 @@ package rabbit
 import (
 	"context"
 	"log"
+	"strings"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
@@ -90,6 +91,10 @@ func NewLogger(
 	return logger
 }
 
+func isErrorMessage(message []byte) bool {
+	return strings.Contains(string(message), `"level=error"`)
+}
+
 func NewConsumer(channel *amqp.Channel, queue amqp.Queue) (func(), error) {
 	messages, err := channel.Consume(
 		queue.Name,
@@ -106,9 +111,10 @@ func NewConsumer(channel *amqp.Channel, queue amqp.Queue) (func(), error) {
 	}
 
 	consumerWork := func() {
-		log.Println("Starting to consume messages")
 		for message := range messages {
-			log.Print(string(message.Body))
+			if isErrorMessage(message.Body) {
+				log.Print(string(message.Body))
+			}
 		}
 	}
 
