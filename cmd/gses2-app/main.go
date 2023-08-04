@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"gses2-app/internal/handler/httpcontroller"
 	"gses2-app/internal/handler/router"
 	"gses2-app/internal/repository/config"
+	"gses2-app/internal/repository/logger/rabbit"
 	"gses2-app/internal/repository/rate/rest/binance"
 	"gses2-app/internal/repository/rate/rest/coingecko"
 	"gses2-app/internal/repository/rate/rest/kuna"
@@ -21,18 +23,43 @@ import (
 	"gses2-app/internal/repository/storage"
 )
 
-const _configPrefix = "GSES2_APP"
+const (
+	_configPrefix     = "GSES2_APP"
+	_rabbitMQQueueUrl = "amqp://guest:guest@amqp/"
+)
 
 func main() {
+	ctx := context.Background()
+	conn, ch, q, err := rabbit.ConnectToRabbitMQ(_rabbitMQQueueUrl)
+	if err != nil {
+		log.Printf("Error, cannot connect to RabbitMQ: %s", err)
+		os.Exit(1)
+	}
+
+	defer conn.Close()
+	defer ch.Close()
+
+	logger := rabbit.NewLogger(ctx, ch, q)
+
+	consumer, err := rabbit.NewConsumer(ch, q)
+	if err != nil {
+		log.Printf("Error, cannot create logger consumer: %s", err)
+		os.Exit(1)
+	}
+
+	loging := make(chan bool)
+
+	go consumer()
+
 	config, err := config.Load(_configPrefix)
 	if err != nil {
-		log.Printf("Error, config wasn't loaded: %s", err)
+		logger.Errorf("Error, config wasn't loaded: %s", err)
 		os.Exit(1)
 	}
 
 	senderService, err := createSenderService(&config)
 	if err != nil {
-		log.Printf("Connection error: %s", err)
+		logger.Errorf("Connection error: %s", err)
 		os.Exit(1)
 	}
 
@@ -46,7 +73,9 @@ func main() {
 	)
 
 	mux := registerRoutes(appController)
-	startServer(config.HTTP.Port, mux)
+	startServer(logger, config.HTTP.Port, mux)
+
+	<-loging
 }
 
 func createRateService(config *config.Config) *rate.Service {
@@ -107,11 +136,12 @@ func registerRoutes(appController *httpcontroller.AppController) *http.ServeMux 
 	return mux
 }
 
-func startServer(port string, handler http.Handler) {
-	log.Printf("Starting server on port %s\n", port)
+func startServer(logger port.Logger, port string, handler http.Handler) {
+	logger.Infof("Starting server on port %s\n", port)
 
 	err := http.ListenAndServe(fmt.Sprintf(":%s", port), handler)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
+		os.Exit(1)
 	}
 }

@@ -9,9 +9,23 @@ services:
     ports:
       - "8080:8080"
       - "465:465"
+    depends_on:
+      amqp:
+          condition: service_healthy
     env_file:
       - .env
     restart: on-failure
+
+  amqp:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   storage_volume:
