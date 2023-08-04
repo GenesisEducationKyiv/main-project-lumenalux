@@ -23,14 +23,17 @@ import (
 	"gses2-app/internal/repository/storage"
 )
 
-const (
-	_configPrefix     = "GSES2_APP"
-	_rabbitMQQueueUrl = "amqp://guest:guest@amqp/"
-)
+const _configPrefix = "GSES2_APP"
 
 func main() {
+	config, err := config.Load(_configPrefix)
+	if err != nil {
+		log.Printf("Error, config wasn't loaded: %s", err)
+		os.Exit(1)
+	}
+
 	ctx := context.Background()
-	conn, ch, q, err := rabbit.ConnectToRabbitMQ(_rabbitMQQueueUrl)
+	conn, ch, q, err := rabbit.ConnectToRabbitMQ(config.RabbitMQ.URL)
 	if err != nil {
 		log.Printf("Error, cannot connect to RabbitMQ: %s", err)
 		os.Exit(1)
@@ -47,12 +50,6 @@ func main() {
 	loging := make(chan bool)
 
 	go consumer()
-
-	config, err := config.Load(_configPrefix)
-	if err != nil {
-		logger.Errorf("Error, config wasn't loaded: %s", err)
-		os.Exit(1)
-	}
 
 	senderService, err := createSenderService(&config)
 	if err != nil {

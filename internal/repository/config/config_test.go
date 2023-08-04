@@ -11,6 +11,7 @@ import (
 	"golang.org/x/exp/maps"
 
 	"gses2-app/internal/handler/router"
+	"gses2-app/internal/repository/logger/rabbit"
 	"gses2-app/internal/repository/rate/rest/binance"
 	"gses2-app/internal/repository/rate/rest/coingecko"
 	"gses2-app/internal/repository/rate/rest/kuna"
@@ -36,6 +37,7 @@ var (
 		"GSES2_APP_KUNAAPI_URL":      "https://www.example.com",
 		"GSES2_APP_BINANCEAPI_URL":   "https://www.example.com",
 		"GSES2_APP_COINGECKOAPI_URL": "https://www.example.com",
+		"GSES2_APP_RABBITMQ_URL":     "https://www.example.com",
 	}
 )
 
@@ -165,6 +167,9 @@ func defaultConfig() Config {
 		CoingeckoAPI: coingecko.CoingeckoAPIConfig{
 			URL: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah",
 		},
+		RabbitMQ: rabbit.RabbitMQConfig{
+			URL: "amqp://guest:guest@amqp/",
+		},
 	}
 }
 
@@ -187,6 +192,8 @@ func addDefaultConfigVariables(t *testing.T, c Config) Config {
 	c.CoingeckoAPI.URL = _defaultEnvVariables["GSES2_APP_COINGECKOAPI_URL"]
 
 	c.KunaAPI.URL = _defaultEnvVariables["GSES2_APP_KUNAAPI_URL"]
+
+	c.RabbitMQ.URL = _defaultEnvVariables["GSES2_APP_RABBITMQ_URL"]
 
 	return c
 }

@@ -13,6 +13,10 @@ const (
 	_messageContentType = "text/plain"
 )
 
+type RabbitMQConfig struct {
+	URL string `default:"amqp://guest:guest@amqp/"`
+}
+
 func ConnectToRabbitMQ(rabbitURL string) (
 	*amqp.Connection,
 	*amqp.Channel,
