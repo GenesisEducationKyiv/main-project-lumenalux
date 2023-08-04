@@ -13,7 +13,8 @@
 - [Використання](#використання)
 - [Опис API](#опис-api)
 - [Як це працює](#як-це-працює)
-- [Архітектура](#архітектура)
+- [Архітектура](#архітектурна-діаграма)
+- [Дерево проєкту](#дерево-проєкту)
 
 ## Про проект
 
@@ -30,31 +31,38 @@
 
 2. **Налаштуйте змінні середовища:**
 
-   Додаток використовує змінні середовища для конфігурації. Встановіть наступні змінні середовища для сервера SMTP та налаштувань електронної пошти:
+   Додаток використовує файл `.env` для конфігурації. Скопіюйте вміст файлу `.env.example` у новий файл з назвою `.env`. Налаштуйте наступні змінні середовища для налаштування сервера SMTP та електронної пошти:
 
    ```bash
-   export GSES2_APP_SMTP_HOST="<адреса сервера smtp>"
-   ```
+    GSES2_APP_SMTP_HOST="<адреса сервера smtp>"
 
-   ```bash
-    export GSES2_APP_SMTP_USER="<ім'я користувача smtp>"
-   ```
+    GSES2_APP_SMTP_USER="<ім'я користувача smtp>"
 
-   ```bash
-   export GSES2_APP_SMTP_PASSWORD="<пароль smtp>"`
+    GSES2_APP_SMTP_PASSWORD="<пароль smtp>"
    ```
 
    Решта змінних середовища має значення за замовчуванням, що наведено нижче, але їх можна перевизначити, якщо це необхідно:
 
-   - `GSES2_APP_SMTP_PORT="465"`
-   - `GSES2_APP_EMAIL_FROM="no.reply@test.info.api"`
-   - `GSES2_APP_EMAIL_SUBJECT="Курс обміну BTC на UAH"`
-   - `GSES2_APP_EMAIL_BODY="Курс BTC до UAH становить {{.Rate}}"`
-   - `GSES2_APP_STORAGE_PATH="./storage/storage.csv"`
-   - `GSES2_APP_HTTP_PORT="8080"`
-   - `GSES2_APP_HTTP_TIMEOUT="10s"`
-   - `GSES2_APP_KUNA_API_URL="https://api.kuna.io/v3/tickers?symbols=btcuah"`
-   - `GSES2_APP_KUNA_API_DEFAULT_RATE="0"`
+   ```bash
+    GSES2_APP_SMTP_PORT=465
+
+    GSES2_APP_EMAIL_FROM=no.reply@test.info.api
+    GSES2_APP_EMAIL_SUBJECT=BTC до курсу UAH
+    GSES2_APP_EMAIL_BODY=Курс обміну BTC до UAH становить {{.Rate}} UAH за BTC
+
+    GSES2_APP_STORAGE_PATH=./storage/storage.csv
+
+    GSES2_APP_HTTP_PORT=8080
+    GSES2_APP_HTTP_TIMEOUT=10s
+
+    GSES2_APP_KUNAAPI_URL=https://api.kuna.io/v3/tickers?symbols=btcuah
+
+    GSES2_APP_BINANCEAPI_URL=https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT
+
+    GSES2_APP_COINGECKOAPI_URL=https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah
+
+    GSES2_APP_RABBITMQ_URL=amqp://guest:guest@amqp/
+   ```
 
    Змінні середовища включають налаштування сервера SMTP та вміст повідомлень електронної пошти, що відправляються підписникам. Тіло електронного листа розроблено як шаблон з використанням синтаксису text/template Go. Додаток замінює `{{.Rate}}` на поточний курс обміну BTC на UAH перед відправкою електронного листа.
 
@@ -118,22 +126,108 @@
 
 Файл `main.go` є точкою входу для програми Go. Він створює екземпляри вищезазначених сервісів та впроваджує їх у `controller`. Потім він співставляє методи контролера на HTTP-ендпоінти та запускає сервер.
 
-## Архітектура
+## Архітектурна діаграма
 
-1.  **Ініціалізація додатка** **(**`main.go`**)**: Це ентріпоінт додатка. Він ініціалізує всі необхідні сервіси, впроваджує їх в контролер, прив'язує методи контролера до ендпоінтів HTTP та запускає сервер. Це відзначає початок життєвого циклу додатка
+![](docs/images/architecture-diagram.png)
 
-2.  **Controller**: Він знаходиться безпосередньо під **Ініціалізацією додатка**. Контролер відповідає за впровадження методів сервісів, а також за обробку HTTP-запитів.
+## Дерево проєкту
 
-3.  **Сервіси**:
-
-    - **Rate Service**: Цей сервіс відповідає за отримання поточного курсу BTC до UAH з API Kuna. Він також відповідає за конвертацію даних, отриманих від Kuna, в формат, який використовує наш додаток.
-    - **Sender Service**: Цей сервіс відповідає за надсилання електронних листів. Він використовує різні механізми, наприклад, провайдера електронної пошти, який зв'язується із зовнішнім SMTP-сервером для надсилання листів, або `stub` для тестування.
-    - **Subscribtion Service**: Цей сервіс відповідає за збереження та отримання адрес електронної пошти підписників. Він використовує локальне сховище файлів для зберігання цих даних.
-
-4.  **Додаткові компоненти**:
-
-    - **Storage (CSV)**: механізм зберігання, який використовується Службою підписки для відстеження передплатників. Він використовує файл CSV для зберігання
-
-    - **Transport**: Керує маршрутизацією API за допомогою **Controller**
-
-Ця архітектура забезпечує роздподіл відповідальності, коли кожен компонент зосереджується на певній завдачі. Це розділення дозволяє спростити технічне обслуговування та покращити масштабованість, оскільки зміни в одному компоненті не повинні впливати на інші. Крім того, використання `stub` дозволяє легше проводити тестування, ізолюючи логіку програми від зовнішніх залежностей
+```
+📦 gses2-app
+├── 📂build
+│   └── 📂package
+│       ├── 📜Dockerfile
+│       └── 📜entrypoint.sh
+├── 📂cmd
+│   └── 📂gses2-app
+│       └── 📜main.go
+├── 📜docker-compose.yml
+├── 📂docs
+│   ├── 📜API_USAGE.md
+│   └── 📂images
+├── 📜go.mod
+├── 📜go.sum
+├── 📂internal
+│   ├── 📂core
+│   │   ├── 📂port
+│   │   │   ├── 📜logger.go
+│   │   │   ├── 📜rate.go
+│   │   │   ├── 📜user.go
+│   │   │   └── 📜user_test.go
+│   │   └── 📂service
+│   │       ├── 📂rate
+│   │       │   ├── 📜rate.go
+│   │       │   └── 📜rate_test.go
+│   │       ├── 📂sender
+│   │       │   ├── 📜sender.go
+│   │       │   └── 📜sender_test.go
+│   │       └── 📂subscription
+│   │           ├── 📜subscription.go
+│   │           └── 📜subscription_test.go
+│   ├── 📂handler
+│   │   ├── 📂httpcontroller
+│   │   │   ├── 📜httpcontroller.go
+│   │   │   └── 📜httpcontroller_test.go
+│   │   └── 📂router
+│   │       ├── 📜router.go
+│   │       └── 📜router_test.go
+│   └── 📂repository
+│       ├── 📂config
+│       │   ├── 📜config.go
+│       │   ├── 📜config_test.go
+│       │   └── 📜model.go
+│       ├── 📂logger
+│       │   └── 📂rabbit
+│       │       └── 📜logger.go
+│       ├── 📂rate
+│       │   └── 📂rest
+│       │       ├── 📂binance
+│       │       │   ├── 📜binance.go
+│       │       │   └── 📜binance_test.go
+│       │       ├── 📂coingecko
+│       │       │   ├── 📜coingecko.go
+│       │       │   └── 📜coingecko_test.go
+│       │       ├── 📂kuna
+│       │       │   ├── 📜kuna.go
+│       │       │   └── 📜kuna_test.go
+│       │       ├── 📜rest.go
+│       │       └── 📜rest_test.go
+│       ├── 📂sender
+│       │   ├── 📂email
+│       │   │   ├── 📜email.go
+│       │   │   ├── 📜email_test.go
+│       │   │   └── 📂send
+│       │   │       ├── 📜message.go
+│       │   │       ├── 📜message_test.go
+│       │   │       ├── 📜send.go
+│       │   │       └── 📜send_test.go
+│       │   └── 📂smtp
+│       │       ├── 📜smtp.go
+│       │       ├── 📜smtp_test.go
+│       │       └── 📜stub.go
+│       └── 📂storage
+│           ├── 📜csv.go
+│           └── 📜csv_test.go
+├── 📜LICENSE
+├── 📜README.md
+├── 📜README_ua.md
+└── 📂test
+    ├── 📂E2E
+    │   ├── 📂build
+    │   │   ├── 📜docker-compose.e2e.yml
+    │   │   ├── 📜Dockerfile
+    │   │   └── 📜entrypoint.e2e.sh
+    │   ├── 📂fake
+    │   │   ├── 📂kunaapi
+    │   │   │   ├── 📜Dockerfile
+    │   │   │   └── main.go
+    │   │   └── 📂smtp
+    │   │       ├── 📜Dockerfile
+    │   │       ├── 📜main.go
+    │   │       └── 📜san.cnf
+    │   └── 📂postman
+    │       └── 📜tests.e2e.json
+    └── 📂integration
+        ├── 📜httpcontroller_integration_test.go
+        └── 📜subscription_integration_test.go
+```

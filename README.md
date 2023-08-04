@@ -14,7 +14,8 @@
 - [Usage](#usage)
 - [Description](#description)
 - [How It Works](#how-it-works)
-- [Architecture](#architecture)
+- [Architecture](#architecture-diagram)
+- [Project tree](#project-tree)
 
 ## About
 
@@ -34,55 +35,62 @@ This is an API that provides the current exchange rate between Bitcoin and the U
 
 2. **Configure the environment variables:**
 
-   The application uses environment variables for configuration. Set up the following environment variables for the SMTP server and email settings:
+   The application uses a .env file for configuration. Copy the contents of .env.example into a new file named .env. Set up the following environment variables for the SMTP server and email settings:
 
    ```bash
-   export GSES2_APP_SMTP_HOST="<smtp server host>"
-   ```
+   GSES2_APP_SMTP_HOST="<smtp server host>"
 
-   ```bash
-   export GSES2_APP_SMTP_USER="<smtp username>"
-   ```
+   GSES2_APP_SMTP_USER="<smtp username>"
 
-   ```bash
-   export GSES2_APP_SMTP_PASSWORD="<smtp password>"`
+   GSES2_APP_SMTP_PASSWORD="<smtp password>"`
    ```
 
    The rest of the environment variables have default values as listed below, but can be overridden if necessary:
 
-   - `GSES2_APP_SMTP_PORT="465"`
-   - `GSES2_APP_EMAIL_FROM="no.reply@test.info.api"`
-   - `GSES2_APP_EMAIL_SUBJECT="BTC to UAH exchange rate"`
-   - `GSES2_APP_EMAIL_BODY="The BTC to UAH rate is {{.Rate}}"`
-   - `GSES2_APP_STORAGE_PATH="./storage/storage.csv"`
-   - `GSES2_APP_HTTP_PORT="8080"`
-   - `GSES2_APP_HTTP_TIMEOUT="10s"`
-   - `GSES2_APP_KUNA_API_URL="https://api.kuna.io/v3/tickers?symbols=btcuah"`
-   - `GSES2_APP_KUNA_API_DEFAULT_RATE="0"`
+   ```bash
+   GSES2_APP_SMTP_PORT=465
 
-   The environment variables include settings for the SMTP server and the content of the email messages sent to subscribers. The body of the email is designed as a template using Go's text/template syntax. The application replaces `{{.Rate}}` with the current BTC to UAH exchange rate before sending the email.
+   GSES2_APP_EMAIL_FROM=no.reply@test.info.api
+   GSES2_APP_EMAIL_SUBJECT=BTC to UAH exchange rate
+   GSES2_APP_EMAIL_BODY=The BTC to UAH exchange rate is {{.Rate}} UAH per BTC
 
-   **For the** `email` **settings:**
+   GSES2_APP_STORAGE_PATH=./storage/storage.csv
 
-   - `GSES2_APP_EMAIL_FROM`: This variable specifies the email address that will be displayed as the sender of the email.
-   - `GSES2_APP_EMAIL_SUBJECT`: This variable contains the subject line of the email.
-   - `GSES2_APP_EMAIL_BODY`: This variable contains the body of the email. Any occurrence of `{{.Rate}}` in this field will be replaced with the current BTC to UAH exchange rate when the email is sent.
+   GSES2_APP_HTTP_PORT=8080
+   GSES2_APP_HTTP_TIMEOUT=10s
 
-   If you want to change the content of the email, simply set new values for `GSES2_APP_EMAIL_SUBJECT` and/or `GSES2_APP_EMAIL_BODY` as desired.
+   GSES2_APP_KUNAAPI_URL=https://api.kuna.io/v3/tickers?symbols=btcuah
 
-   > **Note**
-   > If you wish to modify the content of the email, simply set new values for `GSES2_APP_EMAIL_SUBJECT` and/or `GSES2_APP_EMAIL_BODY` as desired. Remember to up again your `docker-compose` to apply the new settings after making changes to these variables.
+   GSES2_APP_BINANCEAPI_URL=https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT
 
-   > **Warning**
-   > It's important to keep the `{{.Rate}}` placeholder in the `GSES2_APP_EMAIL_BODY` field if you want to include the current exchange rate in the email.
+   GSES2_APP_COINGECKOAPI_URL=https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=uah
+
+   GSES2_APP_RABBITMQ_URL=amqp://guest:guest@amqp/
+   ```
+
+The environment variables include settings for the SMTP server and the content of the email messages sent to subscribers. The body of the email is designed as a template using Go's text/template syntax. The application replaces `{{.Rate}}` with the current BTC to UAH exchange rate before sending the email.
+
+**For the** `email` **settings:**
+
+- `GSES2_APP_EMAIL_FROM`: This variable specifies the email address that will be displayed as the sender of the email.
+- `GSES2_APP_EMAIL_SUBJECT`: This variable contains the subject line of the email.
+- `GSES2_APP_EMAIL_BODY`: This variable contains the body of the email. Any occurrence of `{{.Rate}}` in this field will be replaced with the current BTC to UAH exchange rate when the email is sent.
+
+If you want to change the content of the email, simply set new values for `GSES2_APP_EMAIL_SUBJECT` and/or `GSES2_APP_EMAIL_BODY` as desired.
+
+> **Note**
+> If you wish to modify the content of the email, simply set new values for `GSES2_APP_EMAIL_SUBJECT` and/or `GSES2_APP_EMAIL_BODY` as desired. Remember to up again your `docker-compose` to apply the new settings after making changes to these variables.
+
+> **Warning**
+> It's important to keep the `{{.Rate}}` placeholder in the `GSES2_APP_EMAIL_BODY` field if you want to include the current exchange rate in the email.
 
 ## Usage
 
 1. **Up the docker compose:**
 
-   ```bash
-   docker-compose up --build --detach
-   ```
+```bash
+docker-compose up --build --detach
+```
 
 2. **Use the API:**
 
@@ -122,24 +130,108 @@ This API exposes three endpoints that perform different operations:
 
 The `main.go` file is the entry point for the Go application. It creates instances of the above services and injects them into the `controller`. It then maps the controller's methods to the HTTP endpoints and starts the server.
 
-## Architecture
+## Architecture diagram
 
-1.  **Application Init** **(**`main.go`**)**: This is the entry point of the application. It initializes all necessary services, injects them into the controller, maps the controller's methods to HTTP endpoints, and starts the server. This signifies the birth of the application's lifecycle
+![](docs/images/architecture-diagram.png)
 
-2.  **Controller**: It sits right beneath the **Application Init**. The controller handles incoming HTTP requests, utilizes appropriate services for required operations, and responds to these requests. In other words, it's responsible for coordinating the tasks and directing the flow of the application
+## Project Tree
 
-3.  **Services**: There are three core services that the controller depends on:
-
-    - **Rate Service**: This service is responsible for communicating with external APIs to fetch the current BTC to UAH exchange rates. It has different implementations including the Kuna provider and a stub provider for testing purposes
-
-    - **Subscription Service**: This service manages the operations of adding to and retrieving subscribers from the CSV storage. It allows new subscribers to be added and also retrieval of the existing subscriber list
-
-    - **Sender Service**: This service is in charge of sending emails. It uses different mechanisms, for example, the Email provider, which communicates with an external SMTP server to send emails, and a stub provider for testing
-
-4.  **Additional Components**:
-
-    - **Storage (CSV)**: A storage mechanism used by the Subscription Service to keep track of subscribers. It uses CSV file for storage
-
-    - **Transport**: Handling the API routing with the help of the **Controller**
-
-This architecture ensures a separation of concerns, where each component focuses on a specific task. This separation allows for easier maintenance and improved scalability as changes to one component shouldn't affect the others. Also, the use of stubs allows for easier testing, by isolating the application logic from external dependencies
+```
+📦 gses2-app
+├── 📂build
+│   └── 📂package
+│       ├── 📜Dockerfile
+│       └── 📜entrypoint.sh
+├── 📂cmd
+│   └── 📂gses2-app
+│       └── 📜main.go
+├── 📜docker-compose.yml
+├── 📂docs
+│   ├── 📜API_USAGE.md
+│   └── 📂images
+├── 📜go.mod
+├── 📜go.sum
+├── 📂internal
+│   ├── 📂core
+│   │   ├── 📂port
+│   │   │   ├── 📜logger.go
+│   │   │   ├── 📜rate.go
+│   │   │   ├── 📜user.go
+│   │   │   └── 📜user_test.go
+│   │   └── 📂service
+│   │       ├── 📂rate
+│   │       │   ├── 📜rate.go
+│   │       │   └── 📜rate_test.go
+│   │       ├── 📂sender
+│   │       │   ├── 📜sender.go
+│   │       │   └── 📜sender_test.go
+│   │       └── 📂subscription
+│   │           ├── 📜subscription.go
+│   │           └── 📜subscription_test.go
+│   ├── 📂handler
+│   │   ├── 📂httpcontroller
+│   │   │   ├── 📜httpcontroller.go
+│   │   │   └── 📜httpcontroller_test.go
+│   │   └── 📂router
+│   │       ├── 📜router.go
+│   │       └── 📜router_test.go
+│   └── 📂repository
+│       ├── 📂config
+│       │   ├── 📜config.go
+│       │   ├── 📜config_test.go
+│       │   └── 📜model.go
+│       ├── 📂logger
+│       │   └── 📂rabbit
+│       │       └── 📜logger.go
+│       ├── 📂rate
+│       │   └── 📂rest
+│       │       ├── 📂binance
+│       │       │   ├── 📜binance.go
+│       │       │   └── 📜binance_test.go
+│       │       ├── 📂coingecko
+│       │       │   ├── 📜coingecko.go
+│       │       │   └── 📜coingecko_test.go
+│       │       ├── 📂kuna
+│       │       │   ├── 📜kuna.go
+│       │       │   └── 📜kuna_test.go
+│       │       ├── 📜rest.go
+│       │       └── 📜rest_test.go
+│       ├── 📂sender
+│       │   ├── 📂email
+│       │   │   ├── 📜email.go
+│       │   │   ├── 📜email_test.go
+│       │   │   └── 📂send
+│       │   │       ├── 📜message.go
+│       │   │       ├── 📜message_test.go
+│       │   │       ├── 📜send.go
+│       │   │       └── 📜send_test.go
+│       │   └── 📂smtp
+│       │       ├── 📜smtp.go
+│       │       ├── 📜smtp_test.go
+│       │       └── 📜stub.go
+│       └── 📂storage
+│           ├── 📜csv.go
+│           └── 📜csv_test.go
+├── 📜LICENSE
+├── 📜README.md
+├── 📜README_ua.md
+└── 📂test
+    ├── 📂E2E
+    │   ├── 📂build
+    │   │   ├── 📜docker-compose.e2e.yml
+    │   │   ├── 📜Dockerfile
+    │   │   └── 📜entrypoint.e2e.sh
+    │   ├── 📂fake
+    │   │   ├── 📂kunaapi
+    │   │   │   ├── 📜Dockerfile
+    │   │   │   └── main.go
+    │   │   └── 📂smtp
+    │   │       ├── 📜Dockerfile
+    │   │       ├── 📜main.go
+    │   │       └── 📜san.cnf
+    │   └── 📂postman
+    │       └── 📜tests.e2e.json
+    └── 📂integration
+        ├── 📜httpcontroller_integration_test.go
+        └── 📜subscription_integration_test.go
+```
