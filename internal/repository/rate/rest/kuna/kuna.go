@@ -37,10 +37,12 @@ type KunaProvider struct {
 }
 
 func NewProvider(
+	logger port.Logger,
 	config KunaAPIConfig,
 	httpClient HTTPClient,
 ) *rest.AbstractProvider {
 	return rest.NewProvider(
+		logger,
 		&KunaProvider{
 			config: config,
 		},

@@ -2,6 +2,7 @@ package config
 
 import (
 	"gses2-app/internal/handler/router"
+	"gses2-app/internal/repository/logger/rabbit"
 	"gses2-app/internal/repository/rate/rest/binance"
 	"gses2-app/internal/repository/rate/rest/coingecko"
 	"gses2-app/internal/repository/rate/rest/kuna"
@@ -18,4 +19,5 @@ type Config struct {
 	KunaAPI      kuna.KunaAPIConfig
 	BinanceAPI   binance.BinanceAPIConfig
 	CoingeckoAPI coingecko.CoingeckoAPIConfig
+	RabbitMQ     rabbit.RabbitMQConfig
 }

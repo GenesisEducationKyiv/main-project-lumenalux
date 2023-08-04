@@ -40,10 +40,12 @@ type CoingeckoProvider struct {
 }
 
 func NewProvider(
+	logger port.Logger,
 	config CoingeckoAPIConfig,
 	httpClient HTTPClient,
 ) *rest.AbstractProvider {
 	return rest.NewProvider(
+		logger,
 		&CoingeckoProvider{
 			config: config,
 		},

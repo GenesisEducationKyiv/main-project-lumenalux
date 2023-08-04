@@ -12,6 +12,15 @@ import (
 	"gses2-app/internal/repository/rate/rest"
 )
 
+type StubLogger struct{}
+
+func (s *StubLogger) Info(...interface{})           {}
+func (s *StubLogger) Infof(string, ...interface{})  {}
+func (s *StubLogger) Debug(...interface{})          {}
+func (s *StubLogger) Debugf(string, ...interface{}) {}
+func (s *StubLogger) Error(...interface{})          {}
+func (s *StubLogger) Errorf(string, ...interface{}) {}
+
 type StubHTTPClient struct {
 	Response *http.Response
 	Error    error
@@ -91,7 +100,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 			t.Parallel()
 
 			config := BinanceAPIConfig{}
-			provider := NewProvider(config, tt.stubHTTPClient)
+			provider := NewProvider(&StubLogger{}, config, tt.stubHTTPClient)
 			rate, err := provider.ExchangeRate()
 
 			require.ErrorIs(t, err, tt.expectedError)
