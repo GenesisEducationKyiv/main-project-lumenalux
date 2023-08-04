@@ -2,11 +2,21 @@ package rate
 
 import (
 	"errors"
-	"gses2-app/internal/core/port"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"gses2-app/internal/core/port"
 )
+
+type StubLogger struct{}
+
+func (s *StubLogger) Info(...interface{})           {}
+func (s *StubLogger) Infof(string, ...interface{})  {}
+func (s *StubLogger) Debug(...interface{})          {}
+func (s *StubLogger) Debugf(string, ...interface{}) {}
+func (s *StubLogger) Error(...interface{})          {}
+func (s *StubLogger) Errorf(string, ...interface{}) {}
 
 type StubProvider struct {
 	Rate         port.Rate
@@ -53,7 +63,7 @@ func TestExchangeRate(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			service := NewService(tt.stubProvider)
+			service := NewService(&StubLogger{}, tt.stubProvider)
 			rate, err := service.ExchangeRate()
 
 			require.Equal(

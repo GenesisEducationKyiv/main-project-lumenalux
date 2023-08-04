@@ -1,8 +1,6 @@
 package rate
 
 import (
-	"log"
-
 	"gses2-app/internal/core/port"
 )
 
@@ -13,10 +11,12 @@ type RatePort interface {
 
 type Service struct {
 	providers []RatePort
+	logger    port.Logger
 }
 
-func NewService(providers ...RatePort) *Service {
+func NewService(logger port.Logger, providers ...RatePort) *Service {
 	return &Service{
+		logger:    logger,
 		providers: providers,
 	}
 }
@@ -28,7 +28,7 @@ func (s *Service) ExchangeRate() (rate port.Rate, err error) {
 			return rate, nil
 		}
 
-		log.Printf("Error, %v: %v", provider.Name(), err)
+		s.logger.Errorf("Error, %v: %v", provider.Name(), err)
 	}
 
 	return rate, err
