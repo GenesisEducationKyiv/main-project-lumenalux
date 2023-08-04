@@ -6,19 +6,19 @@ import (
 	"net/http"
 	"os"
 
-	"gses2-app/internal/config"
-	"gses2-app/internal/controller"
-	"gses2-app/internal/rate"
-	"gses2-app/internal/rate/provider/binance"
-	"gses2-app/internal/rate/provider/coingecko"
-	"gses2-app/internal/rate/provider/kuna"
-	"gses2-app/internal/sender"
-	"gses2-app/internal/sender/provider/email"
-	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/internal/storage"
-	"gses2-app/internal/subscription"
-	"gses2-app/internal/transport"
-	"gses2-app/internal/user/repository"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/core/service/rate"
+	"gses2-app/internal/core/service/sender"
+	"gses2-app/internal/core/service/subscription"
+	"gses2-app/internal/handler/httpcontroller"
+	"gses2-app/internal/handler/router"
+	"gses2-app/internal/repository/config"
+	"gses2-app/internal/repository/rate/rest/binance"
+	"gses2-app/internal/repository/rate/rest/coingecko"
+	"gses2-app/internal/repository/rate/rest/kuna"
+	"gses2-app/internal/repository/sender/email"
+	"gses2-app/internal/repository/sender/smtp"
+	"gses2-app/internal/repository/storage"
 )
 
 const _configPrefix = "GSES2_APP"
@@ -39,7 +39,7 @@ func main() {
 	rateService := createRateService(&config)
 	subscriptionService := createSubscriptionService(&config)
 
-	appController := controller.NewAppController(
+	appController := httpcontroller.NewAppController(
 		rateService,
 		subscriptionService,
 		senderService,
@@ -93,13 +93,13 @@ func createSenderService(
 
 func createSubscriptionService(config *config.Config) *subscription.Service {
 	storageCSV := storage.NewCSVStorage(config.Storage.Path)
-	userRepository := repository.NewUserRepository(storageCSV)
+	userRepository := port.NewUserRepository(storageCSV)
 
 	return subscription.NewService(userRepository)
 }
 
-func registerRoutes(appController *controller.AppController) *http.ServeMux {
-	router := transport.NewHTTPRouter(appController)
+func registerRoutes(appController *httpcontroller.AppController) *http.ServeMux {
+	router := router.NewHTTPRouter(appController)
 
 	mux := http.NewServeMux()
 	router.RegisterRoutes(mux)
