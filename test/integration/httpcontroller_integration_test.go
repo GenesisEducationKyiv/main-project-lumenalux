@@ -25,6 +25,15 @@ import (
 
 const _configPrefix = "GSES2_APP"
 
+type StubLogger struct{}
+
+func (s *StubLogger) Info(...interface{})           {}
+func (s *StubLogger) Infof(string, ...interface{})  {}
+func (s *StubLogger) Debug(...interface{})          {}
+func (s *StubLogger) Debugf(string, ...interface{}) {}
+func (s *StubLogger) Error(...interface{})          {}
+func (s *StubLogger) Errorf(string, ...interface{}) {}
+
 type StubSenderProvider struct {
 	Err error
 }
@@ -93,7 +102,10 @@ func TestAppControllerIntegration(t *testing.T) {
 		&StubSenderProvider{},
 	)
 
-	defaultRateService := rate.NewService(&StubRateProvider{Rate: 42})
+	defaultRateService := rate.NewService(
+		&StubLogger{},
+		&StubRateProvider{Rate: 42},
+	)
 
 	defaultSubscriptionService := subscription.NewService(
 		&StubUserRepository{},
@@ -160,6 +172,7 @@ func TestAppControllerIntegration(t *testing.T) {
 			subscriptionService: defaultSubscriptionService,
 			senderService:       defaultEmailSenderService,
 			rateService: rate.NewService(
+				&StubLogger{},
 				&StubRateProvider{
 					Error: errRateProviderAnavailable,
 				},
