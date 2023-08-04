@@ -63,7 +63,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	rateService := createRateService(&config)
+	rateService := createRateService(logger, &config)
 	subscriptionService := createSubscriptionService(&config)
 
 	appController := httpcontroller.NewAppController(
@@ -78,23 +78,27 @@ func main() {
 	<-loging
 }
 
-func createRateService(config *config.Config) *rate.Service {
+func createRateService(
+	logger port.Logger,
+	config *config.Config,
+) *rate.Service {
 
 	httpClient := &http.Client{Timeout: config.HTTP.Timeout}
 
 	BinanceRateProvider := binance.NewProvider(
-		config.BinanceAPI, httpClient,
+		logger, config.BinanceAPI, httpClient,
 	)
 
 	KunaRateProvider := kuna.NewProvider(
-		config.KunaAPI, httpClient,
+		logger, config.KunaAPI, httpClient,
 	)
 
 	CoingeckoRateProvider := coingecko.NewProvider(
-		config.CoingeckoAPI, httpClient,
+		logger, config.CoingeckoAPI, httpClient,
 	)
 
 	return rate.NewService(
+		logger,
 		BinanceRateProvider,
 		CoingeckoRateProvider,
 		KunaRateProvider,

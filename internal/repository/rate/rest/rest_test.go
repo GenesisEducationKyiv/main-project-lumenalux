@@ -11,6 +11,15 @@ import (
 	"gses2-app/internal/core/port"
 )
 
+type StubLogger struct{}
+
+func (s *StubLogger) Info(...interface{})           {}
+func (s *StubLogger) Infof(string, ...interface{})  {}
+func (s *StubLogger) Debug(...interface{})          {}
+func (s *StubLogger) Debugf(string, ...interface{}) {}
+func (s *StubLogger) Error(...interface{})          {}
+func (s *StubLogger) Errorf(string, ...interface{}) {}
+
 type StubHTTPClient struct {
 	Response *http.Response
 	Error    error
@@ -89,7 +98,11 @@ func TestExchangeRate(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			abstractProvider := NewProvider(tt.stubProvider, tt.stubHTTPClient)
+			abstractProvider := NewProvider(
+				&StubLogger{},
+				tt.stubProvider,
+				tt.stubHTTPClient,
+			)
 			rate, err := abstractProvider.ExchangeRate()
 
 			require.ErrorIs(t, err, tt.expectedError)
