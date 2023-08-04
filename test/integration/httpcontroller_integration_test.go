@@ -1,6 +1,6 @@
-// Controller integration contains integration tests for the controller,
-// covering the interactions between the email, rate, subscription, and
-// transport layers.
+// HTTP Controller integration contains integration tests for
+// the controller, covering the interactions between the sender,
+//  rate, subscription services and router handler.
 
 package integration
 
@@ -12,15 +12,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gses2-app/internal/config"
-	"gses2-app/internal/controller"
-	"gses2-app/internal/rate"
-	"gses2-app/internal/sender"
-	"gses2-app/internal/sender/provider/email"
-	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/internal/subscription"
-	"gses2-app/internal/transport"
-	"gses2-app/internal/user/repository"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/core/service/rate"
+	"gses2-app/internal/core/service/sender"
+	"gses2-app/internal/core/service/subscription"
+	"gses2-app/internal/handler/httpcontroller"
+	"gses2-app/internal/handler/router"
+	"gses2-app/internal/repository/config"
+	"gses2-app/internal/repository/sender/email"
+	"gses2-app/internal/repository/sender/smtp"
 )
 
 const _configPrefix = "GSES2_APP"
@@ -30,8 +30,8 @@ type StubSenderProvider struct {
 }
 
 func (tp *StubSenderProvider) SendExchangeRate(
-	rate rate.Rate,
-	subscribers []repository.User,
+	rate port.Rate,
+	subscribers []port.User,
 ) error {
 	return tp.Err
 }
@@ -50,12 +50,12 @@ func (s *StubStorage) AllRecords() (records [][]string, err error) {
 }
 
 type StubRateProvider struct {
-	Rate         rate.Rate
+	Rate         port.Rate
 	Error        error
 	ProviderName string
 }
 
-func (m *StubRateProvider) ExchangeRate() (rate.Rate, error) {
+func (m *StubRateProvider) ExchangeRate() (port.Rate, error) {
 	return m.Rate, m.Error
 }
 
@@ -64,20 +64,20 @@ func (m *StubRateProvider) Name() string {
 }
 
 type StubUserRepository struct {
-	Users []repository.User
+	Users []port.User
 	Err   error
 }
 
-func (s *StubUserRepository) Add(user *repository.User) error {
+func (s *StubUserRepository) Add(user *port.User) error {
 	s.Users = append(s.Users, *user)
 	return s.Err
 }
 
-func (s *StubUserRepository) FindByEmail(email string) (*repository.User, error) {
+func (s *StubUserRepository) FindByEmail(email string) (*port.User, error) {
 	return &s.Users[0], s.Err
 }
 
-func (s *StubUserRepository) All() ([]repository.User, error) {
+func (s *StubUserRepository) All() ([]port.User, error) {
 	return s.Users, s.Err
 }
 
@@ -136,7 +136,7 @@ func TestAppControllerIntegration(t *testing.T) {
 			requestBody:    bytes.NewBufferString("email=test@test.com"),
 			expectedStatus: http.StatusConflict,
 			subscriptionService: subscription.NewService(
-				&StubUserRepository{Err: repository.ErrAlreadyAdded},
+				&StubUserRepository{Err: port.ErrAlreadyAdded},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,
@@ -172,7 +172,7 @@ func TestAppControllerIntegration(t *testing.T) {
 			requestBody:    nil,
 			expectedStatus: http.StatusInternalServerError,
 			subscriptionService: subscription.NewService(
-				&StubUserRepository{Err: repository.ErrCannotLoadUsers},
+				&StubUserRepository{Err: port.ErrCannotLoadUsers},
 			),
 			senderService: defaultEmailSenderService,
 			rateService:   defaultRateService,
@@ -205,7 +205,7 @@ func TestAppControllerIntegration(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			appController := controller.NewAppController(
+			appController := httpcontroller.NewAppController(
 				tt.rateService,
 				tt.subscriptionService,
 				tt.senderService,
@@ -217,7 +217,7 @@ func TestAppControllerIntegration(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 
-			router := transport.NewHTTPRouter(appController)
+			router := router.NewHTTPRouter(appController)
 			mux := http.NewServeMux()
 			router.RegisterRoutes(mux)
 
