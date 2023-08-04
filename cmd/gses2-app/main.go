@@ -36,9 +36,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	defer conn.Close()
-	defer ch.Close()
-
 	logger := rabbit.NewLogger(ctx, ch, q)
 
 	consumer, err := rabbit.NewConsumer(ch, q)
@@ -62,6 +59,9 @@ func main() {
 		logger.Errorf("Connection error: %s", err)
 		os.Exit(1)
 	}
+
+	defer conn.Close()
+	defer ch.Close()
 
 	rateService := createRateService(logger, &config)
 	subscriptionService := createSubscriptionService(&config)
