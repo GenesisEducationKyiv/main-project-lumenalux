@@ -1,4 +1,4 @@
-package controller
+package httpcontroller
 
 import (
 	"errors"
@@ -9,9 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/internal/rate"
-	"gses2-app/internal/subscription"
-	"gses2-app/internal/user/repository"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/core/service/subscription"
 )
 
 var (
@@ -21,33 +20,33 @@ var (
 )
 
 type StubExchangeRateService struct {
-	rate rate.Rate
+	rate port.Rate
 	err  error
 }
 
-func (m *StubExchangeRateService) ExchangeRate() (rate.Rate, error) {
+func (m *StubExchangeRateService) ExchangeRate() (port.Rate, error) {
 	return m.rate, m.err
 }
 
 type StubEmailSubscriptionService struct {
 	subscribeErr     error
-	subscriptions    []repository.User
+	subscriptions    []port.User
 	subscriptionsErr error
 	isSubscribedErr  error
 }
 
-func (m *StubEmailSubscriptionService) Subscribe(subscriber *repository.User) error {
+func (m *StubEmailSubscriptionService) Subscribe(subscriber *port.User) error {
 	return m.subscribeErr
 }
 
-func (m *StubEmailSubscriptionService) Subscriptions() ([]repository.User, error) {
+func (m *StubEmailSubscriptionService) Subscriptions() ([]port.User, error) {
 	if m.subscriptionsErr != nil {
 		return nil, m.subscriptionsErr
 	}
 	return m.subscriptions, nil
 }
 
-func (m *StubEmailSubscriptionService) IsSubscribed(subscriber repository.User) (bool, error) {
+func (m *StubEmailSubscriptionService) IsSubscribed(subscriber port.User) (bool, error) {
 	return true, m.isSubscribedErr
 }
 
@@ -56,8 +55,8 @@ type StubEmailSenderService struct {
 }
 
 func (m *StubEmailSenderService) SendExchangeRate(
-	rate rate.Rate,
-	subscribers ...repository.User,
+	rate port.Rate,
+	subscribers ...port.User,
 ) error {
 	return m.sendErr
 }
@@ -253,11 +252,11 @@ func TestSendEmails(t *testing.T) {
 	}
 }
 
-func convertEmailsToUsers(emails []string) []repository.User {
-	users := make([]repository.User, len(emails))
+func convertEmailsToUsers(emails []string) []port.User {
+	users := make([]port.User, len(emails))
 
 	for i, email := range emails {
-		users[i] = repository.User{Email: email}
+		users[i] = port.User{Email: email}
 	}
 
 	return users
