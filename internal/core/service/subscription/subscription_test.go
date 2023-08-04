@@ -5,24 +5,24 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/internal/user/repository"
+	"gses2-app/internal/core/port"
 )
 
 type StubUserRepository struct {
-	Users []repository.User
+	Users []port.User
 	Err   error
 }
 
-func (s *StubUserRepository) Add(user *repository.User) error {
+func (s *StubUserRepository) Add(user *port.User) error {
 	s.Users = append(s.Users, *user)
 	return s.Err
 }
 
-func (s *StubUserRepository) FindByEmail(email string) (*repository.User, error) {
+func (s *StubUserRepository) FindByEmail(email string) (*port.User, error) {
 	return &s.Users[0], s.Err
 }
 
-func (s *StubUserRepository) All() ([]repository.User, error) {
+func (s *StubUserRepository) All() ([]port.User, error) {
 	return s.Users, s.Err
 }
 
@@ -30,7 +30,7 @@ func TestSubscription(t *testing.T) {
 	t.Run("Subscribe", func(t *testing.T) {
 		t.Parallel()
 
-		subscriber := &repository.User{Email: "test@example.com"}
+		subscriber := &port.User{Email: "test@example.com"}
 		userRepository := &StubUserRepository{}
 		service := NewService(userRepository)
 
@@ -55,11 +55,11 @@ func TestSubscription(t *testing.T) {
 		t.Parallel()
 
 		userRepository := &StubUserRepository{
-			Users: []repository.User{},
-			Err:   repository.ErrAlreadyAdded,
+			Users: []port.User{},
+			Err:   port.ErrAlreadyAdded,
 		}
 		service := NewService(userRepository)
-		subscriber := &repository.User{Email: "test@example.com"}
+		subscriber := &port.User{Email: "test@example.com"}
 
 		err := service.Subscribe(subscriber)
 		require.ErrorIs(
