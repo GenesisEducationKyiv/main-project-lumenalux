@@ -11,17 +11,17 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"gses2-app/internal/storage"
-	"gses2-app/internal/subscription"
-	"gses2-app/internal/user/repository"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/core/service/subscription"
+	"gses2-app/internal/repository/storage"
 )
 
 type SubscriptionTest struct {
 	Name           string
-	Subscribers    []repository.User
-	Action         func(service *subscription.Service, emails []repository.User) error
+	Subscribers    []port.User
+	Action         func(service *subscription.Service, emails []port.User) error
 	ExpectedError  error
-	ExpectedResult []repository.User
+	ExpectedResult []port.User
 }
 
 func TestSubscriptionServiceIntegration(t *testing.T) {
@@ -32,41 +32,41 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 	defer os.Remove(tmpFile.Name())
 
 	storageCSV := storage.NewCSVStorage(tmpFile.Name())
-	userRepository := repository.NewUserRepository(storageCSV)
+	userRepository := port.NewUserRepository(storageCSV)
 	service := subscription.NewService(userRepository)
 
 	tests := []SubscriptionTest{
 		{
 			Name:        "Subscribe a new email",
-			Subscribers: []repository.User{{Email: "test1@example.com"}},
-			Action: func(service *subscription.Service, subscribers []repository.User) error {
+			Subscribers: []port.User{{Email: "test1@example.com"}},
+			Action: func(service *subscription.Service, subscribers []port.User) error {
 				return service.Subscribe(&subscribers[0])
 			},
 		},
 		{
 			Name:        "Subscribe an already subscribed email",
-			Subscribers: []repository.User{{Email: "test1@example.com"}},
-			Action: func(service *subscription.Service, subscribers []repository.User) error {
+			Subscribers: []port.User{{Email: "test1@example.com"}},
+			Action: func(service *subscription.Service, subscribers []port.User) error {
 				return service.Subscribe(&subscribers[0])
 			},
 			ExpectedError: subscription.ErrAlreadySubscribed,
 		},
 		{
 			Name:        "Get all subscriptions",
-			Subscribers: []repository.User{},
-			Action: func(service *subscription.Service, subscribers []repository.User) error {
+			Subscribers: []port.User{},
+			Action: func(service *subscription.Service, subscribers []port.User) error {
 				_, err := service.Subscriptions()
 				return err
 			},
-			ExpectedResult: []repository.User{{Email: "test1@example.com"}},
+			ExpectedResult: []port.User{{Email: "test1@example.com"}},
 		},
 		{
 			Name: "Subscribe multiple emails",
-			Subscribers: []repository.User{
+			Subscribers: []port.User{
 				{Email: "test2@example.com"},
 				{Email: "test3@example.com"},
 			},
-			Action: func(service *subscription.Service, subscribers []repository.User) error {
+			Action: func(service *subscription.Service, subscribers []port.User) error {
 				for _, subscriber := range subscribers {
 					if err := service.Subscribe(&subscriber); err != nil {
 						return err
@@ -74,7 +74,7 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				}
 				return nil
 			},
-			ExpectedResult: []repository.User{
+			ExpectedResult: []port.User{
 				{Email: "test1@example.com"},
 				{Email: "test2@example.com"},
 				{Email: "test3@example.com"},
@@ -82,11 +82,11 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 		},
 		{
 			Name: "Subscribe new and already subscribed emails",
-			Subscribers: []repository.User{
+			Subscribers: []port.User{
 				{Email: "test4@example.com"},
 				{Email: "test1@example.com"},
 			},
-			Action: func(service *subscription.Service, subscribers []repository.User) error {
+			Action: func(service *subscription.Service, subscribers []port.User) error {
 				for _, subscriber := range subscribers {
 					err := service.Subscribe(&subscriber)
 					if err != nil && !errors.Is(err, subscription.ErrAlreadySubscribed) {
@@ -95,7 +95,7 @@ func TestSubscriptionServiceIntegration(t *testing.T) {
 				}
 				return nil
 			},
-			ExpectedResult: []repository.User{
+			ExpectedResult: []port.User{
 				{Email: "test1@example.com"},
 				{Email: "test2@example.com"},
 				{Email: "test3@example.com"},
@@ -126,7 +126,7 @@ func checkError(t *testing.T, err error, expectedError error) {
 func checkExpectedResult(
 	t *testing.T,
 	service *subscription.Service,
-	expectedResult []repository.User,
+	expectedResult []port.User,
 ) {
 	if expectedResult == nil {
 		return
