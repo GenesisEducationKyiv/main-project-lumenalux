@@ -1,8 +1,14 @@
-package transport
+package router
 
 import (
 	"net/http"
+	"time"
 )
+
+type HTTPConfig struct {
+	Port    string        `default:"8080"`
+	Timeout time.Duration `default:"10s"`
+}
 
 type Controller interface {
 	GetRate(w http.ResponseWriter, r *http.Request)
