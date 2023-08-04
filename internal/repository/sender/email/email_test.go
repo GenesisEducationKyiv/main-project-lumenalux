@@ -6,9 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/internal/rate"
-	"gses2-app/internal/sender/transport/smtp"
-	"gses2-app/internal/user/repository"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/repository/sender/smtp"
 )
 
 var (
@@ -20,7 +19,7 @@ func TestSendExchangeRate(t *testing.T) {
 	tests := []struct {
 		name         string
 		emails       []string
-		exchangeRate rate.Rate
+		exchangeRate port.Rate
 		dialer       smtp.TLSConnectionDialer
 		factory      smtp.SMTPClientFactory
 		expectedErr  error
@@ -76,11 +75,11 @@ func TestSendExchangeRate(t *testing.T) {
 	}
 }
 
-func convertEmailsToUsers(emails []string) []repository.User {
-	users := make([]repository.User, len(emails))
+func convertEmailsToUsers(emails []string) []port.User {
+	users := make([]port.User, len(emails))
 
 	for i, email := range emails {
-		users[i] = repository.User{Email: email}
+		users[i] = port.User{Email: email}
 	}
 
 	return users
