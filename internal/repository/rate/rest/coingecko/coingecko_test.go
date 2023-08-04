@@ -1,4 +1,4 @@
-package kuna
+package coingecko
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/internal/rate"
-	"gses2-app/internal/rate/provider"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/repository/rate/rest"
 )
 
 type StubHTTPClient struct {
@@ -21,11 +21,11 @@ func (m *StubHTTPClient) Get(url string) (*http.Response, error) {
 	return m.Response, m.Error
 }
 
-func TestKunaProviderExchangeRate(t *testing.T) {
+func TestBinanceProviderExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		stubHTTPClient *StubHTTPClient
-		expectedRate   rate.Rate
+		expectedRate   port.Rate
 		expectedError  error
 	}{
 		{
@@ -35,20 +35,20 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
 						bytes.NewBufferString(
-							`[[123456789,"BTCUSDT","1.23","1.24","1.25","1.26",1.23,1.24,1.25]]`,
+							`{"bitcoin":{"uah":123456}}`,
 						),
 					),
 				},
 			},
-			expectedRate: 1.24,
+			expectedRate: 123456,
 		},
 		{
 			name: "HTTP request failure",
 			stubHTTPClient: &StubHTTPClient{
 				Response: nil,
-				Error:    provider.ErrHTTPRequestFailure,
+				Error:    rest.ErrHTTPRequestFailure,
 			},
-			expectedError: provider.ErrHTTPRequestFailure,
+			expectedError: rest.ErrHTTPRequestFailure,
 		},
 		{
 			name: "Unexpected status code",
@@ -57,7 +57,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusForbidden,
 				},
 			},
-			expectedError: provider.ErrUnexpectedStatusCode,
+			expectedError: rest.ErrUnexpectedStatusCode,
 		},
 		{
 			name: "Bad response body format",
@@ -76,12 +76,12 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
 						bytes.NewBufferString(
-							`[[123456789,"BTCUSDT","1.23","1.24","1.25","1.26",1.23,true,1.25]]`,
+							`{"bitcoin":{"uah":false}}`,
 						),
 					),
 				},
 			},
-			expectedError: ErrUnexpectedExchangeRateFormat,
+			expectedError: ErrUnexpectedResponseFormat,
 		},
 	}
 
@@ -90,7 +90,7 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			config := KunaAPIConfig{}
+			config := CoingeckoAPIConfig{}
 			provider := NewProvider(config, tt.stubHTTPClient)
 			rate, err := provider.ExchangeRate()
 
@@ -98,5 +98,4 @@ func TestKunaProviderExchangeRate(t *testing.T) {
 			require.Equal(t, tt.expectedRate, rate, "Expected rate %v, got %v", tt.expectedRate, rate)
 		})
 	}
-
 }

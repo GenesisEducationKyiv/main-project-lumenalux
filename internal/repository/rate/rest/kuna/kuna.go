@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
-	"gses2-app/internal/rate"
-	"gses2-app/internal/rate/provider"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/repository/rate/rest"
 )
 
 var (
@@ -39,8 +39,8 @@ type KunaProvider struct {
 func NewProvider(
 	config KunaAPIConfig,
 	httpClient HTTPClient,
-) *provider.AbstractProvider {
-	return provider.NewProvider(
+) *rest.AbstractProvider {
+	return rest.NewProvider(
 		&KunaProvider{
 			config: config,
 		},
@@ -56,7 +56,7 @@ func (p *KunaProvider) Name() string {
 	return _providerName
 }
 
-func (p *KunaProvider) ExtractRate(resp *http.Response) (rate.Rate, error) {
+func (p *KunaProvider) ExtractRate(resp *http.Response) (port.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return 0, err
@@ -77,5 +77,5 @@ func (p *KunaProvider) ExtractRate(resp *http.Response) (rate.Rate, error) {
 		return 0, ErrUnexpectedExchangeRateFormat
 	}
 
-	return rate.Rate(exchangeRate), nil
+	return port.Rate(exchangeRate), nil
 }

@@ -1,4 +1,4 @@
-package binance
+package kuna
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/internal/rate"
-	"gses2-app/internal/rate/provider"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/repository/rate/rest"
 )
 
 type StubHTTPClient struct {
@@ -21,11 +21,11 @@ func (m *StubHTTPClient) Get(url string) (*http.Response, error) {
 	return m.Response, m.Error
 }
 
-func TestBinanceProviderExchangeRate(t *testing.T) {
+func TestKunaProviderExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		stubHTTPClient *StubHTTPClient
-		expectedRate   rate.Rate
+		expectedRate   port.Rate
 		expectedError  error
 	}{
 		{
@@ -35,20 +35,20 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
 						bytes.NewBufferString(
-							`[[168,"153.00","153.0","153.0","123.456","0.0",99,"0.0",0,"0.0","0.0","0"]]`,
+							`[[123456789,"BTCUSDT","1.23","1.24","1.25","1.26",1.23,1.24,1.25]]`,
 						),
 					),
 				},
 			},
-			expectedRate: 123.456,
+			expectedRate: 1.24,
 		},
 		{
 			name: "HTTP request failure",
 			stubHTTPClient: &StubHTTPClient{
 				Response: nil,
-				Error:    provider.ErrHTTPRequestFailure,
+				Error:    rest.ErrHTTPRequestFailure,
 			},
-			expectedError: provider.ErrHTTPRequestFailure,
+			expectedError: rest.ErrHTTPRequestFailure,
 		},
 		{
 			name: "Unexpected status code",
@@ -57,7 +57,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusForbidden,
 				},
 			},
-			expectedError: provider.ErrUnexpectedStatusCode,
+			expectedError: rest.ErrUnexpectedStatusCode,
 		},
 		{
 			name: "Bad response body format",
@@ -76,7 +76,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
 						bytes.NewBufferString(
-							`[[168,"153.00","153.0","153.0",true,"0.0",99,"0.0",0,"0.0","0.0","0"]]`,
+							`[[123456789,"BTCUSDT","1.23","1.24","1.25","1.26",1.23,true,1.25]]`,
 						),
 					),
 				},
@@ -90,7 +90,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			config := BinanceAPIConfig{}
+			config := KunaAPIConfig{}
 			provider := NewProvider(config, tt.stubHTTPClient)
 			rate, err := provider.ExchangeRate()
 

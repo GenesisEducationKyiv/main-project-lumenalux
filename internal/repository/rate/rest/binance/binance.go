@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"gses2-app/internal/rate"
-	"gses2-app/internal/rate/provider"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/repository/rate/rest"
 )
 
 var (
@@ -40,8 +40,8 @@ type BinanceProvider struct {
 func NewProvider(
 	config BinanceAPIConfig,
 	httpClient HTTPClient,
-) *provider.AbstractProvider {
-	return provider.NewProvider(
+) *rest.AbstractProvider {
+	return rest.NewProvider(
 		&BinanceProvider{
 			config: config,
 		},
@@ -57,7 +57,7 @@ func (p *BinanceProvider) Name() string {
 	return _providerName
 }
 
-func (p *BinanceProvider) ExtractRate(resp *http.Response) (rate.Rate, error) {
+func (p *BinanceProvider) ExtractRate(resp *http.Response) (port.Rate, error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return 0, err
@@ -83,5 +83,5 @@ func (p *BinanceProvider) ExtractRate(resp *http.Response) (rate.Rate, error) {
 		return 0, errors.Join(err, ErrUnexpectedExchangeRateFormat)
 	}
 
-	return rate.Rate(rateValue), nil
+	return port.Rate(rateValue), nil
 }

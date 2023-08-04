@@ -1,4 +1,4 @@
-package coingecko
+package binance
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"gses2-app/internal/rate"
-	"gses2-app/internal/rate/provider"
+	"gses2-app/internal/core/port"
+	"gses2-app/internal/repository/rate/rest"
 )
 
 type StubHTTPClient struct {
@@ -25,7 +25,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		stubHTTPClient *StubHTTPClient
-		expectedRate   rate.Rate
+		expectedRate   port.Rate
 		expectedError  error
 	}{
 		{
@@ -35,20 +35,20 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
 						bytes.NewBufferString(
-							`{"bitcoin":{"uah":123456}}`,
+							`[[168,"153.00","153.0","153.0","123.456","0.0",99,"0.0",0,"0.0","0.0","0"]]`,
 						),
 					),
 				},
 			},
-			expectedRate: 123456,
+			expectedRate: 123.456,
 		},
 		{
 			name: "HTTP request failure",
 			stubHTTPClient: &StubHTTPClient{
 				Response: nil,
-				Error:    provider.ErrHTTPRequestFailure,
+				Error:    rest.ErrHTTPRequestFailure,
 			},
-			expectedError: provider.ErrHTTPRequestFailure,
+			expectedError: rest.ErrHTTPRequestFailure,
 		},
 		{
 			name: "Unexpected status code",
@@ -57,7 +57,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusForbidden,
 				},
 			},
-			expectedError: provider.ErrUnexpectedStatusCode,
+			expectedError: rest.ErrUnexpectedStatusCode,
 		},
 		{
 			name: "Bad response body format",
@@ -76,12 +76,12 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 					StatusCode: http.StatusOK,
 					Body: io.NopCloser(
 						bytes.NewBufferString(
-							`{"bitcoin":{"uah":false}}`,
+							`[[168,"153.00","153.0","153.0",true,"0.0",99,"0.0",0,"0.0","0.0","0"]]`,
 						),
 					),
 				},
 			},
-			expectedError: ErrUnexpectedResponseFormat,
+			expectedError: ErrUnexpectedExchangeRateFormat,
 		},
 	}
 
@@ -90,7 +90,7 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			config := CoingeckoAPIConfig{}
+			config := BinanceAPIConfig{}
 			provider := NewProvider(config, tt.stubHTTPClient)
 			rate, err := provider.ExchangeRate()
 
@@ -98,4 +98,5 @@ func TestBinanceProviderExchangeRate(t *testing.T) {
 			require.Equal(t, tt.expectedRate, rate, "Expected rate %v, got %v", tt.expectedRate, rate)
 		})
 	}
+
 }

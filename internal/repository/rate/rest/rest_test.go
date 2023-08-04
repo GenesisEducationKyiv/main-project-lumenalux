@@ -1,13 +1,14 @@
-package provider
+package rest
 
 import (
 	"bytes"
-	"gses2-app/internal/rate"
 	"io"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"gses2-app/internal/core/port"
 )
 
 type StubHTTPClient struct {
@@ -22,7 +23,7 @@ func (m *StubHTTPClient) Get(url string) (*http.Response, error) {
 type StubProvider struct {
 	Url          string
 	ProviderName string
-	Rate         rate.Rate
+	Rate         port.Rate
 	Error        error
 }
 
@@ -34,7 +35,7 @@ func (s *StubProvider) Name() string {
 	return s.ProviderName
 }
 
-func (s *StubProvider) ExtractRate(r *http.Response) (rate.Rate, error) {
+func (s *StubProvider) ExtractRate(r *http.Response) (port.Rate, error) {
 	return s.Rate, s.Error
 }
 
@@ -43,7 +44,7 @@ func TestExchangeRate(t *testing.T) {
 		name           string
 		stubProvider   Provider
 		stubHTTPClient *StubHTTPClient
-		expectedRate   rate.Rate
+		expectedRate   port.Rate
 		expectedError  error
 	}{
 		{
