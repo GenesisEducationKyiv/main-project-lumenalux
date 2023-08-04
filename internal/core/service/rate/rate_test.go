@@ -2,18 +2,19 @@ package rate
 
 import (
 	"errors"
+	"gses2-app/internal/core/port"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 type StubProvider struct {
-	Rate         Rate
+	Rate         port.Rate
 	Error        error
 	ProviderName string
 }
 
-func (m *StubProvider) ExchangeRate() (Rate, error) {
+func (m *StubProvider) ExchangeRate() (port.Rate, error) {
 	return m.Rate, m.Error
 }
 
@@ -25,7 +26,7 @@ func TestExchangeRate(t *testing.T) {
 	tests := []struct {
 		name           string
 		stubProvider   *StubProvider
-		expectedRate   Rate
+		expectedRate   port.Rate
 		expectingError bool
 	}{
 		{
