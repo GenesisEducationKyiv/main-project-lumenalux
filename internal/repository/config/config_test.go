@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"log"
 	"os"
 	"strconv"
 	"testing"
@@ -113,7 +112,6 @@ func TestLoad(t *testing.T) {
 			config, err := Load(_configPrefix)
 
 			if tt.expectedErr != nil {
-				log.Println(err, tt.expectedErr)
 				if !errors.Is(err, tt.expectedErr) {
 					t.Fatalf("In test %v\nExpected:\n%v\nbut got:\n%v\n", t.Name(), tt.expectedErr, err)
 				}
