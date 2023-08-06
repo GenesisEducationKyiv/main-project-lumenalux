@@ -14,3 +14,4 @@
 .env
 storage/storage.csv
 gses2-app
+!gses2-app/
